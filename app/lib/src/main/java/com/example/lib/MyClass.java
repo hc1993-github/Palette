@@ -24,6 +24,7 @@ public class MyClass {
     }
     public static void createFile(int line,float scale){
         //1080/(480/160)  宽度/屏幕像素密度/160  --->sw-360dp
+        //dp=px/density  density=dpi/160
         //设基准为380dp 则scale=360/380
         try {
             File file = new File("D://test.txt");
