@@ -17,7 +17,9 @@ public class MyClass {
         try {
 //            File file = new File("D://cold.apk");
 //            System.out.println(getMd5ByFile(file));
-            createFile(100,2.32f);
+//            createFile(100,2.32f);
+            System.out.println(50*12f);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

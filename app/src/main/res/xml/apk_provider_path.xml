@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <external-path
+        name="download"
+        path="."/>
+    <!--等价于Environment.getExternalStorageDirectory()-->
+
+    <!--<files-path name="name"
+        path="path"/>
+    等价于context.getFilesDir()-->
+
+    <!--<cache-path
+        name="name"
+        path="path"/>
+    等价于context.getCacheDir()-->
+
+    <!--<external-files-path
+        name="name"
+        path="path"/>
+    等价于context.getExternalFilesDir(null)-->
+
+    <!--<external-cache-path
+        name="name"
+        path="path"/>
+    等价于context.getExternalCacheDir()-->
+</paths>
