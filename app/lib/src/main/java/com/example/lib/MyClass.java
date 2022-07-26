@@ -11,6 +11,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.text.DecimalFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MyClass {
     public static void main(String[] args) {
@@ -18,12 +20,23 @@ public class MyClass {
 //            File file = new File("D://cold.apk");
 //            System.out.println(getMd5ByFile(file));
 //            createFile(100,2.32f);
-            System.out.println(50*12f);
-
+            System.out.println(isMobliePhone(""));
+            System.out.println(isEmail("1234@a.com"));
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    public static boolean isMobliePhone(String mobilePhone){
+        Pattern pattern = Pattern.compile("^[1][3,4,5,6,7,8,9][0-9]{9}");
+        Matcher m = pattern.matcher(mobilePhone);
+        return m.matches();
+    }
+
+    public static boolean isEmail(String email){
+        String regex = "\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
+        return email.matches(regex);
+    }
+
     public static void createFile(int line,float scale){
         //1080/(480/160)  宽度/屏幕像素密度/160  --->sw-360dp
         //dp=px/density  density=dpi/160
