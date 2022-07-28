@@ -1,9 +1,17 @@
 package com.example.palette.util;
 
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ScreenUtil {
     /**
@@ -103,5 +111,73 @@ public class ScreenUtil {
     public static int px2dip(Context context,float px){
         float density = context.getResources().getDisplayMetrics().density;
         return (int) (px/density+0.5f);
+    }
+
+    /**
+     * 显示软键盘
+     * @param context
+     * @param view
+     */
+    public static void showSoftInput(final Context context, final View view) {
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.showSoftInput(view, WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            }
+        }, 998);
+    }
+
+    /**
+     * 隐藏软键盘
+     * @param context
+     * @param view
+     */
+    public static void hideSoftInput(Context context, View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), WindowManager.LayoutParams.SOFT_INPUT_STATE_UNSPECIFIED);
+    }
+
+    /**
+     * 获取软键盘状态
+     * @param context
+     * @return
+     */
+    public static boolean isShowSoftInput(Context context,View view) {
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        //获取状态信息
+        return imm.isActive(view);//true 打开
+    }
+
+    /**
+     * 获取显示在最顶端的activity名称
+     * @param context
+     * @return
+     */
+    public static String getTopActivityName(Context context) {
+        String topActivityClassName = null;
+        ActivityManager manager = (ActivityManager) (context.getSystemService(Context.ACTIVITY_SERVICE));
+        List<ActivityManager.RunningTaskInfo> taskInfo = manager.getRunningTasks(1);
+        if (taskInfo != null) {
+            ComponentName f = taskInfo.get(0).topActivity;
+            topActivityClassName = f.getClassName();
+        }
+        return topActivityClassName;
+    }
+
+    /**
+     * 判断Activity是否运行在前台
+     * @param context
+     * @return
+     */
+    public static boolean isRunningForeground(Context context) {
+        String packageName = context.getPackageName();
+        String topActivityClassName = getTopActivityName(context);
+        if (packageName != null && topActivityClassName != null && topActivityClassName.startsWith(packageName)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
