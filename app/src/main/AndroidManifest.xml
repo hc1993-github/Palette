@@ -12,10 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Palette">
-        <activity android:name=".ThirdActivity"/>
-        <activity
-            android:name=".SecActivity"
-            android:launchMode="standard" />
+        <activity android:name=".ThirdActivity" />
+        <activity android:name=".SecActivity"/>
         <activity android:name=".MainActivity" />
         <activity
             android:name=".FourActivity"
@@ -36,8 +34,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/apk_provider_path" />
         </provider>
-        <meta-data android:name="com.example.palette.module.CustomGlideModule"
-                    android:value="GlideModule"/>
+
+        <meta-data
+            android:name="com.example.palette.module.CustomGlideModule"
+            android:value="GlideModule" />
     </application>
 
 </manifest>
