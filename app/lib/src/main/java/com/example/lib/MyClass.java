@@ -11,6 +11,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.text.DecimalFormat;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,11 +21,22 @@ public class MyClass {
 //            File file = new File("D://cold.apk");
 //            System.out.println(getMd5ByFile(file));
 //            createFile(100,2.32f);
-            System.out.println(isMobliePhone(""));
-            System.out.println(isEmail("1234@a.com"));
+//            System.out.println(isMobliePhone(""));
+//            System.out.println(isEmail("1234@a.com"));
+            System.out.println(getRandomString(5));
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    public static String getRandomString(int length){
+        String str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        Random random = new Random();
+        StringBuilder builder = new StringBuilder();
+        for(int i=0;i<length;i++){
+            int nextInt = random.nextInt(62);
+            builder.append(str.charAt(nextInt));
+        }
+        return builder.toString();
     }
     public static boolean isMobliePhone(String mobilePhone){
         Pattern pattern = Pattern.compile("^[1][3,4,5,6,7,8,9][0-9]{9}");
