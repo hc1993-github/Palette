@@ -13,6 +13,21 @@ import okio.ForwardingSource;
 import okio.Okio;
 import okio.Source;
 
+/**
+ * ProgressInterceptor.addListener(mData.get(position), new ProgressListener() {
+ *  @Override
+ *  public void onProgress(int progress) {
+ *     Log.d("adapter1", mData.get(position)+" onProgress: "+progress);
+ *  }
+ *  });
+ *  Glide.with(context).load(mData.get(position)).into(new DrawableImageViewTarget(holder.textView){
+ *   @Override
+ *   public void onResourceReady(Drawable resource, Transition<? super Drawable> transition) {
+ *      super.onResourceReady(resource, transition);
+ *      ProgressInterceptor.removeListener(mData.get(position));
+ *   }
+ *  });
+ */
 public class ProgressResponseBody extends ResponseBody {
     ProgressListener progressListener;
     ResponseBody responseBody;
