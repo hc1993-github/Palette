@@ -1,0 +1,4 @@
+1.inflate(int resource,ViewGroup root, boolean attachToRoot)
+   resource 资源Id
+   root 为将要生成的布局指定父布局
+   attachToRoot 是否将将要生成的布局添加到父布局上

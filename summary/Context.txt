@@ -1,0 +1,13 @@
+                                                                  Context
+                                                                   ↙      ↘
+                                            ContextWrapper        ContextImpl
+                                           ↙           ↓          ↘
+                            Application        Service        ContextThemeWrapper
+                                                                                        ↓
+                                                                                   Activity
+
+1.获取Application
+   Activity和Service可直接调用getApplication
+   BroadcastReceiver调用getApplicationContext
+2.Context具体功能实现
+   ContextWrapper调用attachBaseContext方法接收ContextImpl并赋值,因此由ContextImpl实现

@@ -1,0 +1,7 @@
+1.如何观察生命周期
+  将observer包装为LifecycleBoundObserver并将其添加到LifeCycle中,完成对LifeCycle观察者的添加
+2.如何回调
+  由于已完成对LifeCycle观察者的添加因此生命周期发生变化时会回调LifecycleBoundObserver的onStateChanged方法
+  再依次调用activeStateChanged，dispatchingValue，considerNotify，最终回调onChanged方法
+3.postValue/setValue
+  postValue将切换至主线程再调用setValue，setValue调用dispatchingValue，最终调用onChanged方法
