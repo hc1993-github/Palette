@@ -1,4 +1,4 @@
-package com.example.palette;
+package com.example.palette.activity;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -9,14 +9,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.palette.adapter.adapter1;
+import com.example.palette.R;
+import com.example.palette.adapter.ProgressAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ThirdActivity extends AppCompatActivity {
     List<String> data;
-    adapter1 adapter1;
+    ProgressAdapter adapter1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,7 +26,7 @@ public class ThirdActivity extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         data = new ArrayList<>();
-        adapter1 = new adapter1(this,data);
+        adapter1 = new ProgressAdapter(this,data);
         recyclerView.setAdapter(adapter1);
     }
 

@@ -1,10 +1,12 @@
-package com.example.palette;
+package com.example.palette.socket;
 
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.palette.R;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

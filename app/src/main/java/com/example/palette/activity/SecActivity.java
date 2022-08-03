@@ -1,4 +1,4 @@
-package com.example.palette;
+package com.example.palette.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -11,6 +11,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.example.palette.R;
 
 public class SecActivity extends AppCompatActivity {
 

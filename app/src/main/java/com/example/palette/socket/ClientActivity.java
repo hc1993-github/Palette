@@ -1,4 +1,4 @@
-package com.example.palette;
+package com.example.palette.socket;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,6 +10,8 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.palette.R;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".FourActivity">
+    tools:context=".activity.FourActivity">
 
     <!--<com.example.palette.view.ScaleOrMoveView
         android:id="@+id/scaleView"

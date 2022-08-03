@@ -7,10 +7,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -28,10 +26,10 @@ import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_SETTLING;
 
-public class adapter1 extends RecyclerView.Adapter<adapter1.holder1> {
+public class ProgressAdapter extends RecyclerView.Adapter<ProgressAdapter.holder1> {
     List<String> mData;
     Context context;
-    public adapter1(Context context,List<String> mData) {
+    public ProgressAdapter(Context context, List<String> mData) {
         this.mData = mData;
         this.context = context;
     }
@@ -69,7 +67,7 @@ public class adapter1 extends RecyclerView.Adapter<adapter1.holder1> {
     }
 
     @Override
-    public void onBindViewHolder(adapter1.holder1 holder, int position) {
+    public void onBindViewHolder(ProgressAdapter.holder1 holder, int position) {
         ProgressInterceptor.addListener(mData.get(position), new ProgressListener() {
             @Override
             public void onProgress(int progress) {

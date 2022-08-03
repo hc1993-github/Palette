@@ -1,9 +1,10 @@
-package com.example.palette;
+package com.example.palette.activity;
 
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.palette.R;
 import com.example.palette.hilt.MyInterface;
 import com.example.palette.hilt.MyObserver;
 

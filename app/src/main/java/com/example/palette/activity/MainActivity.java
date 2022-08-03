@@ -1,4 +1,4 @@
-package com.example.palette;
+package com.example.palette.activity;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +18,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+
+import com.example.palette.R;
 
 import java.util.List;
 
