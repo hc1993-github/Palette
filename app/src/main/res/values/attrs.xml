@@ -20,4 +20,7 @@
         <!--水滴显示和消失的速度-->
         <attr name="flicker" format="float" />
     </declare-styleable>
+    <declare-styleable name="TemperatureView">
+        <attr name="currentTemp" format="integer"/>
+    </declare-styleable>
 </resources>

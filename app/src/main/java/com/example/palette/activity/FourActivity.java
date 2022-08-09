@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.palette.R;
 import com.example.palette.hilt.MyInterface;
 import com.example.palette.hilt.MyObserver;
+import com.example.palette.view.TemperatureView;
 
 import javax.inject.Inject;
 
@@ -22,7 +23,6 @@ public class FourActivity extends AppCompatActivity {
 
     @Inject
     MyInterface myInterface;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
