@@ -219,12 +219,12 @@ public class TemperatureView extends View {
         }else {
             height = defaultSize;
         }
-//        if(width>ScreenUtil.getWidthPx(getContext())){
-//            width = ScreenUtil.getWidthPx(getContext());
-//        }
-//        if(height>ScreenUtil.getHeightPx(getContext())){
-//            height=ScreenUtil.getHeightPx(getContext());
-//        }
+        if(width>ScreenUtil.getWidthPx(getContext())){
+            width = ScreenUtil.getWidthPx(getContext());
+        }
+        if(height>ScreenUtil.getHeightPx(getContext())){
+            height=ScreenUtil.getHeightPx(getContext());
+        }
         min = Math.min(width, height);
 
         setMeasuredDimension(min,min);
