@@ -26,11 +26,11 @@ public class TemperatureView extends View {
     float rotateAngle;
     int temperature;
     int minTemp = -30;
-    int maxTemp = 60;
+    int maxTemp = 30;
     int middleTemp = 0;
-    int precent2Temp = 40;
+    int precent2Temp = 20;
     int precent02Temp = -20;
-    int precent1Temp = 20;
+    int precent1Temp = 10;
     int precent01Temp = -10;
     int min;
     Paint arcPaint;
@@ -45,13 +45,6 @@ public class TemperatureView extends View {
     Paint bottomTextPaint;
     List<Integer> paintColors;
     List<Integer> tempColors;
-    String _thirty = minTemp+"°";
-    String thirty = maxTemp+"°";
-    String _twenty = precent02Temp+"°";
-    String zero = middleTemp+"°";
-    String twenty = precent2Temp+"°";
-    String _ten = precent01Temp+"°";
-    String ten = precent1Temp+"°";
     String stringZD = "中等";
     String stringY = "优";
     String stringL = "良";
@@ -219,12 +212,12 @@ public class TemperatureView extends View {
         }else {
             height = defaultSize;
         }
-        if(width>ScreenUtil.getWidthPx(getContext())){
-            width = ScreenUtil.getWidthPx(getContext());
-        }
-        if(height>ScreenUtil.getHeightPx(getContext())){
-            height=ScreenUtil.getHeightPx(getContext());
-        }
+//        if(width>ScreenUtil.getWidthPx(getContext())){
+//            width = ScreenUtil.getWidthPx(getContext());
+//        }
+//        if(height>ScreenUtil.getHeightPx(getContext())){
+//            height=ScreenUtil.getHeightPx(getContext());
+//        }
         min = Math.min(width, height);
 
         setMeasuredDimension(min,min);
@@ -377,13 +370,13 @@ public class TemperatureView extends View {
         canvas.save();
         numberPaint.setTextSize(39f*getWidth()/1050f);
         numberSizePaint.setTextSize(31f*getWidth()/1050f);
-        canvas.drawText(_thirty, (float) (getWidth()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)-68f*getWidth()/1050f), (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f),numberPaint);
-        canvas.drawText(_twenty,getWidth()/2-maxCircleRadius-defaultLongSize-68f*getWidth()/1050f,getHeight()/2+30f*getWidth()/1050f/2,numberPaint);
-        canvas.drawText(_ten, (float) (getWidth()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)-68f*getWidth()/1050f), (float) (getHeight()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)),numberPaint);
-        canvas.drawText(zero,getWidth()/2-33f*getWidth()/1050f/2,getHeight()/2-maxCircleRadius-defaultLongSize,numberPaint);
-        canvas.drawText(ten,(float) (getWidth()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)),(float) (getHeight()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)),numberPaint);
-        canvas.drawText(twenty,getWidth()/2+maxCircleRadius+defaultLongSize,getHeight()/2+30f*getWidth()/1050f/2,numberPaint);
-        canvas.drawText(thirty, (float) (getWidth()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)), (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f),numberPaint);
+        canvas.drawText(minTemp+"°", (float) (getWidth()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)-68f*getWidth()/1050f), (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f),numberPaint);
+        canvas.drawText(precent02Temp+"°",getWidth()/2-maxCircleRadius-defaultLongSize-68f*getWidth()/1050f,getHeight()/2+30f*getWidth()/1050f/2,numberPaint);
+        canvas.drawText(precent01Temp+"°", (float) (getWidth()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)-68f*getWidth()/1050f), (float) (getHeight()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)),numberPaint);
+        canvas.drawText(middleTemp+"°",getWidth()/2-33f*getWidth()/1050f/2,getHeight()/2-maxCircleRadius-defaultLongSize,numberPaint);
+        canvas.drawText(precent1Temp+"°",(float) (getWidth()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)),(float) (getHeight()/2-Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)),numberPaint);
+        canvas.drawText(precent2Temp+"°",getWidth()/2+maxCircleRadius+defaultLongSize,getHeight()/2+30f*getWidth()/1050f/2,numberPaint);
+        canvas.drawText(maxTemp+"°", (float) (getWidth()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)), (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f),numberPaint);
         canvas.drawText(stringY,(float)(getWidth()/2-Math.sin(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f),(float)(getHeight()/2+Math.cos(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)+37f*getWidth()/1050f/2),numberSizePaint);
         canvas.drawText(stringL,(float)(getWidth()/2-Math.sin(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f),(float)(getHeight()/2-Math.cos(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)),numberSizePaint);
         canvas.drawText(stringZD,(float)(getWidth()/2-Math.sin(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f),(float)(getHeight()/2-Math.cos(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-37f*getWidth()/1050f/2),numberSizePaint);
@@ -437,6 +430,15 @@ public class TemperatureView extends View {
 
     public void setTemperature(int temp) {
         temperature = temp;
+        postInvalidate();
+    }
+    public void setMaxAndMinTemp(float max,float min){
+        maxTemp = (int) max;
+        precent2Temp = (int) (max*2f/3f);
+        precent1Temp = (int) (max/3f);
+        minTemp = (int) min;
+        precent02Temp = (int) (min*2f/3f);
+        precent01Temp = (int) (min/3f);
         postInvalidate();
     }
 }
