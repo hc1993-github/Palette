@@ -26,11 +26,11 @@ public class TemperatureView extends View {
     float rotateAngle;
     int temperature;
     int minTemp = -30;
-    int maxTemp = 30;
+    int maxTemp = 60;
     int middleTemp = 0;
-    int precent2Temp = 20;
+    int precent2Temp = 40;
     int precent02Temp = -20;
-    int precent1Temp = 10;
+    int precent1Temp = 20;
     int precent01Temp = -10;
     int min;
     Paint arcPaint;
@@ -45,13 +45,13 @@ public class TemperatureView extends View {
     Paint bottomTextPaint;
     List<Integer> paintColors;
     List<Integer> tempColors;
-    String _thirty = "-30°";
-    String thirty = "30°";
-    String _twenty = "-20°";
-    String zero = "0°";
-    String twenty = "20°";
-    String _ten = "-10°";
-    String ten = "10°";
+    String _thirty = minTemp+"°";
+    String thirty = maxTemp+"°";
+    String _twenty = precent02Temp+"°";
+    String zero = middleTemp+"°";
+    String twenty = precent2Temp+"°";
+    String _ten = precent01Temp+"°";
+    String ten = precent1Temp+"°";
     String stringZD = "中等";
     String stringY = "优";
     String stringL = "良";
@@ -265,7 +265,7 @@ public class TemperatureView extends View {
                 temperature = minTemp;
             }
             int abs = Math.abs(temperature);
-            bottomTextPaint.setColor(tempColors.get((int) (30f*(maxTemp - abs)/ maxTemp)));
+            bottomTextPaint.setColor(tempColors.get((int) (30f*(Math.abs(minTemp) - abs)/ Math.abs(minTemp))));
             if (temperature <= precent02Temp) {
                 stringCurrentState = stringY;
             } else if (temperature <= precent01Temp) {
@@ -311,7 +311,7 @@ public class TemperatureView extends View {
                 temperature = minTemp;
             }
             int abs = Math.abs(temperature);
-            smallCirclePaint.setColor(tempColors.get((int) (30f*(maxTemp - abs) / maxTemp)));
+            smallCirclePaint.setColor(tempColors.get((int) (30f*(Math.abs(minTemp) - abs) / Math.abs(minTemp))));
         } else if (temperature == 0) {
             smallCirclePaint.setColor(tempColors.get(30));
         } else {
@@ -422,7 +422,7 @@ public class TemperatureView extends View {
             if (currentTemp < minTemp) {
                 rotateAngle = -135;
             } else {
-                rotateAngle = -135*((float)-currentTemp/(float) maxTemp);
+                rotateAngle = 135*((float)currentTemp/(float) Math.abs(minTemp));
             }
         } else if (currentTemp == middleTemp) {
             rotateAngle = 0;
