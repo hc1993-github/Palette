@@ -32,7 +32,7 @@ public class TemperatureView extends View {
     int precent02Temp = -20;
     int precent1Temp = 10;
     int precent01Temp = -10;
-    int min;
+    int minSideSize;
     Paint arcPaint;
     Paint sizePaint;
     Paint numberPaint;
@@ -51,7 +51,6 @@ public class TemperatureView extends View {
     String stringGR = "过热";
     String stringWX = "危险";
     String stringLKWDZK = "冷库温度状况:";
-    String stringCurrentState;
     RectF arcRectF;
     LinearGradient linearGradient;
     public TemperatureView(Context context, @Nullable AttributeSet attrs) {
@@ -218,9 +217,9 @@ public class TemperatureView extends View {
 //        if(height>ScreenUtil.getHeightPx(getContext())){
 //            height=ScreenUtil.getHeightPx(getContext());
 //        }
-        min = Math.min(width, height);
+        minSideSize = Math.min(width, height);
 
-        setMeasuredDimension(min,min);
+        setMeasuredDimension(minSideSize,minSideSize);
     }
 
     @Override
@@ -228,7 +227,7 @@ public class TemperatureView extends View {
         super.onDraw(canvas);
         defaultLongSize = 68f*getWidth()/1050f/2;
         defaultShortSize = 68f*getWidth()/1050f/4;
-        maxCircleRadius = (min - 68f*getWidth()/1050f*2 - defaultLongSize*2)/2;
+        maxCircleRadius = (minSideSize - 68f*getWidth()/1050f*2 - defaultLongSize*2)/2;
         arcRectF.left = -maxCircleRadius;
         arcRectF.top = -maxCircleRadius;
         arcRectF.right = maxCircleRadius;
@@ -250,9 +249,10 @@ public class TemperatureView extends View {
 
     private void bottomTextDraw(Canvas canvas) {
         canvas.save();
-        bottomTextPaint.setTextSize(39f*min/1050f);
+        bottomTextPaint.setTextSize(39f*minSideSize/1050f);
         canvas.drawText(stringLKWDZK,284f*getWidth()/1050f,
                 (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f*2),bottomTextPaint);
+        String stringCurrentState = null;
         if (temperature < middleTemp) {
             if (temperature < minTemp) {
                 temperature = minTemp;
