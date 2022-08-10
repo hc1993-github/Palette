@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>
+        </title>
+    </head>
+    <body>
+        <input type="button" value="Say Number" onClick="showToast()"/>
+        <script type="text/javascript">
+            var mCard = '';
+            function test(card){
+                mCard = card;
+                Android.showTest(card);
+            }
+            function showToast(){
+                if(mCard===''){
+                    mCard = '000000';
+                }
+                Android.showToast(mCard);
+            }
+
+        </script>
+    </body>
+</html>
