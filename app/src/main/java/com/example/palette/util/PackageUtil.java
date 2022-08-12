@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Base64;
+import android.util.Log;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -40,18 +41,17 @@ public class PackageUtil {
      *       android:resource="@xml/apk_provider_path"/>
      *</provider>
      * @param context
-     * @param apkName
+     * @param apkFile
      */
-    public static void apkInstall(Context context, String apkName){
-        File file = new File(Environment.getExternalStorageDirectory(),apkName);
+    public static void apkInstall(Context context, File apkFile){
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_VIEW);
         Uri uri = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            uri = FileProvider.getUriForFile(context, context.getPackageName() + ".FileProvider", file);
+            uri = FileProvider.getUriForFile(context, context.getPackageName() + ".FileProvider", apkFile);
         } else {
-            uri = Uri.fromFile(file);
+            uri = Uri.fromFile(apkFile);
         }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setDataAndType(uri,"application/vnd.android.package-archive");
@@ -96,7 +96,7 @@ public class PackageUtil {
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
-        return null;
+        return "0.0";
     }
 
     /**

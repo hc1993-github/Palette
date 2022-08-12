@@ -4,10 +4,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -211,7 +215,7 @@ public class BitmapUtil {
     }
 
     /**
-     * 根据资源id获取bitmap
+     * 根据资源id获取期望宽高bitmap
      * @param context
      * @param resId
      * @param width
@@ -228,7 +232,7 @@ public class BitmapUtil {
     }
 
     /**
-     * 根据文件路径获取bitmap
+     * 根据文件路径获取期望宽高bitmap
      * @param filePath
      * @param width
      * @param height
@@ -252,6 +256,224 @@ public class BitmapUtil {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG,100,baos);
         return baos.toByteArray();
+    }
+
+    /**
+     * bitmap转文件
+     * @param bitmap
+     * @param file
+     */
+    public static void bitmapToFile(Bitmap bitmap, File file){
+        if(file.exists()){
+            file.delete();
+        }
+        FileOutputStream fos = null;
+        try {
+            file.createNewFile();
+            fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                if(fos!=null){
+                    fos.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 添加水印图片到原图左上角
+     * @param context
+     * @param src
+     * @param water
+     * @param dp_paddingLeft
+     * @param dp_paddingTop
+     * @return
+     */
+    public static Bitmap addWaterMaskLeftTop(Context context,Bitmap src,Bitmap water,int dp_paddingLeft,int dp_paddingTop){
+        return addWaterMaskToBitmap(src,water,ScreenUtil.dp2px(context,dp_paddingLeft),ScreenUtil.dp2px(context,dp_paddingTop));
+    }
+
+    /**
+     * 添加水印图片到原图右下角
+     * @param context
+     * @param src
+     * @param water
+     * @param dp_paddingRight
+     * @param dp_paddingBottom
+     * @return
+     */
+    public static Bitmap addWaterMaskRightBottom(Context context,Bitmap src,Bitmap water,int dp_paddingRight,int dp_paddingBottom){
+        return addWaterMaskToBitmap(src,water,src.getWidth()-water.getWidth()-ScreenUtil.dp2px(context,dp_paddingRight)
+        ,src.getHeight()-water.getHeight()-ScreenUtil.dp2px(context,dp_paddingBottom));
+    }
+
+    /**
+     * 添加水印图片到原图右上角
+     * @param context
+     * @param src
+     * @param water
+     * @param dp_paddingRight
+     * @param dp_paddingTop
+     * @return
+     */
+    public static Bitmap addWaterMaskRightTop(Context context,Bitmap src,Bitmap water,int dp_paddingRight,int dp_paddingTop){
+        return addWaterMaskToBitmap(src,water,src.getWidth()-water.getWidth()-ScreenUtil.dp2px(context,dp_paddingRight)
+                ,ScreenUtil.dp2px(context,dp_paddingTop));
+    }
+
+    /**
+     * 添加水印图片到原图左下角
+     * @param context
+     * @param src
+     * @param water
+     * @param dp_paddingLeft
+     * @param dp_paddingBottom
+     * @return
+     */
+    public static Bitmap addWaterMaskLeftBottom(Context context,Bitmap src,Bitmap water,int dp_paddingLeft,int dp_paddingBottom){
+        return addWaterMaskToBitmap(src,water,ScreenUtil.dp2px(context,dp_paddingLeft)
+                ,src.getHeight()-water.getHeight()-ScreenUtil.dp2px(context,dp_paddingBottom));
+    }
+
+    /**
+     * 添加水印图片到原图中间
+     * @param src
+     * @param water
+     * @return
+     */
+    public static Bitmap addWaterMaskCenter(Bitmap src,Bitmap water){
+        return addWaterMaskToBitmap(src,water,(src.getWidth()-water.getWidth())/2
+                ,(src.getHeight()-water.getHeight())/2);
+    }
+
+    private static Bitmap addWaterMaskToBitmap(Bitmap src,Bitmap water,int paddingLeft,int paddingTop){
+        if(src==null){
+            return null;
+        }
+        int width = src.getWidth();
+        int height = src.getHeight();
+        Bitmap bitmap = Bitmap.createBitmap(width,height, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawBitmap(src,0,0,null);
+        canvas.drawBitmap(water,paddingLeft,paddingTop,null);
+        canvas.save();
+        canvas.restore();
+        return bitmap;
+    }
+
+    /**
+     * 添加文字到图片左上角
+     * @param context
+     * @param src
+     * @param text
+     * @param dp_paddingLeft
+     * @param dp_paddingTop
+     * @param sp
+     * @param color
+     * @return
+     */
+    public static Bitmap addTextLeftTop(Context context,Bitmap src,String text,int dp_paddingLeft,int dp_paddingTop,float sp,int color){
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
+        paint.setTextSize(ScreenUtil.sp2px(context,sp));
+        Rect rect = new Rect();
+        paint.getTextBounds(text,0,text.length(),rect);
+        return addTextToBitmap(src,text,paint,ScreenUtil.dp2px(context,dp_paddingLeft),ScreenUtil.dp2px(context,dp_paddingTop)+rect.height());
+    }
+
+    /**
+     * 添加文字到图片右下角
+     * @param context
+     * @param src
+     * @param text
+     * @param dp_paddingRight
+     * @param dp_paddingBottom
+     * @param sp
+     * @param color
+     * @return
+     */
+    public static Bitmap addTextRightBottom(Context context,Bitmap src,String text,int dp_paddingRight,int dp_paddingBottom,float sp,int color){
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
+        paint.setTextSize(ScreenUtil.sp2px(context,sp));
+        Rect rect = new Rect();
+        paint.getTextBounds(text,0,text.length(),rect);
+        return addTextToBitmap(src,text,paint,src.getWidth()-rect.width()-ScreenUtil.dp2px(context,dp_paddingRight),src.getHeight()-ScreenUtil.dp2px(context,dp_paddingBottom));
+    }
+
+    /**
+     * 添加文字到图片右上角
+     * @param context
+     * @param src
+     * @param text
+     * @param dp_paddingRight
+     * @param dp_paddingTop
+     * @param sp
+     * @param color
+     * @return
+     */
+    public static Bitmap addTextRightTop(Context context,Bitmap src,String text,int dp_paddingRight,int dp_paddingTop,float sp,int color){
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
+        paint.setTextSize(ScreenUtil.sp2px(context,sp));
+        Rect rect = new Rect();
+        paint.getTextBounds(text,0,text.length(),rect);
+        return addTextToBitmap(src,text,paint,src.getWidth()-rect.width()-ScreenUtil.dp2px(context,dp_paddingRight),ScreenUtil.dp2px(context,dp_paddingTop)+rect.height());
+    }
+
+    /**
+     * 添加文字到图片左下角
+     * @param context
+     * @param src
+     * @param text
+     * @param dp_paddingLeft
+     * @param dp_paddingBottom
+     * @param sp
+     * @param color
+     * @return
+     */
+    public static Bitmap addTextLeftBottom(Context context,Bitmap src,String text,int dp_paddingLeft,int dp_paddingBottom,float sp,int color){
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
+        paint.setTextSize(ScreenUtil.sp2px(context,sp));
+        Rect rect = new Rect();
+        paint.getTextBounds(text,0,text.length(),rect);
+        return addTextToBitmap(src,text,paint,ScreenUtil.dp2px(context,dp_paddingLeft),src.getHeight()-ScreenUtil.dp2px(context,dp_paddingBottom));
+    }
+
+    /**
+     * 添加文字到图片中间
+     * @param src
+     * @param text
+     * @param sp
+     * @param color
+     * @return
+     */
+    public static Bitmap addTextCenter(Context context,Bitmap src, String text,float sp,int color){
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setColor(color);
+        paint.setTextSize(ScreenUtil.sp2px(context,sp));
+        Rect rect = new Rect();
+        paint.getTextBounds(text,0,text.length(),rect);
+        return addTextToBitmap(src,text,paint,(src.getWidth()-rect.width())/2,(src.getHeight()+rect.height())/2);
+    }
+
+    private static Bitmap addTextToBitmap(Bitmap src, String text, Paint paint,int paddingLeft,int paddingTop){
+        Bitmap.Config config = src.getConfig();
+        paint.setDither(true);
+        paint.setFilterBitmap(true);
+        if(config==null){
+            config = Bitmap.Config.ARGB_8888;
+        }
+        src = src.copy(config,true);
+        Canvas canvas = new Canvas(src);
+        canvas.drawText(text,paddingLeft,paddingTop,paint);
+        return src;
     }
 
     private static int calculateSampleSize(int width, int height, BitmapFactory.Options options) {
