@@ -14,8 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Palette">
         <activity android:name=".activity.FourActivity"></activity>
+        <activity android:name=".activity.FiveActivity" />
         <activity
-            android:name=".activity.FiveActivity"
+            android:name=".activity.SixActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

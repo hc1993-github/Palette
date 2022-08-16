@@ -3,14 +3,13 @@ package com.example.lib;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -23,9 +22,34 @@ public class MyClass {
 //            createFile(100,2.32f);
 //            System.out.println(isMobliePhone(""));
 //            System.out.println(isEmail("1234@a.com"));
-            System.out.println(getRandomString(5));
+//            createFile(30,1);
+//            System.out.println(printString2("2022-08-12 10:00:00",100,"2022-08-13 10:00:00"));
+            MouseServer mouseServer = new MouseServer(9999);
+            mouseServer.start();
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+    public static String printString2(String checkTime, int range, String currentTime) throws Exception {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        long checkms = format.parse(checkTime).getTime();
+        long currentms = format.parse(currentTime).getTime();
+        long per = 60 * 60 * 1000;
+        if (currentms > checkms + range * per) {
+            return "yin xing";
+        }
+        if (range <= 24) {
+            return "in " + range + " hours";
+        }
+        if (currentms > (range / 24) * 24 * per + checkms) {
+            return String.valueOf(range);
+        }
+        if((currentms - checkms)%(24 * per)==0){
+            long m = (currentms - checkms) / (24 * per);
+            return String.valueOf(m*24);
+        }else {
+            long n = (currentms - checkms) / (24 * per)+1;
+            return String.valueOf(n*24);
         }
     }
     public static String getRandomString(int length){
@@ -61,7 +85,7 @@ public class MyClass {
             DecimalFormat format = new DecimalFormat("#.0");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             for(int i=1;i<line+1;i++){
-                writer.write("<dimen name=\"dp_"+i+"\">"+format.format(i*scale)+"dp</dimen>");
+                writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(i*scale)+"sp</dimen>");
                 writer.write("\n");
             }
             writer.flush();
