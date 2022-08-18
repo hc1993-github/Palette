@@ -23,4 +23,13 @@
     <declare-styleable name="TemperatureView">
         <attr name="currentTemp" format="integer"/>
     </declare-styleable>
+    <declare-styleable name="SwitchView">
+        <attr name="defaultSpaceDpSize" format="integer"/>
+        <attr name="duration" format="integer"/>
+        <attr name="isOpen" format="boolean"/>
+        <attr name="bgPaintOpenColor" format="color"/>
+        <attr name="bgPaintCloseColor" format="color"/>
+        <attr name="centerPaintColor" format="color"/>
+        <attr name="textPaintColor" format="color"/>
+    </declare-styleable>
 </resources>
