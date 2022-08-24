@@ -33,7 +33,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0"
         app:layout_constraintHorizontal_bias="0"/>-->
-    <com.example.palette.view.SwitchView
+    <com.example.palette.view.EView
         android:id="@+id/sv"
         android:layout_width="200dp"
         android:layout_height="100dp"

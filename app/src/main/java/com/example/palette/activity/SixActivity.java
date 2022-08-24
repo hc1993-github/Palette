@@ -48,23 +48,30 @@ public class SixActivity extends AppCompatActivity implements GestureView.TouchL
 
     @Override
     public void move(float x, float y) {
-        sendPoint(x,y);
+        if(client!=null){
+            sendPoint(x,y);
+        }
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
             case R.id.tv_connect:
-                client.connect();
+                if(client!=null){
+                    client.connect();
+                }
                 break;
             case R.id.tv_set:
                 set();
                 break;
             case R.id.tv_click:
-                click();
+                if(client!=null){
+                    click();
+                }
                 break;
             case R.id.tv_stop:
                 if(client!=null){
+                    stop();
                     client.disconnect();
                 }
                 finish();
@@ -86,8 +93,8 @@ public class SixActivity extends AppCompatActivity implements GestureView.TouchL
         pcWidth = Integer.parseInt(split[0]);
         pcHeight = Integer.parseInt(split[1]);
         String ip = split[2];
-        width = ScreenUtil.dp2px(this,400);
-        height = ScreenUtil.dp2px(this,280);
+        width = ScreenUtil.dp2px(this,320);
+        height = ScreenUtil.dp2px(this,220);
         client = new MouseClient(ip,9999,this);
     }
 
