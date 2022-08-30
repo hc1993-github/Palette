@@ -200,7 +200,7 @@ public class SixActivity extends AppCompatActivity implements GestureView.TouchL
         RecyclerView recycler_line5 = findViewById(R.id.recycler_line5);
         recycler_line5.setLayoutManager(new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false));
         List<String> data5 = new ArrayList<>();
-        data5.add("   Shift   \n上档");
+        data5.add("Fn\n ");
         data5.add("Z\n ");
         data5.add("X\n ");
         data5.add("C\n ");
@@ -228,7 +228,7 @@ public class SixActivity extends AppCompatActivity implements GestureView.TouchL
         recycler_line6.setLayoutManager(new LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL,false));
         List<String> data6 = new ArrayList<>();
         data6.add("Ctrl\n控制");
-        data6.add("Fn\n ");
+        data6.add("   Shift   \n上档");
         data6.add("Win\n ");
         data6.add("Alt\n换档");
         data6.add("       Space       \n空格");
