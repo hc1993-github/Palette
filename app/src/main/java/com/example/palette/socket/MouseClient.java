@@ -89,6 +89,14 @@ public class MouseClient extends SimpleChannelInboundHandler<String> {
 
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        Message message = Message.obtain();
+        message.what = 1;
+        message.obj = "服务端关闭";
+        handler.sendMessage(message);
+    }
+
     public void sendMessage(String message) {
         if (channel != null && channel.isOpen()) {
             channel.writeAndFlush(message);

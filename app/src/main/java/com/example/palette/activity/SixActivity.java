@@ -5,6 +5,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,6 +18,7 @@ import com.example.palette.R;
 import com.example.palette.adapter.StringAdapter;
 import com.example.palette.socket.MouseClient;
 import com.example.palette.util.ScreenUtil;
+import com.example.palette.view.CommonDialog;
 import com.example.palette.view.GestureView;
 
 import java.util.ArrayList;
@@ -365,6 +367,29 @@ public class SixActivity extends AppCompatActivity implements GestureView.TouchL
 
     @Override
     public void receiveMessage(String message) {
+        if(message.equals("服务端关闭")){
+            CommonDialog commonDialog = new CommonDialog.Builder()
+                    .setContext(this)
+                    .setCancelable(false)
+                    .setLayoutId(R.layout.dialog_confirm)
+                    .setLeftBtnId(R.id.negative)
+                    .setRightBtnId(R.id.positive)
+                    .setListener(new CommonDialog.CommonDialogOnClickListener() {
+                        @Override
+                        public void onLeftBtnClick(Dialog dialog) {
+                            dialog.dismiss();
+                        }
 
+                        @Override
+                        public void onRightBtnClick(Dialog dialog) {
+                            dialog.dismiss();
+                            if(client!=null){
+                                client.disconnect();
+                            }
+                            finish();
+                        }
+                    }).build();
+            commonDialog.show();
+        }
     }
 }
