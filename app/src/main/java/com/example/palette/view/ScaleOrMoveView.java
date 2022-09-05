@@ -34,14 +34,6 @@ public class ScaleOrMoveView extends View{
     float scaledRatio;
     float initRatio;
     double lastFingerDis;
-    private int count = 0;
-    //记录第一次点击时间
-    private long firstClick = 0;
-    //记录第二次点击时间
-    private long secondClick = 0;
-    //两次点击时间间隔，单位毫秒
-    private final int totalTime = 500;
-    boolean isBigger = false;
     public ScaleOrMoveView(Context context, AttributeSet attrs) {
         super(context, attrs);
         currentStatus = STATUS_INIT;
@@ -64,24 +56,6 @@ public class ScaleOrMoveView extends View{
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getActionMasked()) {
-            case MotionEvent.ACTION_DOWN:
-                count++;
-                if (1 == count) {
-                    firstClick = System.currentTimeMillis();//记录第一次点击时间
-                } else if (2 == count) {
-                    secondClick = System.currentTimeMillis();//记录第二次点击时间
-                    if (secondClick - firstClick < totalTime) {//判断二次点击时间间隔是否在设定的间隔时间之内
-                        count = 0;
-                        isBigger = true;
-                        invalidate();
-                        firstClick = 0;
-                    } else {
-                        firstClick = secondClick;
-                        count = 1;
-                    }
-                    secondClick = 0;
-                }
-                break;
             case MotionEvent.ACTION_POINTER_DOWN:
                 if (event.getPointerCount() == 2) {
                     lastFingerDis = calculate2FingerDistance(event);
@@ -130,12 +104,6 @@ public class ScaleOrMoveView extends View{
                         invalidate();
                         lastFingerDis = fingerDistance;
                     }
-//                    if(currentStatus == STATUS_BIGGER ||currentStatus == STATUS_SMALLER ){
-//                        scaledRatio = (float) (fingerDistance / lastFingerDis);
-//                        totalRatio = totalRatio * scaledRatio;
-//                        invalidate();
-//                        lastFingerDis = fingerDistance;
-//                    }
                 }
                 break;
             case MotionEvent.ACTION_POINTER_UP:
@@ -167,19 +135,6 @@ public class ScaleOrMoveView extends View{
                 moveBitmap(canvas);
                 break;
         }
-//        if(isBigger){
-//            biggerBitmap(canvas);
-//            isBigger = false;
-//        }
-    }
-
-    private void biggerBitmap(Canvas canvas){
-        matrix.reset();
-        totalRatio+=0.2f;
-        matrix.postScale(totalRatio,totalRatio);
-        buildDrawingCache();
-        Bitmap cache = getDrawingCache();
-        canvas.drawBitmap(cache,matrix,null);
     }
 
     private void moveBitmap(Canvas canvas) {
