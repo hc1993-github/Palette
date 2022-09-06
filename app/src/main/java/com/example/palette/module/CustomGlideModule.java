@@ -41,7 +41,7 @@ public class CustomGlideModule implements GlideModule {
     @Override
     public void registerComponents(Context context,Glide glide,Registry registry) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.addInterceptor(new ProgressInterceptor());
+        builder.addInterceptor(new ProgressInterceptor(null));
         OkHttpClient client = builder.build();
         registry.replace(GlideUrl.class, InputStream.class,new OkHttpGlideUrlLoader.Factory(client));
     }

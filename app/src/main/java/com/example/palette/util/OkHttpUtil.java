@@ -3,8 +3,13 @@ package com.example.palette.util;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.example.palette.module.ProgressInterceptor;
+import com.example.palette.module.ProgressListener;
+import com.example.palette.module.ProgressRequestBody;
+
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -151,6 +156,44 @@ public class OkHttpUtil {
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
                     onSuccessCallback(response,callback);
+                }
+            }
+        });
+    }
+
+    public void requestDownLoad(String url, Map<String,String> headerParams, Map<String,String> bodyParams,File file,ProgressListener listener, ResultCallback callback){
+        Request.Builder builder = new Request.Builder();
+        if(headerParams!=null && !headerParams.isEmpty()){
+            for(Map.Entry<String,String> entry:headerParams.entrySet()){
+                builder.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        Request request;
+        if(bodyParams!=null && !bodyParams.isEmpty()){
+            FormBody.Builder form = new FormBody.Builder();
+            for(Map.Entry<String,String> entry:bodyParams.entrySet()){
+                form.add(entry.getKey(), entry.getValue());
+            }
+            RequestBody requestBody = form.build();
+            request = new Request.Builder().url(url).post(requestBody).build();
+        }else {
+            request = builder.url(url).build();
+        }
+        OkHttpClient okHttpClient = client.newBuilder().addInterceptor(new ProgressInterceptor(listener)).build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call,IOException e) {
+                onFailureCallback(call,"连接服务器失败",callback);
+            }
+
+            @Override
+            public void onResponse(Call call,Response response) throws IOException {
+                if(response.isSuccessful() && response!=null){
+                    long contentLength = response.body().contentLength();
+                    FileUtil.writeToFile(response.body().byteStream(),file);
+                    if(file.length()==contentLength){
+                        onSuccessCallback(null,callback);
+                    }
                 }
             }
         });

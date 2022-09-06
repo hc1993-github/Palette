@@ -37,6 +37,11 @@ public class ProgressResponseBody extends ResponseBody {
         progressListener = ProgressInterceptor.listenerMap.get(url);
     }
 
+    public ProgressResponseBody(ResponseBody responseBody,ProgressListener progressListener) {
+        this.progressListener = progressListener;
+        this.responseBody = responseBody;
+    }
+
     @Override
     public long contentLength() {
         return responseBody.contentLength();

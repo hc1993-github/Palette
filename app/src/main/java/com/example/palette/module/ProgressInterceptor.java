@@ -19,6 +19,11 @@ public class ProgressInterceptor implements Interceptor {
     public static void removeListener(String url){
         listenerMap.remove(url);
     }
+    ProgressListener listener;
+
+    public ProgressInterceptor(ProgressListener listener) {
+        this.listener = listener;
+    }
 
     @NotNull
     @Override
@@ -27,7 +32,7 @@ public class ProgressInterceptor implements Interceptor {
         Response response = chain.proceed(request);
         String url = request.url().toString();
         ResponseBody body = response.body();
-        Response newresponse = response.newBuilder().body(new ProgressResponseBody(url, body)).build();
+        Response newresponse = listener==null?response.newBuilder().body(new ProgressResponseBody(url, body)).build():response.newBuilder().body(new ProgressResponseBody(body,listener)).build();
         return newresponse;
     }
 }
