@@ -17,6 +17,8 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -119,7 +121,7 @@ public class OkHttpUtil {
                 form.add(entry.getKey(), entry.getValue());
             }
             RequestBody requestBody = form.build();
-            request = new Request.Builder().url(url).post(requestBody).build();
+            request = builder.url(url).post(requestBody).build();
         }else {
             request = builder.url(url).build();
         }
@@ -175,7 +177,7 @@ public class OkHttpUtil {
                 form.add(entry.getKey(), entry.getValue());
             }
             RequestBody requestBody = form.build();
-            request = new Request.Builder().url(url).post(requestBody).build();
+            request = builder.url(url).post(requestBody).build();
         }else {
             request = builder.url(url).build();
         }
@@ -194,6 +196,39 @@ public class OkHttpUtil {
                     if(file.length()==contentLength){
                         onSuccessCallback(null,callback);
                     }
+                }
+            }
+        });
+    }
+    public void requestUpLoad(String url,Map<String,String> headerParams, Map<String,String> bodyParams,File file,ProgressListener listener, ResultCallback callback){
+        Request.Builder builder = new Request.Builder();
+        builder.addHeader("Content-Type","multipart/form-data");
+        if(headerParams!=null && !headerParams.isEmpty()){
+            for(Map.Entry<String,String> entry:headerParams.entrySet()){
+                builder.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        MultipartBody.Builder form = new MultipartBody.Builder();
+        form.addFormDataPart("file",file.getName(),RequestBody.create(MediaType.parse("application/octet-stream"),file));
+        if(bodyParams!=null && !bodyParams.isEmpty()){
+            form.setType(MultipartBody.FORM);
+            for(Map.Entry<String,String> entry:bodyParams.entrySet()){
+                form.addFormDataPart(entry.getKey(), entry.getValue());
+            }
+        }
+        ProgressRequestBody requestBody = new ProgressRequestBody(form.build(),listener);
+        Request request = builder.url(url).post(requestBody).build();
+        OkHttpClient okHttpClient = client.newBuilder().build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                onFailureCallback(call,"连接服务器失败",callback);
+            }
+
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                if(response.isSuccessful() && response!=null){
+                    onSuccessCallback(response,callback);
                 }
             }
         });
