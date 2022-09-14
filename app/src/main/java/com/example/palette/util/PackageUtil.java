@@ -45,15 +45,15 @@ public class PackageUtil {
      */
     public static void apkInstall(Context context, File apkFile){
         Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setAction(Intent.ACTION_VIEW);
-        Uri uri = null;
+        Uri uri;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             uri = FileProvider.getUriForFile(context, context.getPackageName() + ".FileProvider", apkFile);
         } else {
             uri = Uri.fromFile(apkFile);
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setDataAndType(uri,"application/vnd.android.package-archive");
         context.startActivity(intent);
     }
