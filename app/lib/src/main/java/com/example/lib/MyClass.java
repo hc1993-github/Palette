@@ -97,16 +97,20 @@ public class MyClass {
         //dp=px/density  density=dpi/160
         //设基准为380dp 则scale=360/380
         try {
-            File file = new File("D://test.txt");
+            File file = new File("D://test.xml");
             if(!file.exists()){
                 file.createNewFile();
             }
             DecimalFormat format = new DecimalFormat("#.0");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+            writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n\t");
             for(int i=1;i<line+1;i++){
-                writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(i*scale)+"sp</dimen>");
-                writer.write("\n");
+                writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(i*scale)+"sp</dimen>\n");
+                if(i!=line){
+                    writer.write("\t");
+                }
             }
+            writer.write("</resources>");
             writer.flush();
             writer.close();
         }catch (Exception e){
