@@ -2,6 +2,7 @@ package com.example.palette.util;
 
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 
 import com.example.palette.module.ProgressInterceptor;
 import com.example.palette.module.ProgressListener;
@@ -36,6 +37,7 @@ public class OkHttpUtil {
         client = builder.build();
         handler = new Handler(Looper.getMainLooper());
     }
+
     public static OkHttpUtil getInstance(){
         if(okHttpUtil==null){
             synchronized (OkHttpUtil.class){
@@ -46,68 +48,8 @@ public class OkHttpUtil {
         }
         return okHttpUtil;
     }
-    public void request(String url,ResultCallback callback){
-        Request request = new Request.Builder().url(url).build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"连接服务器失败",callback);
-            }
 
-            @Override
-            public void onResponse(Call call,Response response) throws IOException {
-                if(response.isSuccessful() && response!=null){
-                    onSuccessCallback(response,callback);
-                }
-            }
-        });
-    }
-    public void requestWithHeader(String url, Map<String,String> params,ResultCallback callback){
-        if(params!=null && !params.isEmpty()){
-            Request.Builder builder = new Request.Builder();
-            for(Map.Entry<String,String> entry:params.entrySet()){
-                builder.addHeader(entry.getKey(), entry.getValue());
-            }
-            Request request = builder.url(url).build();
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call,IOException e) {
-                    onFailureCallback(call,"连接服务器失败",callback);
-                }
-
-                @Override
-                public void onResponse(Call call,Response response) throws IOException {
-                    if(response.isSuccessful() && response!=null){
-                        onSuccessCallback(response,callback);
-                    }
-                }
-            });
-        }
-    }
-    public void requestWithBody(String url, Map<String,String> params,ResultCallback callback){
-        FormBody.Builder form = new FormBody.Builder();
-        if(params!=null && !params.isEmpty()){
-            for(Map.Entry<String,String> entry:params.entrySet()){
-                form.add(entry.getKey(), entry.getValue());
-            }
-            RequestBody requestBody = form.build();
-            Request request = new Request.Builder().url(url).post(requestBody).build();
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call,IOException e) {
-                    onFailureCallback(call,"连接服务器失败",callback);
-                }
-
-                @Override
-                public void onResponse(Call call,Response response) throws IOException {
-                    if(response.isSuccessful() && response!=null){
-                        onSuccessCallback(response,callback);
-                    }
-                }
-            });
-        }
-    }
-    public void requestWithHeaderAndBody(String url,Map<String,String> headerParams,Map<String,String> bodyParams,ResultCallback callback){
+    public void requestWithParams(String url,Map<String,String> headerParams,Map<String,String> bodyParams,ResultCallback callback){
         Request.Builder builder = new Request.Builder();
         if(headerParams!=null && !headerParams.isEmpty()){
             for(Map.Entry<String,String> entry:headerParams.entrySet()){
@@ -141,8 +83,52 @@ public class OkHttpUtil {
 
     }
 
-    public void requestWithInterceptors(String url,ResultCallback callback,Interceptor... interceptors){
-        Request request = new Request.Builder().url(url).build();
+    public void requestWithParams(String url,Map<String,String> headerParams,String json,ResultCallback callback){
+        Request.Builder builder = new Request.Builder();
+        if(headerParams!=null && !headerParams.isEmpty()){
+            for(Map.Entry<String,String> entry:headerParams.entrySet()){
+                builder.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        Request request;
+        if(!TextUtils.isEmpty(json)){
+            request = builder.url(url).post(RequestBody.create(json,MediaType.parse("application/json; charset=utf-8"))).build();
+        }else {
+            request = builder.url(url).build();
+        }
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call,IOException e) {
+                onFailureCallback(call,"连接服务器失败",callback);
+            }
+
+            @Override
+            public void onResponse(Call call,Response response) throws IOException {
+                if(response.isSuccessful() && response!=null){
+                    onSuccessCallback(response,callback);
+                }
+            }
+        });
+    }
+
+    public void requestWithParams(String url,Map<String,String> headerParams,Map<String,String> bodyParams,ResultCallback callback,Interceptor... interceptors){
+        Request.Builder builder = new Request.Builder();
+        if(headerParams!=null && !headerParams.isEmpty()){
+            for(Map.Entry<String,String> entry:headerParams.entrySet()){
+                builder.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        Request request;
+        if(bodyParams!=null && !bodyParams.isEmpty()){
+            FormBody.Builder form = new FormBody.Builder();
+            for(Map.Entry<String,String> entry:bodyParams.entrySet()){
+                form.add(entry.getKey(), entry.getValue());
+            }
+            RequestBody requestBody = form.build();
+            request = builder.url(url).post(requestBody).build();
+        }else {
+            request = builder.url(url).build();
+        }
         OkHttpClient.Builder newBuilder = client.newBuilder();
         for(Interceptor interceptor:interceptors){
             newBuilder.addInterceptor(interceptor);
@@ -163,7 +149,7 @@ public class OkHttpUtil {
         });
     }
 
-    public void requestDownLoad(String url, Map<String,String> headerParams, Map<String,String> bodyParams,File file,ProgressListener listener, ResultCallback callback){
+    public void requestDownLoadWithParams(String url, Map<String,String> headerParams, Map<String,String> bodyParams,File file,ProgressListener listener, ResultCallback callback){
         Request.Builder builder = new Request.Builder();
         if(headerParams!=null && !headerParams.isEmpty()){
             for(Map.Entry<String,String> entry:headerParams.entrySet()){
@@ -200,7 +186,8 @@ public class OkHttpUtil {
             }
         });
     }
-    public void requestUpLoad(String url,Map<String,String> headerParams, Map<String,String> bodyParams,File file,ProgressListener listener, ResultCallback callback){
+
+    public void requestUpLoadWithParams(String url,Map<String,String> headerParams, Map<String,String> bodyParams,File file,ProgressListener listener, ResultCallback callback){
         Request.Builder builder = new Request.Builder();
         builder.addHeader("Content-Type","multipart/form-data");
         if(headerParams!=null && !headerParams.isEmpty()){
@@ -209,7 +196,7 @@ public class OkHttpUtil {
             }
         }
         MultipartBody.Builder form = new MultipartBody.Builder();
-        form.addFormDataPart("file",file.getName(),RequestBody.create(MediaType.parse("application/octet-stream"),file));
+        form.addFormDataPart("file",file.getName(),RequestBody.create(file,MediaType.parse("application/octet-stream")));
         if(bodyParams!=null && !bodyParams.isEmpty()){
             form.setType(MultipartBody.FORM);
             for(Map.Entry<String,String> entry:bodyParams.entrySet()){
@@ -233,6 +220,7 @@ public class OkHttpUtil {
             }
         });
     }
+
     private void onSuccessCallback(Response response, ResultCallback callback) {
         handler.post(() -> {
             if(callback!=null){
