@@ -70,13 +70,15 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"连接服务器失败",callback);
+                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
                     onSuccessCallback(response,callback);
+                }else {
+                    onFailureCallback(call,"操作失败,请稍后重试",callback);
                 }
             }
         });
@@ -99,13 +101,15 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"连接服务器失败",callback);
+                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
                     onSuccessCallback(response,callback);
+                }else {
+                    onFailureCallback(call,"操作失败,请稍后重试",callback);
                 }
             }
         });
@@ -137,13 +141,15 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"连接服务器失败",callback);
+                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
                     onSuccessCallback(response,callback);
+                }else {
+                    onFailureCallback(call,"操作失败,请稍后重试",callback);
                 }
             }
         });
@@ -171,7 +177,7 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"连接服务器失败",callback);
+                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
             }
 
             @Override
@@ -182,6 +188,8 @@ public class OkHttpUtil {
                     if(file.length()==contentLength){
                         onSuccessCallback(null,callback);
                     }
+                }else {
+                    onFailureCallback(call,"操作失败,请稍后重试",callback);
                 }
             }
         });
@@ -209,13 +217,15 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                onFailureCallback(call,"连接服务器失败",callback);
+                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
                     onSuccessCallback(response,callback);
+                }else {
+                    onFailureCallback(call,"操作失败,请稍后重试",callback);
                 }
             }
         });
