@@ -1,5 +1,8 @@
 package com.example.palette.util;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.exception.ZipException;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -10,7 +13,6 @@ import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 
 public class FileUtil {
-
     public static void writeToFile(InputStream inputStream,File file){
         FileOutputStream fileOutputStream=null;
         try {
@@ -36,7 +38,30 @@ public class FileUtil {
             }
         }
     }
+    public static int uncompressZip4j(String zip, String parentDirectoy, String password) {
+        File zipFile_ = new File(zip);
+        File sourceFile = new File(parentDirectoy);
+        int result = -1;
+        try {
+            ZipFile zipFile = new ZipFile(zipFile_);
+            zipFile.setFileNameCharset("GBK");
+            if (!zipFile.isValidZipFile()){
+                throw new ZipException("压缩文件不合法,可能被损坏.");
+            }
+            if (sourceFile.isDirectory() && !sourceFile.exists()) {
+                sourceFile.mkdir();
+            }
+            if (zipFile.isEncrypted()) {
+                zipFile.setPassword(password.toCharArray());
+            }
+            zipFile.extractAll(parentDirectoy);
 
+        } catch (ZipException e) {
+            result = -1;
+            return result;
+        }
+        return result;
+    }
     public static String getMd5ByFile(File file){
         FileInputStream in =null ;
         StringBuffer sb = new StringBuffer();
