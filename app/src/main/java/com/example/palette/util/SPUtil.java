@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 public class SPUtil {
-    public static void put(Context context,String name,String key,Object value){
+    public static boolean put(Context context,String name,String key,Object value){
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(name,Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
         if(value instanceof String){
@@ -20,6 +20,7 @@ public class SPUtil {
         }else {
             editor.putString(key,value.toString());
         }
+        return editor.commit();
     }
     public static String getString(Context context,String name,String key,String defaultValue){
         SharedPreferences preferences = context.getApplicationContext().getSharedPreferences(name,Context.MODE_PRIVATE);
