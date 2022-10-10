@@ -45,8 +45,10 @@ import io.netty.util.CharsetUtil;
 public class MyClass {
     public static void main(String[] args) {
         try {
-            MouseServer mouseServer = new MouseServer(9999);
-            mouseServer.start();
+//            MouseServer mouseServer = new MouseServer(9999);
+//            mouseServer.start();
+            System.out.print((getMd5ByFile(new File("D:\\QianHeQpp_ZJ_v2.1.3_36_debug.apk"))));
+            //createFile(30,300,1f);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -92,21 +94,35 @@ public class MyClass {
         String regex = "\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
         return email.matches(regex);
     }
-    public static void createFile(int line,float scale){
+    public static void createFile(int spline,int dpline,float scale){
         //1080/(480/160)  宽度/屏幕像素密度/160  --->sw-360dp
         //dp=px/density  density=dpi/160
         //设基准为380dp 则scale=360/380
         try {
-            File file = new File("D://test.xml");
+            File file = new File("D://dimens.xml");
             if(!file.exists()){
                 file.createNewFile();
             }
             DecimalFormat format = new DecimalFormat("#.0");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n\t");
-            for(int i=1;i<line+1;i++){
+            writer.write("<dimen name=\"sp_size_"+1+"\">"+scale+"sp</dimen>\n");
+            writer.write("\t");
+            for(int i=2;i<spline+1;i++){
                 writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(i*scale)+"sp</dimen>\n");
-                if(i!=line){
+                if(i!=spline){
+                    writer.write("\t");
+                }
+            }
+            writer.write("\n");
+            writer.write("\t");
+            writer.write("<dimen name=\"dp_size_"+0+"\">"+0+"dp</dimen>\n");
+            writer.write("\t");
+            writer.write("<dimen name=\"dp_size_"+1+"\">"+scale+"dp</dimen>\n");
+            writer.write("\t");
+            for(int i=2;i<dpline+1;i++){
+                writer.write("<dimen name=\"dp_size_"+i+"\">"+format.format(i*scale)+"dp</dimen>\n");
+                if(i!=dpline){
                     writer.write("\t");
                 }
             }

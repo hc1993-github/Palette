@@ -1,8 +1,10 @@
 package com.example.palette.util;
 
+import android.os.FileUtils;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+
 
 import com.example.palette.module.ProgressInterceptor;
 import com.example.palette.module.ProgressListener;
@@ -14,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.FormBody;
@@ -49,7 +52,7 @@ public class OkHttpUtil {
         return okHttpUtil;
     }
 
-    public void requestWithParams(String url,Map<String,String> headerParams,Map<String,String> bodyParams,ResultCallback callback){
+    public void requestWithParams(String url,boolean isGet,Map<String,String> headerParams,Map<String,String> params,ResultCallback callback){
         Request.Builder builder = new Request.Builder();
         if(headerParams!=null && !headerParams.isEmpty()){
             for(Map.Entry<String,String> entry:headerParams.entrySet()){
@@ -57,35 +60,45 @@ public class OkHttpUtil {
             }
         }
         Request request;
-        if(bodyParams!=null && !bodyParams.isEmpty()){
-            FormBody.Builder form = new FormBody.Builder();
-            for(Map.Entry<String,String> entry:bodyParams.entrySet()){
-                form.add(entry.getKey(), entry.getValue());
+        if(isGet){
+            String param = "";
+            if(params!=null && !params.isEmpty()){
+                for(Map.Entry<String, String> entry:params.entrySet()){
+                    param += "&" + entry.getKey() + "=" + entry.getValue();
+                }
             }
-            RequestBody requestBody = form.build();
-            request = builder.url(url).post(requestBody).build();
-        }else {
+            if(!TextUtils.isEmpty(param)) url += "?" + param.substring(1);
             request = builder.url(url).build();
+        }else {
+            FormBody.Builder form = new FormBody.Builder();
+            if(params!=null && !params.isEmpty()){
+                for(Map.Entry<String,String> entry:params.entrySet()){
+                    form.add(entry.getKey(), entry.getValue());
+                }
+                request = builder.url(url).post(form.build()).build();
+            }else {
+                request = builder.url(url).post(form.build()).build();
+            }
         }
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
+                onError("网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
-                    onSuccessCallback(response,callback);
+                    onSuccessCallback(response.body().string(),callback);
                 }else {
-                    onFailureCallback(call,"操作失败,请稍后重试",callback);
+                    onFailResponse(response.body().string(),callback);
                 }
             }
         });
 
     }
 
-    public void requestWithParams(String url,Map<String,String> headerParams,String json,ResultCallback callback){
+    public void requestWithJson(String url,Map<String,String> headerParams,String json,ResultCallback callback){
         Request.Builder builder = new Request.Builder();
         if(headerParams!=null && !headerParams.isEmpty()){
             for(Map.Entry<String,String> entry:headerParams.entrySet()){
@@ -101,21 +114,21 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
+                onError("网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
-                    onSuccessCallback(response,callback);
+                    onSuccessCallback(response.body().string(),callback);
                 }else {
-                    onFailureCallback(call,"操作失败,请稍后重试",callback);
+                    onFailResponse(response.body().string(),callback);
                 }
             }
         });
     }
 
-    public void requestWithParams(String url,Map<String,String> headerParams,Map<String,String> bodyParams,ResultCallback callback,Interceptor... interceptors){
+    public void requestWithParams(String url,boolean isGet,Map<String,String> headerParams,Map<String,String> params,ResultCallback callback,Interceptor... interceptors){
         Request.Builder builder = new Request.Builder();
         if(headerParams!=null && !headerParams.isEmpty()){
             for(Map.Entry<String,String> entry:headerParams.entrySet()){
@@ -123,16 +136,27 @@ public class OkHttpUtil {
             }
         }
         Request request;
-        if(bodyParams!=null && !bodyParams.isEmpty()){
-            FormBody.Builder form = new FormBody.Builder();
-            for(Map.Entry<String,String> entry:bodyParams.entrySet()){
-                form.add(entry.getKey(), entry.getValue());
+        if(isGet){
+            String param = "";
+            if(params!=null && !params.isEmpty()){
+                for(Map.Entry<String, String> entry:params.entrySet()){
+                    param += "&" + entry.getKey() + "=" + entry.getValue();
+                }
             }
-            RequestBody requestBody = form.build();
-            request = builder.url(url).post(requestBody).build();
-        }else {
+            if(!TextUtils.isEmpty(param)) url += "?" + param.substring(1);
             request = builder.url(url).build();
+        }else {
+            FormBody.Builder form = new FormBody.Builder();
+            if(params!=null && !params.isEmpty()){
+                for(Map.Entry<String,String> entry:params.entrySet()){
+                    form.add(entry.getKey(), entry.getValue());
+                }
+                request = builder.url(url).post(form.build()).build();
+            }else {
+                request = builder.url(url).post(form.build()).build();
+            }
         }
+
         OkHttpClient.Builder newBuilder = client.newBuilder();
         for(Interceptor interceptor:interceptors){
             newBuilder.addInterceptor(interceptor);
@@ -141,21 +165,21 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
+                onError("网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
-                    onSuccessCallback(response,callback);
+                    onSuccessCallback(response.body().string(),callback);
                 }else {
-                    onFailureCallback(call,"操作失败,请稍后重试",callback);
+                    onFailResponse(response.body().string(),callback);
                 }
             }
         });
     }
 
-    public void requestDownLoadWithParams(String url, Map<String,String> headerParams, Map<String,String> bodyParams,File file,ProgressListener listener, ResultCallback callback){
+    public void requestDownLoadWithParams(String url, boolean isGet, Map<String,String> headerParams, Map<String,String> params, File file, ProgressListener listener, ResultCallback callback){
         Request.Builder builder = new Request.Builder();
         if(headerParams!=null && !headerParams.isEmpty()){
             for(Map.Entry<String,String> entry:headerParams.entrySet()){
@@ -163,21 +187,31 @@ public class OkHttpUtil {
             }
         }
         Request request;
-        if(bodyParams!=null && !bodyParams.isEmpty()){
-            FormBody.Builder form = new FormBody.Builder();
-            for(Map.Entry<String,String> entry:bodyParams.entrySet()){
-                form.add(entry.getKey(), entry.getValue());
+        if(isGet){
+            String param = "";
+            if(params!=null && !params.isEmpty()){
+                for(Map.Entry<String, String> entry:params.entrySet()){
+                    param += "&" + entry.getKey() + "=" + entry.getValue();
+                }
             }
-            RequestBody requestBody = form.build();
-            request = builder.url(url).post(requestBody).build();
-        }else {
+            if(!TextUtils.isEmpty(param)) url += "?" + param.substring(1);
             request = builder.url(url).build();
+        }else {
+            FormBody.Builder form = new FormBody.Builder();
+            if(params!=null && !params.isEmpty()){
+                for(Map.Entry<String,String> entry:params.entrySet()){
+                    form.add(entry.getKey(), entry.getValue());
+                }
+                request = builder.url(url).post(form.build()).build();
+            }else {
+                request = builder.url(url).post(form.build()).build();
+            }
         }
         OkHttpClient okHttpClient = client.newBuilder().addInterceptor(new ProgressInterceptor(listener)).build();
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
+                onError("网络连接失败,请稍后重试",callback);
             }
 
             @Override
@@ -189,7 +223,7 @@ public class OkHttpUtil {
                         onSuccessCallback(null,callback);
                     }
                 }else {
-                    onFailureCallback(call,"操作失败,请稍后重试",callback);
+                    onFailResponse(response.body().string(),callback);
                 }
             }
         });
@@ -217,25 +251,25 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                onFailureCallback(call,"网络连接失败,请稍后重试",callback);
+                onError("网络连接失败,请稍后重试",callback);
             }
 
             @Override
             public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
-                    onSuccessCallback(response,callback);
+                    onSuccessCallback(response.body().string(),callback);
                 }else {
-                    onFailureCallback(call,"操作失败,请稍后重试",callback);
+                    onFailResponse(response.body().string(),callback);
                 }
             }
         });
     }
 
-    private void onSuccessCallback(Response response, ResultCallback callback) {
+    private void onSuccessCallback(String info, ResultCallback callback) {
         handler.post(() -> {
             if(callback!=null){
                 try {
-                    callback.onSuccess(response);
+                    callback.onSuccessResponse(info);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -243,16 +277,41 @@ public class OkHttpUtil {
         });
     }
 
-    private void onFailureCallback(Call call, String message, ResultCallback callback) {
+    private void onError(String message, ResultCallback callback) {
         handler.post(() -> {
             if(callback!=null){
-                callback.onFail(call.request(),message);
+                callback.onError(message);
             }
         });
     }
 
+    private void onFailResponse(String info,ResultCallback callback) {
+        handler.post(() -> {
+            if(callback!=null){
+                callback.onFailResponse(info);
+            }
+        });
+    }
+
+    public void cancelTag(Object tag){
+        for (Call call : client.dispatcher().queuedCalls()){
+            if (tag.equals(call.request().tag())){
+                call.cancel();
+            }
+        }
+        for (Call call : client.dispatcher().runningCalls()){
+            if (tag.equals(call.request().tag())){
+                call.cancel();
+            }
+        }
+    }
+
+    public void cancelAll(){
+        client.dispatcher().cancelAll();
+    }
     public interface ResultCallback{
-        void onFail(Request request,String message);
-        void onSuccess(Response response) throws IOException;
+        void onError(String message);
+        void onFailResponse(String info);
+        void onSuccessResponse(String info) throws IOException;
     }
 }
