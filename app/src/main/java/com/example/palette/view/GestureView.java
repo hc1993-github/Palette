@@ -1,6 +1,7 @@
 package com.example.palette.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -13,6 +14,8 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+import com.example.palette.R;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
@@ -24,16 +27,22 @@ public class GestureView extends View {
     float pX;
     float pY;
     TouchListener listener;
+    int pathColor;
+    int pathWidth;
     public GestureView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.GestureView);
+        pathColor = typedArray.getColor(R.styleable.GestureView_pathColor,Color.GRAY);
+        pathWidth = typedArray.getInteger(R.styleable.GestureView_pathWidth,3);
+        typedArray.recycle();
         init();
     }
 
     private void init() {
         path = new Path();
         paint = new Paint();
-        paint.setColor(Color.RED);
-        paint.setStrokeWidth(5);
+        paint.setColor(pathColor);
+        paint.setStrokeWidth(pathWidth);
         paint.setStyle(Paint.Style.STROKE);
     }
 
@@ -51,8 +60,8 @@ public class GestureView extends View {
                 path.quadTo(pX,pY,x,y);
                 pX = event.getX();
                 pY = event.getY();
-                listener.move(x,y);
-                //postInvalidate();
+                //listener.move(x,y);
+                postInvalidate();
                 break;
         }
         return super.onTouchEvent(event);
@@ -61,7 +70,7 @@ public class GestureView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //canvas.drawPath(path,paint);
+        canvas.drawPath(path,paint);
     }
 
     public void saveImg() {

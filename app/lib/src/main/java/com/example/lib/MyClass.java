@@ -47,7 +47,7 @@ public class MyClass {
         try {
 //            MouseServer mouseServer = new MouseServer(9999);
 //            mouseServer.start();
-            System.out.print((getMd5ByFile(new File("D:\\QianHeQpp_ZJ_v2.1.3_36_debug.apk"))));
+            System.out.print((getMd5ByFile(new File("D:\\QianHeQpp_ZJ_v2.1.3_36_release.apk"))));
             //createFile(30,300,1f);
         } catch (Exception e) {
             e.printStackTrace();

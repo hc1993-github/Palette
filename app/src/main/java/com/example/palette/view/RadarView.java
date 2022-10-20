@@ -23,18 +23,30 @@ public class RadarView extends View {
     private Paint gradientPaint;
     private Paint rainDropPaint;
     private float degree = 0;
-    private float speed = 3;
+    private float speed;
     private List<RainDrop> rainDrops = new ArrayList<>();
     private int circleNum;
     private int gradientColor;
+    private int raindropColor;
     private int circleColor;
-    private int flicker = 3;
+    private int raindropNum;
+    private int raindropMaxWidth;
+    private boolean showCross;
+    private boolean showRaindrop;
+    private int flicker;
     public RadarView(Context context,AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RadarView);
+        circleColor = typedArray.getColor(R.styleable.RadarView_circleColor,Color.RED);
         circleNum = typedArray.getInteger(R.styleable.RadarView_circleNum, 3);
         gradientColor = typedArray.getColor(R.styleable.RadarView_gradientColor, Color.RED);
-        circleColor = typedArray.getColor(R.styleable.RadarView_circleColor,Color.RED);
+        raindropColor = typedArray.getColor(R.styleable.RadarView_raindropColor,Color.RED);
+        raindropNum = typedArray.getInteger(R.styleable.RadarView_raindropNum,3);
+        showCross = typedArray.getBoolean(R.styleable.RadarView_showCross,true);
+        showRaindrop = typedArray.getBoolean(R.styleable.RadarView_showRaindrop,true);
+        speed = typedArray.getFloat(R.styleable.RadarView_speed,3);
+        flicker = typedArray.getInteger(R.styleable.RadarView_flicker,3);
+        raindropMaxWidth = typedArray.getInteger(R.styleable.RadarView_raindropMaxWidth,50);
         typedArray.recycle();
         init();
     }
@@ -94,8 +106,12 @@ public class RadarView extends View {
         int cx = getPaddingLeft()+width/2;
         int cy = getPaddingTop()+height/2;
         drawCircle(canvas,cx,cy,radius);
-        drawCross(canvas,cx,cy,radius);
-        drawRainDrop(canvas,cx,cy,radius);
+        if(showCross){
+            drawCross(canvas,cx,cy,radius);
+        }
+        if(showRaindrop){
+            drawRainDrop(canvas,cx,cy,radius);
+        }
         drawGradient(canvas,cx,cy,radius);
         degree = (degree + speed) % 360;
         invalidate();
@@ -121,14 +137,14 @@ public class RadarView extends View {
         Iterator<RainDrop> rainDropIterator = rainDrops.iterator();
         while (rainDropIterator.hasNext()){
             RainDrop rainDrop = rainDropIterator.next();
-            if(rainDrop.radius>50 || rainDrop.alpha<0){
+            if(rainDrop.radius> raindropMaxWidth || rainDrop.alpha<0){
                 rainDropIterator.remove();
             }
         }
     }
 
     private void generateRainDrops(int cx, int cy, int radius) {
-        if(rainDrops.size()<circleNum){
+        if(rainDrops.size()<raindropNum){
             boolean generate = (int)Math.random()*20==0;
             if(generate){
                 int x = 0;
@@ -147,7 +163,7 @@ public class RadarView extends View {
                 } else {
                     y = cy + yOffset;
                 }
-                rainDrops.add(new RainDrop(x,y,0,circleColor));
+                rainDrops.add(new RainDrop(x,y,0,raindropColor));
             }
         }
     }

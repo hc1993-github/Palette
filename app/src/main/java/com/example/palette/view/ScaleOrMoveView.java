@@ -1,6 +1,7 @@
 package com.example.palette.view;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -9,6 +10,8 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.example.palette.R;
 
 public class ScaleOrMoveView extends View{
     public static final int STATUS_INIT = 1;
@@ -34,8 +37,16 @@ public class ScaleOrMoveView extends View{
     float scaledRatio;
     float initRatio;
     double lastFingerDis;
+    boolean isLimit;
+    float maxTimes;
+    float minTimes;
     public ScaleOrMoveView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ScaleOrMoveView);
+        isLimit = typedArray.getBoolean(R.styleable.ScaleOrMoveView_bordLimit,false);
+        maxTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_maxTimes,20f);
+        minTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_minTimes,0f);
+        typedArray.recycle();
         currentStatus = STATUS_INIT;
     }
 
@@ -72,15 +83,17 @@ public class ScaleOrMoveView extends View{
                     currentStatus = STATUS_MOVE;
                     movedDistanceX = xMove - lastMoveX;
                     movedDistanceY = yMove - lastMoveY;
-                    if (totalTranslateX + movedDistanceX > 0) {
-                        movedDistanceX = 0;
-                    } else if (width - (totalTranslateX + movedDistanceX) > currentBitmapWidth) {
-                        movedDistanceX = 0;
-                    }
-                    if (totalTranslateY + movedDistanceY > 0) {
-                        movedDistanceY = 0;
-                    } else if (height - (totalTranslateY + movedDistanceY) > currentBitmapHeight) {
-                        movedDistanceY = 0;
+                    if(isLimit){
+                        if (totalTranslateX + movedDistanceX > 0) {
+                            movedDistanceX = 0;
+                        } else if (width - (totalTranslateX + movedDistanceX) > currentBitmapWidth) {
+                            movedDistanceX = 0;
+                        }
+                        if (totalTranslateY + movedDistanceY > 0) {
+                            movedDistanceY = 0;
+                        } else if (height - (totalTranslateY + movedDistanceY) > currentBitmapHeight) {
+                            movedDistanceY = 0;
+                        }
                     }
                     invalidate();
                     lastMoveX = xMove;
@@ -93,13 +106,13 @@ public class ScaleOrMoveView extends View{
                     } else {
                         currentStatus = STATUS_SMALLER;
                     }
-                    if ((currentStatus == STATUS_BIGGER && totalRatio < 4 * initRatio) || (currentStatus == STATUS_SMALLER) && totalRatio > initRatio) {
+                    if ((currentStatus == STATUS_BIGGER && totalRatio < maxTimes * initRatio) || (currentStatus == STATUS_SMALLER) && totalRatio > minTimes * initRatio) {
                         scaledRatio = (float) (fingerDistance / lastFingerDis);
                         totalRatio = totalRatio * scaledRatio;
-                        if (totalRatio > 4 * initRatio) {
-                            totalRatio = 4 * initRatio;
-                        } else if (totalRatio < initRatio) {
-                            totalRatio = initRatio;
+                        if (totalRatio > maxTimes * initRatio) {
+                            totalRatio = maxTimes * initRatio;
+                        } else if (totalRatio < minTimes * initRatio) {
+                            totalRatio = minTimes * initRatio;
                         }
                         invalidate();
                         lastFingerDis = fingerDistance;

@@ -18,20 +18,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TemperatureView extends View {
-    int defaultSize = 1050;
-    int defaultPaintStrokeWidth = 3;
+    int defaultSize;
+    int defaultPaintStrokeWidth;
     float defaultLongSize;
     float defaultShortSize;
     float maxCircleRadius;
     float rotateAngle;
     int temperature;
-    int minTemp = -30;
-    int maxTemp = 30;
+    int minTemp;
+    int maxTemp;
     int middleTemp = 0;
-    int precent2Temp = 20;
-    int precent02Temp = -20;
-    int precent1Temp = 10;
-    int precent01Temp = -10;
+    int precent2Temp;
+    int precent02Temp;
+    int precent1Temp;
+    int precent01Temp;
     int minSideSize;
     Paint arcPaint;
     Paint sizePaint;
@@ -45,20 +45,42 @@ public class TemperatureView extends View {
     Paint bottomTextPaint;
     List<Integer> paintColors;
     List<Integer> tempColors;
-    String stringZD = "中等";
-    String stringY = "优";
-    String stringL = "良";
-    String stringGR = "过热";
-    String stringWX = "危险";
-    String stringLKWDZK = "冷库温度状况:";
+    String stringZDL;
+    String stringZDR;
+    String stringY;
+    String stringL;
+    String stringGR;
+    String stringWX;
+    String stringLKWDZK;
     RectF arcRectF;
     LinearGradient linearGradient;
+    int sixTextColor;
+    int sixTempColor;
+    int centerBottomTextColor;
     public TemperatureView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.TemperatureView);
-        temperature= typedArray.getInteger(R.styleable.TemperatureView_currentTemp,0);
-        typedArray.recycle();
         initColors();
+        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.TemperatureView);
+        defaultSize = typedArray.getInteger(R.styleable.TemperatureView_defaultSize,1050);
+        defaultPaintStrokeWidth = typedArray.getInteger(R.styleable.TemperatureView_defaultPaintStrokeWidth,2);
+        temperature= typedArray.getInteger(R.styleable.TemperatureView_currentTemp,0);
+        maxTemp = typedArray.getInteger(R.styleable.TemperatureView_maxTemp,30);
+        minTemp = typedArray.getInteger(R.styleable.TemperatureView_minTemp,-maxTemp);
+        precent2Temp = (int) (maxTemp*2f/3f);
+        precent1Temp = (int) (maxTemp/3f);
+        precent02Temp = (int) (minTemp*2f/3f);
+        precent01Temp = (int) (minTemp/3f);
+        stringY = typedArray.getString(R.styleable.TemperatureView_leftBottomText)==null?"优":typedArray.getString(R.styleable.TemperatureView_leftBottomText);
+        stringL = typedArray.getString(R.styleable.TemperatureView_leftCenterText)==null?"良":typedArray.getString(R.styleable.TemperatureView_leftCenterText);
+        stringZDL = typedArray.getString(R.styleable.TemperatureView_leftTopText)==null?"中等":typedArray.getString(R.styleable.TemperatureView_leftTopText);
+        stringZDR = typedArray.getString(R.styleable.TemperatureView_rightTopText)==null?"中等":typedArray.getString(R.styleable.TemperatureView_rightTopText);
+        stringGR = typedArray.getString(R.styleable.TemperatureView_rightCenterText)==null?"过热":typedArray.getString(R.styleable.TemperatureView_rightCenterText);
+        stringWX = typedArray.getString(R.styleable.TemperatureView_rightBottomText)==null?"危险":typedArray.getString(R.styleable.TemperatureView_rightBottomText);
+        stringLKWDZK = typedArray.getString(R.styleable.TemperatureView_centerBottomText)==null?"当前温度状况:":typedArray.getString(R.styleable.TemperatureView_centerBottomText);
+        sixTextColor = typedArray.getColor(R.styleable.TemperatureView_sixTextColor,paintColors.get(2));
+        sixTempColor = typedArray.getColor(R.styleable.TemperatureView_sixTempColor,paintColors.get(0));
+        centerBottomTextColor = typedArray.getColor(R.styleable.TemperatureView_centerBottomTextColor,paintColors.get(5));
+        typedArray.recycle();
         initPaints();
     }
 
@@ -80,13 +102,13 @@ public class TemperatureView extends View {
         numberPaint = new Paint();
         numberPaint.setAntiAlias(true);
         numberPaint.setStrokeWidth(defaultPaintStrokeWidth);
-        numberPaint.setColor(paintColors.get(0));
+        numberPaint.setColor(sixTempColor);
         numberPaint.setStyle(Paint.Style.FILL);
 
         numberSizePaint = new Paint();
         numberSizePaint.setAntiAlias(true);
         numberSizePaint.setStrokeWidth(defaultPaintStrokeWidth);
-        numberSizePaint.setColor(paintColors.get(2));
+        numberSizePaint.setColor(sixTextColor);
         numberSizePaint.setStyle(Paint.Style.FILL);
 
         huanPaint = new Paint();
@@ -114,7 +136,7 @@ public class TemperatureView extends View {
         bottomTextPaint = new Paint();
         bottomTextPaint.setAntiAlias(true);
         bottomTextPaint.setStrokeWidth(3);
-        bottomTextPaint.setColor(paintColors.get(5));
+        bottomTextPaint.setColor(centerBottomTextColor);
         bottomTextPaint.setStyle(Paint.Style.FILL);
     }
 
@@ -264,11 +286,11 @@ public class TemperatureView extends View {
             } else if (temperature <= precent01Temp) {
                 stringCurrentState = stringL;
             } else {
-                stringCurrentState = stringZD;
+                stringCurrentState = stringZDL;
             }
         } else if (temperature == middleTemp) {
             bottomTextPaint.setColor(tempColors.get(30));
-            stringCurrentState = stringZD;
+            stringCurrentState = stringZDL;
         } else {
             if (temperature > maxTemp) {
                 temperature = maxTemp;
@@ -278,7 +300,7 @@ public class TemperatureView extends View {
             } else if (temperature >= precent1Temp) {
                 stringCurrentState = stringGR;
             } else {
-                stringCurrentState = stringZD;
+                stringCurrentState = stringZDR;
             }
             bottomTextPaint.setColor(tempColors.get(60 - (int) (30f*(maxTemp - temperature)/ maxTemp)));
         }
@@ -286,7 +308,7 @@ public class TemperatureView extends View {
                 (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f),
                 getWidth()/2+74f*getWidth()/1050f+36f*getWidth()/1050f/2,
                 (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+67f*getWidth()/1050f),bottomTextPaint);
-        bottomTextPaint.setColor(paintColors.get(5));
+        //bottomTextPaint.setColor(paintColors.get(5));
         canvas.drawText(stringCurrentState, getWidth()/2+74f*getWidth()/1050f+36f*getWidth()/1050f,
                 (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f*2), bottomTextPaint);
         canvas.restore();
@@ -379,8 +401,8 @@ public class TemperatureView extends View {
         canvas.drawText(maxTemp+"°", (float) (getWidth()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)), (float) (getHeight()/2+Math.sin(Math.toRadians(45))*(maxCircleRadius+defaultLongSize)+30f*getWidth()/1050f),numberPaint);
         canvas.drawText(stringY,(float)(getWidth()/2-Math.sin(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f),(float)(getHeight()/2+Math.cos(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)+37f*getWidth()/1050f/2),numberSizePaint);
         canvas.drawText(stringL,(float)(getWidth()/2-Math.sin(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f),(float)(getHeight()/2-Math.cos(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)),numberSizePaint);
-        canvas.drawText(stringZD,(float)(getWidth()/2-Math.sin(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f),(float)(getHeight()/2-Math.cos(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-37f*getWidth()/1050f/2),numberSizePaint);
-        canvas.drawText(stringZD,(float)(getWidth()/2+Math.sin(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f/2),(float)(getHeight()/2-Math.cos(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-37f*getWidth()/1050f/2),numberSizePaint);
+        canvas.drawText(stringZDL,(float)(getWidth()/2-Math.sin(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f),(float)(getHeight()/2-Math.cos(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-37f*getWidth()/1050f/2),numberSizePaint);
+        canvas.drawText(stringZDR,(float)(getWidth()/2+Math.sin(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-36f*getWidth()/1050f/2),(float)(getHeight()/2-Math.cos(Math.toRadians(22.5))*(maxCircleRadius+defaultShortSize)-37f*getWidth()/1050f/2),numberSizePaint);
         canvas.drawText(stringGR,(float)(getWidth()/2+Math.sin(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)),(float)(getHeight()/2-Math.cos(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)),numberSizePaint);
         canvas.drawText(stringWX,(float)(getWidth()/2+Math.sin(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)),(float)(getHeight()/2+Math.cos(Math.toRadians(67.5))*(maxCircleRadius+defaultShortSize)+37f*getWidth()/1050f/2),numberSizePaint);
         canvas.restore();

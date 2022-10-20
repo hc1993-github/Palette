@@ -1,6 +1,6 @@
 package com.example.palette.util;
 
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 
 import java.io.File;
@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 
 public class FileUtil {
@@ -44,7 +45,7 @@ public class FileUtil {
         int result = -1;
         try {
             ZipFile zipFile = new ZipFile(zipFile_);
-            zipFile.setFileNameCharset("GBK");
+            zipFile.setCharset(Charset.forName("GBK"));
             if (!zipFile.isValidZipFile()){
                 throw new ZipException("压缩文件不合法,可能被损坏.");
             }

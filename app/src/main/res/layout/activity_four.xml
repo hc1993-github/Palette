@@ -14,17 +14,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />-->
-    <!--<com.example.palette.view.RadarView
+    <com.example.palette.view.TemperatureView
         android:id="@+id/scaleView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:circleColor="#05DDFA"
-        app:gradientColor="#08E6C5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-    <com.example.palette.view.TitleBar
+    <!--<com.example.palette.view.GestureView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -33,12 +31,12 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0"
         app:layout_constraintHorizontal_bias="0"/>-->
-    <com.example.palette.view.EView
+    <!--<com.example.palette.view.SwitchView
         android:id="@+id/sv"
         android:layout_width="200dp"
         android:layout_height="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"/>-->
 </androidx.constraintlayout.widget.ConstraintLayout>

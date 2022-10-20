@@ -41,8 +41,8 @@ public class SwitchView extends View {
     int centerPaintColor;
     Paint textPaint;
     int textPaintColor;
-    String start = "开";
-    String end = "关";
+    String start;
+    String end;
     Rect rect;
     StatusListener listener;
     public SwitchView(Context context,AttributeSet attrs) {
@@ -55,6 +55,8 @@ public class SwitchView extends View {
         bgPaintCloseColor = typedArray.getColor(R.styleable.SwitchView_bgPaintCloseColor,Color.GRAY);
         centerPaintColor = typedArray.getColor(R.styleable.SwitchView_centerPaintColor,Color.WHITE);
         textPaintColor = typedArray.getColor(R.styleable.SwitchView_textPaintColor,Color.BLACK);
+        start = typedArray.getString(R.styleable.SwitchView_openText)==null?" ":typedArray.getString(R.styleable.SwitchView_openText);
+        end = typedArray.getString(R.styleable.SwitchView_closeText)==null?" ":typedArray.getString(R.styleable.SwitchView_closeText);
         typedArray.recycle();
         init();
     }

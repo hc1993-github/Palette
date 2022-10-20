@@ -11,6 +11,8 @@
         <attr name="raindropColor" format="color" />
         <!--水滴的数量 这里表示的是水滴最多能同时出现的数量。因为水滴是随机产生的，数量是不确定的-->
         <attr name="raindropNum" format="integer" />
+        <!--水滴半径超过这个值或透明度为0时消失-->
+        <attr name="raindropMaxWidth" format="integer"/>
         <!--是否显示交叉线-->
         <attr name="showCross" format="boolean" />
         <!--是否显示水滴-->
@@ -18,18 +20,71 @@
         <!--扫描的转速，表示几秒转一圈-->
         <attr name="speed" format="float" />
         <!--水滴显示和消失的速度-->
-        <attr name="flicker" format="float" />
+        <attr name="flicker" format="integer" />
     </declare-styleable>
     <declare-styleable name="TemperatureView">
+        <!--默认正方形边大小-->
+        <attr name="defaultSize" format="integer"/>
+        <!--默认画笔粗细-->
+        <attr name="defaultPaintStrokeWidth" format="integer"/>
+        <!--默认当前温度-->
         <attr name="currentTemp" format="integer"/>
+        <!--最高温度-->
+        <attr name="maxTemp" format="integer"/>
+        <!--最低温度-->
+        <attr name="minTemp" format="integer"/>
+        <!--左下文字-->
+        <attr name="leftBottomText" format="string"/>
+        <!--左中文字-->
+        <attr name="leftCenterText" format="string"/>
+        <!--左上文字-->
+        <attr name="leftTopText" format="string"/>
+        <!--右上文字-->
+        <attr name="rightTopText" format="string"/>
+        <!--右中文字-->
+        <attr name="rightCenterText" format="string"/>
+        <!--右下文字-->
+        <attr name="rightBottomText" format="string"/>
+        <!--中间文字-->
+        <attr name="centerBottomText" format="string"/>
+        <!--6个文字颜色-->
+        <attr name="sixTextColor" format="color"/>
+        <!--6个温度颜色-->
+        <attr name="sixTempColor" format="color"/>
+        <!--中间文字颜色-->
+        <attr name="centerBottomTextColor" format="color"/>
+    </declare-styleable>
+    <declare-styleable name="ScaleOrMoveView">
+        <!--是否边界限制-->
+        <attr name="bordLimit" format="boolean"/>
+        <!--最大放大倍数 非负数 -->
+        <attr name="maxTimes" format="float"/>
+        <!--最小缩小倍数 非负数-->
+        <attr name="minTimes" format="float"/>
     </declare-styleable>
     <declare-styleable name="SwitchView">
+        <!--圆到边界间隔-->
         <attr name="defaultSpaceDpSize" format="integer"/>
+        <!--动画时间-->
         <attr name="duration" format="integer"/>
+        <!--默认是否打开-->
         <attr name="isOpen" format="boolean"/>
+        <!--打开时背景色-->
         <attr name="bgPaintOpenColor" format="color"/>
+        <!--关闭时背景色-->
         <attr name="bgPaintCloseColor" format="color"/>
+        <!--中心圆背景色-->
         <attr name="centerPaintColor" format="color"/>
+        <!--文字颜色-->
         <attr name="textPaintColor" format="color"/>
+        <!--打开时文本-->
+        <attr name="openText" format="string"/>
+        <!--关闭时文本-->
+        <attr name="closeText" format="string"/>
+    </declare-styleable>
+    <declare-styleable name="GestureView">
+        <!--轨迹颜色-->
+        <attr name="pathColor" format="color"/>
+        <attr name="pathWidth" format="integer"/>
     </declare-styleable>
 </resources>
