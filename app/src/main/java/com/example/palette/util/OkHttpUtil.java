@@ -1,10 +1,8 @@
 package com.example.palette.util;
 
-import android.os.FileUtils;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-
 
 import com.example.palette.module.ProgressInterceptor;
 import com.example.palette.module.ProgressListener;
@@ -37,7 +35,10 @@ public class OkHttpUtil {
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(20,TimeUnit.SECONDS)
                 .readTimeout(20,TimeUnit.SECONDS);
-        client = builder.build();
+        client = builder
+                //.addInterceptor(new NoNetInterceptor())
+                //.eventListenerFactory(OkHttpEventListener.FACTORY)
+                .build();
         handler = new Handler(Looper.getMainLooper());
     }
 

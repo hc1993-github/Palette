@@ -1,4 +1,4 @@
-package com.example.lib;
+package com.hc.other;
 
 import java.awt.BorderLayout;
 import java.awt.HeadlessException;
@@ -47,8 +47,9 @@ public class MyClass {
         try {
 //            MouseServer mouseServer = new MouseServer(9999);
 //            mouseServer.start();
-            System.out.print((getMd5ByFile(new File("D:\\QianHeQpp_ZJ_v2.1.3_36_release.apk"))));
+            System.out.print((getMd5ByFile(new File("D:\\HealthQianHeAPP_chsV2.1_3_debug.apk"))));
             //createFile(30,300,1f);
+            //System.out.print(pwdCheck("12a"));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -186,7 +187,62 @@ public class MyClass {
             return (char) (i + 55);
         }
     }
-    public static class KeyEvent_example extends JFrame{
+
+    public static boolean pwdCheck(String value){
+        boolean isPass;
+        String letter_regex = "^.*[a-zA-Z]+.*$";
+        String number_regex = "^.*[0-9]+.*$";
+        String special_regex = "^.*[/^/$/.//,;:'!@#%&/*/|/?/+/(/)/[/]/{/}+.*$]";
+        String length_regex = "^.{8,}$";
+        isPass = value.matches(letter_regex);
+        isPass = value.matches(number_regex);
+        isPass = value.matches(special_regex);
+        isPass = value.matches(length_regex);
+        isPass = MyClass.simpleLetterAndNumCheck(value, 3);
+        return isPass;
+    }
+
+    public static boolean simpleLetterAndNumCheck(String value, int length){
+        //是否合法
+        boolean isValidate = true;
+        //
+        int i = 0;
+        //计数器
+        int counter = 1;
+        //
+        for(; i < value.length() -1;) {
+            //当前ascii值
+            int currentAscii = Integer.valueOf(value.charAt(i));
+            //下一个ascii值
+            int nextAscii = Integer.valueOf(value.charAt(i + 1));
+            //满足区间进行判断
+            if( (MyClass.rangeInDefined(currentAscii, 48, 57) || MyClass.rangeInDefined(currentAscii, 65, 90) || MyClass.rangeInDefined(currentAscii, 97, 122))
+                    && (MyClass.rangeInDefined(nextAscii, 48, 57) || MyClass.rangeInDefined(nextAscii, 65, 90) || MyClass.rangeInDefined(nextAscii, 97, 122)) ) {
+                //计算两数之间差一位则为连续
+                if(Math.abs((nextAscii - currentAscii)) == 1){
+                    //计数器++
+                    counter++;
+                }else{
+                    //否则计数器重新计数
+                    counter = 1;
+                }
+            }
+            //满足连续数字或者字母
+            if(counter >= length) return !isValidate;
+            //
+            i++;
+        }
+
+        //
+        return isValidate;
+    }
+
+    public static boolean rangeInDefined(int current, int min, int max) {
+        //
+        return Math.max(min, current) == Math.min(current, max);
+    }
+
+    public static class KeyEvent_example extends JFrame {
         public KeyEvent_example() throws HeadlessException {
             super();
             setBounds(100,100,500,375);
