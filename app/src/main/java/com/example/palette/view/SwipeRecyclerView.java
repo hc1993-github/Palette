@@ -1,4 +1,4 @@
-package com.example.palette.adapter;
+package com.example.palette.view;
 
 import android.content.Context;
 import android.graphics.Rect;
