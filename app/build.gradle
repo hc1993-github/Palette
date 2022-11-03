@@ -1,3 +1,5 @@
+import java.text.SimpleDateFormat
+
 plugins {
     id 'com.android.application'
     id 'dagger.hilt.android.plugin'
@@ -25,6 +27,24 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    android.applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+                Date date = new Date()
+                def fileName
+                if (variant.buildType.name.equals('release')) {
+                    variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath+File.separator+"release")
+                    fileName = "${rootProject.name}_release_${defaultConfig.versionCode}_${simpleDateFormat.format(date)}.apk"
+                }else if(variant.buildType.name.equals('debug')){
+                    variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath+File.separator+"debug")
+                    fileName = "${rootProject.name}_debug_${defaultConfig.versionCode}_${simpleDateFormat.format(date)}.apk"
+                }
+                output.outputFileName = fileName
+            }
+        }
     }
 }
 
