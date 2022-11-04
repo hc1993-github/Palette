@@ -49,7 +49,7 @@ public class MyClass {
 //            mouseServer.start();
             System.out.print((getMd5ByFile(new File("D:\\HealthQianHeAPP_chsV2.1_3_debug.apk"))));
             //createFile(30,300,1f);
-            //System.out.print(pwdCheck("12a"));
+            System.out.print(pwdCheck("12a"));
         } catch (Exception e) {
             e.printStackTrace();
         }
