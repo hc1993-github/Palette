@@ -29,20 +29,19 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     android.applicationVariants.all { variant ->
-        variant.outputs.each { output ->
+        variant.outputs.all { output ->
             def outputFile = output.outputFile
+            def fileName
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
+            Date date = new Date()
             if (outputFile != null && outputFile.name.endsWith('.apk')) {
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd")
-                Date date = new Date()
-                def fileName
                 if (variant.buildType.name.equals('release')) {
-                    variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath+File.separator+"release")
+                    variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath+"/app/release")
                     fileName = "${rootProject.name}_release_${defaultConfig.versionCode}_${simpleDateFormat.format(date)}.apk"
                 }else if(variant.buildType.name.equals('debug')){
-                    variant.getPackageApplication().outputDirectory = new File(project.rootDir.absolutePath+File.separator+"debug")
                     fileName = "${rootProject.name}_debug_${defaultConfig.versionCode}_${simpleDateFormat.format(date)}.apk"
                 }
-                output.outputFileName = fileName
+                outputFileName = fileName
             }
         }
     }
