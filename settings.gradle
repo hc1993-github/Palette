@@ -1,3 +1,4 @@
 rootProject.name = "Palette"
 include ':app'
 include ':other'
+include ':SerialPortLibrary'
