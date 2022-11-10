@@ -95,6 +95,7 @@ public class SwipeRecyclerView extends RecyclerView {
     public boolean onTouchEvent(MotionEvent e) {
         if(mItemViewSwipe && mPosition!=INVALID_POSITION){
             float x = e.getX();
+            //obtainVelocity(e);
             switch (e.getAction()){
                 case MotionEvent.ACTION_DOWN:
                     break;
