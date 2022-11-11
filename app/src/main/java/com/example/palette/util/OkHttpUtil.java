@@ -219,7 +219,7 @@ public class OkHttpUtil {
             public void onResponse(Call call,Response response) throws IOException {
                 if(response.isSuccessful() && response!=null){
                     long contentLength = response.body().contentLength();
-                    FileUtil.writeToFile(response.body().byteStream(),file);
+                    FileUtil.writeToFile(file.getAbsolutePath(),response.body().byteStream());
                     if(file.length()==contentLength){
                         onSuccessCallback(null,callback);
                     }
