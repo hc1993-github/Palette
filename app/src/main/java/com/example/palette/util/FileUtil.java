@@ -202,26 +202,4 @@ public class FileUtil {
             }
         }
     }
-
-    private static char[] byteToChars(byte b) {
-        int h = ((b & 0xf0) >> 4);
-        int l = (b & 0x0f);
-        char[] r = new char[2];
-        r[0] = intToChart(h);
-        r[1] = intToChart(l);
-
-        return r;
-    }
-
-    private static char intToChart(int i) {
-        if (i < 0 || i > 15) {
-            return ' ';
-        }
-        if (i < 10) {
-            return (char) (i + 48);
-        } else {
-            return (char) (i + 55);
-        }
-    }
-
 }

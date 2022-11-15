@@ -20,7 +20,7 @@
         <activity android:name=".activity.SixActivity"></activity>
         <activity android:name=".activity.FiveActivity" />
         <activity
-            android:name=".activity.FourActivity"
+            android:name=".activity.ThirdActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,7 +28,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.ThirdActivity" />
+        <activity android:name=".activity.FourActivity" />
         <activity android:name=".activity.SecActivity" />
         <activity android:name=".activity.MainActivity" />
 
