@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.PersistableBundle;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -13,6 +14,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.palette.R;
 import com.example.palette.adapter.ProgressAdapter;
 import com.example.palette.util.SecurityUtil;
+
+import org.ksoap2.serialization.SoapObject;
+import org.ksoap2.serialization.SoapSerializationEnvelope;
+import org.ksoap2.transport.HttpTransportSE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,5 +38,38 @@ public class ThirdActivity extends AppCompatActivity {
         Log.d("ThirdActivity", "encrypt "+encryptString);
         String decryptString = SecurityUtil.decryptStringRSAPrivate(keyPair[1], encryptString,NO_WRAP);
         Log.d("ThirdActivity", "decrypt "+decryptString);
+        findViewById(R.id.textView).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Thread(){
+                    @Override
+                    public void run() {
+                        Log.d("ThirdActivity", "number "+getNumberInfo("13812815447"));
+                    }
+                }.start();
+            }
+        });
+    }
+
+    private String getNumberInfo(String phoneNumber){
+        String url = "http://ws.webxml.com.cn/WebServices/MobileCodeWS.asmx";
+        String namespace = "http://WebXml.com.cn/";
+        String methodName = "getMobileCodeInfo";
+        String action = "http://WebXml.com.cn/getMobileCodeInfo";
+        SoapObject soapObject = new SoapObject(namespace,methodName);
+        soapObject.addProperty("mobileCode",phoneNumber);
+        soapObject.addProperty("userID","");
+        SoapSerializationEnvelope envelope = new SoapSerializationEnvelope(SoapSerializationEnvelope.VER11);
+        envelope.bodyOut = soapObject;
+        envelope.dotNet = true;
+        envelope.setOutputSoapObject(soapObject);
+        HttpTransportSE httpTransportSE = new HttpTransportSE(url);
+        try {
+            httpTransportSE.call(action,envelope);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        SoapObject result = (SoapObject) envelope.bodyIn;
+        return result.getProperty(0).toString();
     }
 }
