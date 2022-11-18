@@ -8,6 +8,11 @@ public class SPUtil {
     private static SPUtil mSpUtil;
     private static String mName;
 
+    /**
+     * 初始化
+     * @param context
+     * @return
+     */
     public static SPUtil init(Context context) {
         mContext = context.getApplicationContext();
         if (mSpUtil == null) {
@@ -20,6 +25,11 @@ public class SPUtil {
         return mSpUtil;
     }
 
+    /**
+     * 设置sp名称
+     * @param name
+     * @return
+     */
     public static SPUtil setName(String name) {
         if (mSpUtil == null) {
             throw new RuntimeException("you must init before setName");

@@ -54,6 +54,14 @@ public class OkHttpUtil {
         return okHttpUtil;
     }
 
+    /**
+     * get post请求
+     * @param url
+     * @param isGet 是否get
+     * @param headerParams request头部参数
+     * @param params 请求参数
+     * @param callback
+     */
     public void requestWithParams(String url, boolean isGet, Map<String, String> headerParams, Map<String, String> params, ResultCallback callback) {
         Request.Builder builder = new Request.Builder();
         if (headerParams != null && !headerParams.isEmpty()) {
@@ -100,6 +108,13 @@ public class OkHttpUtil {
 
     }
 
+    /**
+     * post请求
+     * @param url
+     * @param headerParams request头部参数
+     * @param json json数据
+     * @param callback
+     */
     public void requestWithJson(String url, Map<String, String> headerParams, String json, ResultCallback callback) {
         Request.Builder builder = new Request.Builder();
         if (headerParams != null && !headerParams.isEmpty()) {
@@ -130,6 +145,15 @@ public class OkHttpUtil {
         });
     }
 
+    /**
+     * get post请求
+     * @param url
+     * @param isGet 是否get
+     * @param headerParams request头部参数
+     * @param params 请求参数
+     * @param callback
+     * @param interceptors 自定义拦截器
+     */
     public void requestWithParams(String url, boolean isGet, Map<String, String> headerParams, Map<String, String> params, ResultCallback callback, Interceptor... interceptors) {
         Request.Builder builder = new Request.Builder();
         if (headerParams != null && !headerParams.isEmpty()) {
@@ -181,6 +205,16 @@ public class OkHttpUtil {
         });
     }
 
+    /**
+     * 文件下载
+     * @param url
+     * @param isGet 是否get
+     * @param headerParams request头部参数
+     * @param params 请求参数
+     * @param file 下载的文件
+     * @param listener 进度监听器
+     * @param callback
+     */
     public void requestDownLoadWithParams(String url, boolean isGet, Map<String, String> headerParams, Map<String, String> params, File file, ProgressListener listener, ResultCallback callback) {
         Request.Builder builder = new Request.Builder();
         if (headerParams != null && !headerParams.isEmpty()) {
@@ -231,6 +265,15 @@ public class OkHttpUtil {
         });
     }
 
+    /**
+     * 文件上传
+     * @param url
+     * @param headerParams request头部参数
+     * @param bodyParams 请求体参数
+     * @param file 上传的文件
+     * @param listener 进度监听器
+     * @param callback
+     */
     public void requestUpLoadWithParams(String url, Map<String, String> headerParams, Map<String, String> bodyParams, File file, ProgressListener listener, ResultCallback callback) {
         Request.Builder builder = new Request.Builder();
         builder.addHeader("Content-Type", "multipart/form-data");

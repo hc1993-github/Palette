@@ -19,7 +19,7 @@ public class DateUtil {
      * @param format
      * @return
      */
-    public static String getNowDate(String format){
+    public static String getNowTime(String format){
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         return sdf.format(calendar.getTime());

@@ -32,18 +32,6 @@ import javax.crypto.spec.SecretKeySpec;
 public class PackageUtil {
     /**
      * apk安装
-     * 同时添加apk_provider_path.xml文件
-     * 及AndroidManifest添加
-     * <provider
-     * android:authorities="com.example.customview.FileProvider"
-     * android:name="androidx.core.content.FileProvider"
-     * android:exported="false"
-     * android:grantUriPermissions="true">
-     * <meta-data
-     * android:name="android.support.FILE_PROVIDER_PATHS"
-     * android:resource="@xml/apk_provider_path"/>
-     * </provider>
-     *
      * @param context
      * @param apkFile
      */
