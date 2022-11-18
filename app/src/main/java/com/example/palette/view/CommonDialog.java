@@ -2,20 +2,23 @@ package com.example.palette.view;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.palette.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CommonDialog extends Dialog {
-    private TextView leftBtn;
-    private TextView rightBtn;
     private Builder builder;
-    public CommonDialog(Builder builder) {
-        super(builder.context, R.style.commondialog);
+
+    private CommonDialog(Builder builder) {
+        super(builder.context);
         this.builder = builder;
     }
 
@@ -24,68 +27,118 @@ public class CommonDialog extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(builder.layoutId);
         setCancelable(builder.cancelable);
+        Window window = getWindow();
+        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));//dialog透明
+        window.setDimAmount(0.5f);//activity昏暗
+        window.setTitle(null);//dialog无标题
         initViews();
     }
-    public void initViews(){
-        leftBtn = findViewById(builder.leftBtnId);
-        rightBtn = findViewById(builder.rightBtnId);
-        if(leftBtn!=null){
-            leftBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    builder.listener.onLeftBtnClick(CommonDialog.this);
-                }
-            });
+
+    protected void initViews() {
+        View leftView = findViewById(builder.leftViewId);
+        View rightView = findViewById(builder.rightViewId);
+        View commonView = findViewById(builder.commonViewId);
+        if (builder.defaultListener != null) {
+            if (leftView != null) {
+                leftView.setOnClickListener(v -> builder.defaultListener.onLeftViewClick(CommonDialog.this));
+            }
+            if (commonView != null) {
+                commonView.setOnClickListener(v -> builder.defaultListener.onCommonViewClick(CommonDialog.this));
+            }
+            if (rightView != null) {
+                rightView.setOnClickListener(v -> builder.defaultListener.onRightViewClick(CommonDialog.this));
+            }
         }
-        if(rightBtn!=null){
-            rightBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    builder.listener.onRightBtnClick(CommonDialog.this);
+        if (builder.otherListener != null) {
+            if (builder.ids != null) {
+                for (int i : builder.ids) {
+                    View view = findViewById(i);
+                    if (view != null) {
+                        view.setOnClickListener(v -> builder.otherListener.onOtherViewClick(CommonDialog.this, i));
+                    }
                 }
-            });
+            }
         }
     }
-    public static class Builder{
+
+    public static class Builder {
         private Context context;
         private int layoutId;
-        private int leftBtnId;
-        private int rightBtnId;
-        private CommonDialogOnClickListener listener;
+        private int leftViewId;
+        private int commonViewId;
+        private int rightViewId;
+        private List<Integer> ids;
+        private CommonDialogDefaultOnClickListener defaultListener;
+        private CommonDialogOtherOnClickListener otherListener;
         private boolean cancelable = true;
-        public Builder setContext(Context context){
+
+        public Builder setContext(Context context) {
             this.context = context;
             return this;
         }
 
-        public Builder setCancelable(boolean cancelable){
+        public Builder setCancelable(boolean cancelable) {
             this.cancelable = cancelable;
             return this;
         }
-        public Builder setLeftBtnId(int leftBtnId) {
-            this.leftBtnId = leftBtnId;
+
+        public Builder setLeftViewId(int leftViewId) {
+            this.leftViewId = leftViewId;
             return this;
         }
 
-        public Builder setRightBtnId(int rightBtnId) {
-            this.rightBtnId = rightBtnId;
+        public Builder setCommonViewId(int commonViewId) {
+            this.commonViewId = commonViewId;
             return this;
         }
 
-        public Builder setLayoutId(int layoutId){
+        public Builder setRightViewId(int rightViewId) {
+            this.rightViewId = rightViewId;
+            return this;
+        }
+
+        public Builder setOtherViewId(int... otherViewIds) {
+            if (this.ids == null) {
+                this.ids = new ArrayList<>();
+            }
+            for (int i : otherViewIds) {
+                this.ids.add(i);
+            }
+            return this;
+        }
+
+        public Builder setLayoutId(int layoutId) {
             this.layoutId = layoutId;
             return this;
         }
-        public Builder setListener(CommonDialogOnClickListener listener){
-            this.listener = listener;
+
+        public Builder setDefaultListener(CommonDialogDefaultOnClickListener listener) {
+            this.defaultListener = listener;
             return this;
         }
-        public CommonDialog build(){
+
+        public Builder setOtherListener(CommonDialogOtherOnClickListener listener) {
+            this.otherListener = listener;
+            return this;
+        }
+
+        public CommonDialog build() {
+            if (context == null) {
+                throw new RuntimeException("you must setContext before build");
+            }
             return new CommonDialog(this);
         }
     }
-    public interface CommonDialogOnClickListener{
-        void onLeftBtnClick(Dialog dialog);
-        void onRightBtnClick(Dialog dialog);
+
+    public interface CommonDialogDefaultOnClickListener {
+        void onLeftViewClick(Dialog dialog);
+
+        void onCommonViewClick(Dialog dialog);
+
+        void onRightViewClick(Dialog dialog);
+    }
+
+    public interface CommonDialogOtherOnClickListener {
+        void onOtherViewClick(Dialog dialog, int viewId);
     }
 }

@@ -372,22 +372,30 @@ public class SixActivity extends AppCompatActivity implements GestureView.TouchL
                     .setContext(this)
                     .setCancelable(false)
                     .setLayoutId(R.layout.dialog_confirm)
-                    .setLeftBtnId(R.id.negative)
-                    .setRightBtnId(R.id.positive)
-                    .setListener(new CommonDialog.CommonDialogOnClickListener() {
+                    .setLeftViewId(R.id.negative)
+                    .setRightViewId(R.id.positive)
+                    .setDefaultListener(new CommonDialog.CommonDialogDefaultOnClickListener() {
                         @Override
-                        public void onLeftBtnClick(Dialog dialog) {
+                        public void onLeftViewClick(Dialog dialog) {
                             dialog.dismiss();
                         }
 
                         @Override
-                        public void onRightBtnClick(Dialog dialog) {
+                        public void onCommonViewClick(Dialog dialog) {
+
+                        }
+
+                        @Override
+                        public void onRightViewClick(Dialog dialog) {
                             dialog.dismiss();
                             if(client!=null){
                                 client.disconnect();
                             }
                             finish();
                         }
+                    })
+                    .setOtherListener((dialog, viewId) -> {
+
                     }).build();
             commonDialog.show();
         }
