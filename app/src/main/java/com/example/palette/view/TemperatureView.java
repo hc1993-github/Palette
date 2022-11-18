@@ -9,11 +9,13 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Shader;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
+
 import androidx.annotation.Nullable;
+
 import com.example.palette.R;
 import com.example.palette.util.ScreenUtil;
+
 import java.util.ArrayList;
 import java.util.List;
 

@@ -7,9 +7,6 @@ import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
-import android.widget.TextView;
-
-import com.example.palette.R;
 
 import java.util.ArrayList;
 import java.util.List;
