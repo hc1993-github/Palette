@@ -113,9 +113,11 @@ public class SwitchView extends View {
         }else {
             bgPaint.setColor(bgPaintOpenColor);
         }
-        canvas.drawArc(0,0,height,height,90,180,false,bgPaint);
+        //canvas.drawArc(0,0,height,height,90,180,false,bgPaint);
+        canvas.drawCircle(height/2,height/2,height/2,bgPaint);
         canvas.drawRect(height/2,0,width-height/2,height,bgPaint);
-        canvas.drawArc(width-height,0,width,height,-90,180,false,bgPaint);
+        //canvas.drawArc(width-height,0,width,height,-90,180,false,bgPaint);
+        canvas.drawCircle(width-height/2,height/2,height/2,bgPaint);
         int cx = width - height/2;
         int cy = height/2;
         canvas.drawCircle(cx-dex,cy,height/2-defaultSpacePxSize,centerPaint);
