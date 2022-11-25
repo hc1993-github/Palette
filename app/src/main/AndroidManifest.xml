@@ -17,10 +17,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Palette">
-        <activity android:name=".activity.SixActivity"></activity>
+        <activity android:name=".activity.ThirdActivity"></activity>
         <activity android:name=".activity.FiveActivity" />
         <activity
-            android:name=".activity.ThirdActivity"
+            android:name=".activity.SixActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

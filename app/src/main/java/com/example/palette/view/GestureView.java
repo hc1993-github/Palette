@@ -60,7 +60,7 @@ public class GestureView extends View {
                 path.quadTo(pX,pY,x,y);
                 pX = event.getX();
                 pY = event.getY();
-                //listener.move(x,y);
+                listener.move(x,y);
                 postInvalidate();
                 break;
         }
@@ -70,7 +70,7 @@ public class GestureView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        canvas.drawPath(path,paint);
+        //canvas.drawPath(path,paint);
     }
 
     public void saveImg() {
