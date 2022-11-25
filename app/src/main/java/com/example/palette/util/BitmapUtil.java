@@ -9,11 +9,19 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.EncodeHintType;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BitmapUtil {
     public static final int DEFAULT_MAX_WIDTH = 1920;
@@ -461,6 +469,69 @@ public class BitmapUtil {
         Rect rect = new Rect();
         paint.getTextBounds(text,0,text.length(),rect);
         return addTextToBitmap(src,text,paint,(src.getWidth()-rect.width())/2,(src.getHeight()+rect.height())/2);
+    }
+
+    /**
+     * 创建二维码位图
+     * @param text 二维码对应文本
+     * @param imgWidth 位图宽
+     * @param imgHeight 位图高
+     * @param logo logo位图
+     * @return
+     */
+    public static Bitmap createQRCode(String text,int imgWidth,int imgHeight,Bitmap logo){
+        try {
+            if(text==null || "".equals(text)){
+                return null;
+            }
+            Map<EncodeHintType,Object> hints = new HashMap<>();
+            hints.put(EncodeHintType.CHARACTER_SET,"utf-8");
+            hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
+            BitMatrix bitMatrix = new QRCodeWriter().encode(text, BarcodeFormat.QR_CODE, imgWidth, imgHeight, hints);
+            int[] pixels = new int[imgWidth*imgHeight];
+            for(int y=0;y<imgHeight;y++){
+                for(int x=0;x<imgHeight;x++){
+                    if(bitMatrix.get(x,y)){
+                        pixels[y*imgWidth+x] = 0xff000000;
+                    }else {
+                        pixels[y*imgWidth+x] = 0xffffffff;
+                    }
+                }
+            }
+            Bitmap bitmap = Bitmap.createBitmap(imgWidth, imgHeight, Bitmap.Config.ARGB_8888);
+            bitmap.setPixels(pixels,0,imgWidth,0,0,imgWidth,imgHeight);
+            if(logo!=null){
+                bitmap = addLogo(bitmap,logo);
+            }
+            return bitmap;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static Bitmap addLogo(Bitmap src,Bitmap logo){
+        if(src==null){
+            return null;
+        }
+        int srcwidth = src.getWidth();
+        int srcheight = src.getHeight();
+        int logowidth = logo.getWidth();
+        int logoheight = logo.getHeight();
+        float scale = srcwidth*1.0f/5/logowidth;
+        Bitmap bitmap = Bitmap.createBitmap(srcwidth,srcheight, Bitmap.Config.ARGB_8888);
+        try {
+            Canvas canvas = new Canvas(bitmap);
+            canvas.drawBitmap(src,0,0,null);
+            canvas.scale(scale,scale,srcwidth/2,srcheight/2);
+            canvas.drawBitmap(logo,(srcwidth-logowidth)/2,(srcheight-logoheight)/2,null);
+            canvas.save();
+            canvas.restore();
+        }catch (Exception e){
+            bitmap = null;
+            e.printStackTrace();
+        }
+        return bitmap;
     }
 
     private static Bitmap addTextToBitmap(Bitmap src, String text, Paint paint,int paddingLeft,int paddingTop){
