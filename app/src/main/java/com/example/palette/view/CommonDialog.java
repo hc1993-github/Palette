@@ -95,11 +95,13 @@ public class CommonDialog extends Dialog {
         }
 
         public Builder setOtherViewId(int... otherViewIds) {
-            if (this.ids == null) {
-                this.ids = new ArrayList<>();
-            }
-            for (int i : otherViewIds) {
-                this.ids.add(i);
+            if(otherViewIds.length>0){
+                if (this.ids == null) {
+                    this.ids = new ArrayList<>();
+                }
+                for (int i : otherViewIds) {
+                    this.ids.add(i);
+                }
             }
             return this;
         }
