@@ -1,12 +1,14 @@
 package com.example.palette.util;
 
+import android.text.TextUtils;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtil {
-    public static final String TYPE_ONE = "yyyy-MM-DD HH:mm:ss";
+    public static final String TYPE_ONE = "yyyy-MM-dd HH:mm:ss";
 
     /**
      * 获取当前时间
@@ -14,9 +16,12 @@ public class DateUtil {
      * @return
      */
     public static String getNowTime(String format){
-        Calendar calendar = Calendar.getInstance();
+        Date date = new Date();
+        if(TextUtils.isEmpty(format)){
+            format = TYPE_ONE;
+        }
         SimpleDateFormat sdf = new SimpleDateFormat(format);
-        return sdf.format(calendar.getTime());
+        return sdf.format(date);
     }
 
     /**
@@ -42,6 +47,9 @@ public class DateUtil {
      * @return
      */
     public static String dateToString(Date date,String format){
+        if(TextUtils.isEmpty(format)){
+            format = TYPE_ONE;
+        }
         SimpleDateFormat sdf = new SimpleDateFormat(format);
         return sdf.format(date);
     }
