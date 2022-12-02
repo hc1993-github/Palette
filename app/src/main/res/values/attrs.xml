@@ -87,4 +87,14 @@
         <attr name="pathColor" format="color"/>
         <attr name="pathWidth" format="integer"/>
     </declare-styleable>
+    <declare-styleable name="DownPullView">
+        <!--文字颜色-->
+        <attr name="tvColor" format="color"/>
+        <!--文字大小-->
+        <attr name="tvSizeSp" format="integer"/>
+        <!--未选择时文字-->
+        <attr name="tvDefault" format="string"/>
+        <!--下拉限制个数-->
+        <attr name="itemLimit" format="integer"/>
+    </declare-styleable>
 </resources>
