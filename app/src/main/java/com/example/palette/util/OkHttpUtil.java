@@ -8,8 +8,6 @@ import com.example.palette.module.ProgressInterceptor;
 import com.example.palette.module.ProgressListener;
 import com.example.palette.module.ProgressRequestBody;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
@@ -98,7 +96,7 @@ public class OkHttpUtil {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response != null) {
+                if (response.isSuccessful()) {
                     onSuccessCallback(response.body().string(), callback);
                 } else {
                     onFailCallback(response.body().string(), callback);
@@ -136,7 +134,7 @@ public class OkHttpUtil {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response != null) {
+                if (response.isSuccessful()) {
                     onSuccessCallback(response.body().string(), callback);
                 } else {
                     onFailCallback(response.body().string(), callback);
@@ -196,7 +194,7 @@ public class OkHttpUtil {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response != null) {
+                if (response.isSuccessful()) {
                     onSuccessCallback(response.body().string(), callback);
                 } else {
                     onFailCallback(response.body().string(), callback);
@@ -252,7 +250,7 @@ public class OkHttpUtil {
 
             @Override
             public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful() && response != null) {
+                if (response.isSuccessful()) {
                     long contentLength = response.body().contentLength();
                     FileUtil.writeToFile(file.getAbsolutePath(), response.body().byteStream());
                     if (file.length() == contentLength) {
@@ -295,13 +293,13 @@ public class OkHttpUtil {
         OkHttpClient okHttpClient = client.newBuilder().build();
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
-            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+            public void onFailure(Call call,IOException e) {
                 onNetError("网络连接失败,请稍后重试", callback);
             }
 
             @Override
-            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                if (response.isSuccessful() && response != null) {
+            public void onResponse(Call call,Response response) throws IOException {
+                if (response.isSuccessful()) {
                     onSuccessCallback(response.body().string(), callback);
                 } else {
                     onFailCallback(response.body().string(), callback);

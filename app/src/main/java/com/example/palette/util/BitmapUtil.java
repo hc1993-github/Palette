@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
@@ -185,17 +186,17 @@ public class BitmapUtil {
      * @return
      */
     public static Bitmap scaleBitmap(Bitmap bitmap, int destWidth, int destHeight) {
-        float horizontalScale = ((float) bitmap.getWidth()) / destWidth;
-        float verticalScale = ((float) bitmap.getHeight()) / destHeight;
-        if (horizontalScale < 1 || verticalScale < 1) {
-            return bitmap;
-        }
-        float maxScale = Math.max(horizontalScale, verticalScale);
-        // 确保为4的倍数
-        int newWidth = (int) (bitmap.getWidth() / maxScale) & ~0b11;
-        int newHeight = (int) (bitmap.getHeight() / maxScale) & ~0b11;
+//        float horizontalScale = ((float) bitmap.getWidth()) / destWidth;
+//        float verticalScale = ((float) bitmap.getHeight()) / destHeight;
+//        if (horizontalScale < 1 || verticalScale < 1) {
+//            return bitmap;
+//        }
+//        float maxScale = Math.max(horizontalScale, verticalScale);
+//        // 确保为4的倍数
+//        int newWidth = (int) (bitmap.getWidth() / maxScale) & ~0b11;
+//        int newHeight = (int) (bitmap.getHeight() / maxScale) & ~0b11;
 
-        return Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true);
+        return Bitmap.createScaledBitmap(bitmap, destWidth, destHeight, true);
     }
 
     /**
@@ -253,6 +254,18 @@ public class BitmapUtil {
         options.inSampleSize = calculateSampleSize(width,height,options);
         options.inJustDecodeBounds = false;
         return BitmapFactory.decodeFile(filePath,options);
+    }
+
+    /**
+     * 图片顺时针旋转
+     * @param bitmap
+     * @param degree 0-90-180-270
+     * @return
+     */
+    public static Bitmap bitmapRotate(Bitmap bitmap,int degree){
+        Matrix matrix = new Matrix();
+        matrix.setRotate(degree,bitmap.getWidth()/2,bitmap.getHeight()/2);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),bitmap.getHeight(), matrix, true);
     }
 
     /**
