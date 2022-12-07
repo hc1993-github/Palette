@@ -33,7 +33,8 @@ public class LogUtil {
     private void init() {
         try {
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                LOG_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + mContext.getResources().getString(mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).applicationInfo.labelRes) + File.separator + "log";
+                String[] split = mContext.getPackageName().split("\\.");
+                LOG_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator+split[split.length-1]+File.separator+"log";
             } else {
                 LOG_PATH = mContext.getFilesDir().getAbsolutePath() + File.separator + "log";
             }
