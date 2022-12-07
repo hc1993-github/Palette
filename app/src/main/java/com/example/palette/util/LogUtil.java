@@ -3,6 +3,7 @@ package com.example.palette.util;
 
 import android.content.Context;
 import android.os.Environment;
+import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,18 +23,19 @@ public class LogUtil {
     public static final int MIN = 60000;
     public static final int HOUR = 3600000;
     public static final int DAY = 86400000;
-
+    private static Context mContext;
     private LogUtil(Context context) {
-        init(context);
+        this.mContext = context;
+        init();
         mPid = android.os.Process.myPid();
     }
 
-    private void init(Context context) {
+    private void init() {
         try {
             if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                LOG_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + context.getResources().getString(context.getPackageManager().getPackageInfo(context.getPackageName(), 0).applicationInfo.labelRes) + File.separator + "log";
+                LOG_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + mContext.getResources().getString(mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).applicationInfo.labelRes) + File.separator + "log";
             } else {
-                LOG_PATH = context.getFilesDir().getAbsolutePath() + File.separator + "log";
+                LOG_PATH = mContext.getFilesDir().getAbsolutePath() + File.separator + "log";
             }
             File file = new File(LOG_PATH);
             if (!file.exists()) {
@@ -102,6 +104,10 @@ public class LogUtil {
             mLogReader.stoplog();
             mLogReader = null;
         }
+    }
+
+    public static void log(String msg) {
+        Log.i(mContext.getPackageName(), getFullDate()+" "+msg);
     }
 
     private static String getSimpleDate() {
