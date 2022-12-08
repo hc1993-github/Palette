@@ -3,12 +3,14 @@ package com.example.palette.activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.palette.R;
 import com.example.palette.hilt.MyInterface;
 import com.example.palette.hilt.MyObserver;
+import com.example.palette.view.GestureView;
 import com.example.palette.view.TemperatureView;
 import com.hc.SerialPortHelper;
 
@@ -45,6 +47,14 @@ public class FourActivity extends AppCompatActivity implements SerialPortHelper.
                 Log.d(TAG, "onClick: "+send);
             }
         });
+//        GestureView gestureView = findViewById(R.id.gv);
+//        ImageView imageView = findViewById(R.id.iv);
+//        gestureView.addTouchListener(new GestureView.TouchListener() {
+//            @Override
+//            public void move(float x, float y) {
+//                imageView.setImageBitmap(gestureView.getCurrentBitmap());
+//            }
+//        });
     }
 
     @Override

@@ -85,7 +85,10 @@
     <declare-styleable name="GestureView">
         <!--轨迹颜色-->
         <attr name="pathColor" format="color"/>
+        <!--轨迹宽度-->
         <attr name="pathWidth" format="integer"/>
+        <!--背景颜色-->
+        <attr name="bgColor" format="color"/>
     </declare-styleable>
     <declare-styleable name="DownPullView">
         <!--文字颜色-->

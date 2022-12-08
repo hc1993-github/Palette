@@ -29,11 +29,14 @@ public class GestureView extends View {
     TouchListener listener;
     int pathColor;
     int pathWidth;
+    int bgColor;
+    boolean isDraw = false;
     public GestureView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.GestureView);
-        pathColor = typedArray.getColor(R.styleable.GestureView_pathColor,Color.GRAY);
+        pathColor = typedArray.getColor(R.styleable.GestureView_pathColor,Color.BLACK);
         pathWidth = typedArray.getInteger(R.styleable.GestureView_pathWidth,3);
+        bgColor = typedArray.getColor(R.styleable.GestureView_bgColor,Color.WHITE);
         typedArray.recycle();
         init();
     }
@@ -57,10 +60,15 @@ public class GestureView extends View {
             case MotionEvent.ACTION_MOVE:
                 float x = (pX + event.getX()) / 2;
                 float y = (pY + event.getY()) / 2;
+                if(Math.abs(x)>1){
+                    isDraw = true;
+                }
                 path.quadTo(pX,pY,x,y);
                 pX = event.getX();
                 pY = event.getY();
-                listener.move(x,y);
+                if(listener!=null){
+                    listener.move(x,y);
+                }
                 postInvalidate();
                 break;
         }
@@ -70,10 +78,19 @@ public class GestureView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //canvas.drawPath(path,paint);
+        canvas.drawColor(bgColor);
+        canvas.drawPath(path,paint);
     }
 
-    public void saveImg() {
+    public Bitmap getCurrentBitmap(){
+        Bitmap bitmap = Bitmap.createBitmap(getWidth(),getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawColor(bgColor);
+        canvas.drawPath(path, paint);
+        return bitmap;
+    }
+
+    public void autoSaveImage() {
         try {
             Bitmap bitmap = Bitmap.createBitmap(getWidth(),getHeight(), Bitmap.Config.ARGB_8888);
             Canvas canvas = new Canvas(bitmap);
@@ -91,8 +108,13 @@ public class GestureView extends View {
         }
     }
 
+    public boolean isDraw() {
+        return isDraw;
+    }
+
     public void reset(){
         path.reset();
+        isDraw = false;
         postInvalidate();
     }
     public void addTouchListener(TouchListener listener){
