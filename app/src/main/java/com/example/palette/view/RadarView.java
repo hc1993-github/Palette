@@ -33,6 +33,7 @@ public class RadarView extends View {
     private boolean showCross;
     private boolean showRaindrop;
     private int flicker;
+    private boolean pause = false;
     public RadarView(Context context,AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.RadarView);
@@ -61,6 +62,14 @@ public class RadarView extends View {
         rainDropPaint = new Paint();
         rainDropPaint.setStyle(Paint.Style.FILL);
         rainDropPaint.setAntiAlias(true);
+        setOnClickListener(v -> {
+            if(pause){
+                pause = false;
+            }else {
+                pause = true;
+            }
+            postInvalidate();
+        });
     }
 
     @Override
@@ -113,7 +122,14 @@ public class RadarView extends View {
         }
         drawGradient(canvas,cx,cy,radius);
         degree = (degree + speed) % 360;
-        invalidate();
+        if(!pause){
+            invalidate();
+        }
+    }
+
+    public void setPause(boolean pause){
+        this.pause = pause;
+        postInvalidate();
     }
 
     private void drawCross(Canvas canvas, int cx, int cy, int radius) {
