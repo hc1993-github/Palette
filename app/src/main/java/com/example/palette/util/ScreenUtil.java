@@ -1,17 +1,31 @@
 package com.example.palette.util;
 
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
+import android.graphics.Color;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.LinearLayout;
+
+import androidx.annotation.RequiresApi;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import static android.view.View.GONE;
 
 public class ScreenUtil {
     /**
@@ -118,6 +132,84 @@ public class ScreenUtil {
     public static int px2dip(Context context,float px){
         float density = context.getResources().getDisplayMetrics().density;
         return (int) (px/density+0.5f);
+    }
+
+    /**
+     * 状态栏全透明
+     * @param activity
+     */
+    public static void statusBarFullTransparent(Activity activity){
+        Window window = activity.getWindow();
+        if (Build.VERSION.SDK_INT >= 21) {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(Color.TRANSPARENT);
+        }else if(Build.VERSION.SDK_INT >= 19){
+            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        }
+    }
+
+    /**
+     * 状态栏半透明
+     * @param activity
+     */
+//    public static void statusBarHalfTransparent(Activity activity){
+//        Window window = activity.getWindow();
+//        if (Build.VERSION.SDK_INT >= 21) {
+//            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+//            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+//        }
+//    }
+
+    /**
+     * 导航栏和状态栏隐藏
+     * @param activity
+     */
+    public static void barHide(Activity activity){
+        View view = activity.getWindow().getDecorView();
+        int option = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        view.setSystemUiVisibility(option);
+    }
+
+    /**
+     * 状态栏隐藏
+     * @param activity
+     */
+    public static void statusBarHide(Activity activity){
+        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    /**
+     * 导航栏隐藏
+     * @param activity
+     */
+    public static void navBarHide(Activity activity){
+        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    /**
+     * 控件适配 防止覆盖状态栏
+     * @param autoFitViews
+     */
+    public static void viewImmersiveAdapter(View...autoFitViews){
+        if(autoFitViews!=null && autoFitViews.length>0){
+            for(View v:autoFitViews){
+                ViewCompat.setOnApplyWindowInsetsListener(v, new OnApplyWindowInsetsListener() {
+                    @Override
+                    public WindowInsetsCompat onApplyWindowInsets(View v, WindowInsetsCompat insets) {
+                        ConstraintLayout.LayoutParams layoutParams = (ConstraintLayout.LayoutParams) v.getLayoutParams();
+                        layoutParams.topMargin = insets.getSystemWindowInsetTop();
+                        return insets;
+                    }
+                });
+            }
+        }
     }
 
     /**
