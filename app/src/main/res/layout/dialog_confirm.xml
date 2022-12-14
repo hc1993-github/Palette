@@ -3,7 +3,7 @@
     android:layout_width="250dp"
     android:layout_height="100dp"
     android:layout_gravity="center"
-    android:background="@drawable/shape4"
+    android:background="@drawable/bg_white_corner_rectangle"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <TextView
         android:id="@+id/tv"
