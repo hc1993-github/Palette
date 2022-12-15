@@ -10,7 +10,7 @@
         android:id="@+id/textView2"
         android:layout_width="250dp"
         android:layout_height="250dp"
-        app:pippleStartToBorderSpaceDp="24"
+        app:pippleSpaceDp="24"
         app:pippleWidthDp="1"
         app:pippleColor="#3299eb"
         app:layout_constraintBottom_toBottomOf="parent"
