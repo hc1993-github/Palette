@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/shape6">
+    android:background="@drawable/bg_grey_top_border_rectangle">
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_datas"
         android:layout_centerInParent="true"
