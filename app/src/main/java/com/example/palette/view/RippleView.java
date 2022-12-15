@@ -9,20 +9,15 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.os.Build;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
-import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import com.example.palette.R;
 import com.example.palette.util.ScreenUtil;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class RippleView extends View {
@@ -104,8 +99,6 @@ public class RippleView extends View {
         int i = ScreenUtil.dp2px(getContext(), space);
         if(i>radius){
             i = radius;
-        }else if(i==0){
-            i = (int) (radius / 4f);
         }
         ValueAnimator animator = ValueAnimator.ofInt(radius-i,radius);
         animator.setDuration(duration);
