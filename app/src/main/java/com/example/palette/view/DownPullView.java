@@ -101,6 +101,17 @@ public class DownPullView extends LinearLayout {
         popupWindow = null;
     }
 
+    public void setPosition(int position){
+        if(position>datas.size() || position < 0){
+            position = 0;
+        }
+        if(datas==null || datas.isEmpty()){
+            tv_content.setText(strDefault);
+        }else {
+            tv_content.setText(datas.get(position));
+        }
+    }
+
     public void setDatas(List<String> datas){
         if(datas.size()<1){
             throw new RuntimeException("至少需包含1条数据");
@@ -155,7 +166,9 @@ public class DownPullView extends LinearLayout {
                 public void onClick(View v) {
                     TextView textView = holder.getView(R.id.tv_item);
                     tv_content.setText(textView.getText().toString());
-                    listener.onItemClick((Integer) textView.getTag());
+                    if(listener!=null){
+                        listener.onItemClick((Integer) textView.getTag());
+                    }
                     close();
                 }
             });;

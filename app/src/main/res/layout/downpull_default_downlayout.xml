@@ -5,6 +5,7 @@
     android:background="@drawable/bg_grey_top_border_rectangle">
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_datas"
+        android:overScrollMode="never"
         android:layout_centerInParent="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
