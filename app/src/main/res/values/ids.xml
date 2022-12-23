@@ -2,4 +2,7 @@
 <resources>
     <item name="id1" type="id"/>
     <item name="id2" type="id"/>
+    <item name="id_item_image" type="id"/>
+    <item name="id_item_text" type="id"/>
+    <item name="id_center" type="id"/>
 </resources>

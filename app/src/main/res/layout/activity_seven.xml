@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".activity.SevenActivity">
 
-    <com.example.palette.view.RippleView
+    <!--<com.example.palette.view.RippleView
         android:id="@+id/textView2"
         android:layout_width="250dp"
         android:layout_height="250dp"
@@ -24,5 +24,20 @@
         app:layout_constraintBottom_toBottomOf="@id/textView2"
         app:layout_constraintLeft_toLeftOf="@id/textView2"
         app:layout_constraintRight_toRightOf="@id/textView2"
-        android:background="@drawable/bg_blue_round"/>
+        android:background="@drawable/bg_blue_round"/>-->
+    <com.example.palette.view.DiscView
+        android:id="@+id/dv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_earth"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        <ImageView
+            android:id="@id/id_center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/bg_earth"/>
+    </com.example.palette.view.DiscView>
 </androidx.constraintlayout.widget.ConstraintLayout>
