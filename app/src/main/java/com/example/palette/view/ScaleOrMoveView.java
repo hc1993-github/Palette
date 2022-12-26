@@ -223,14 +223,31 @@ public class ScaleOrMoveView extends View{
                 matrix.postTranslate(translateX, translateY);
                 totalTranslateX = translateX;
                 totalTranslateY = translateY;
-                totalTranslateX = translateX;
-                totalTranslateY = translateY;
                 totalRatio = initRatio = 1f;
                 currentBitmapWidth = bitmapWidth;
                 currentBitmapHeight = bitmapHeight;
             }
             canvas.drawBitmap(sourceBitmap, matrix, null);
         }
+    }
+
+    public Bitmap clipBitmap(){
+        int vpadding;
+        int border;
+        int hpadding;
+        if(getWidth()>getHeight()){
+            vpadding = getHeight()/6;
+            border = getHeight() - vpadding*2;
+            hpadding = (getWidth()-border)/2;
+        }else{
+            hpadding = getWidth()/6;
+            border = getWidth()-hpadding*2;
+            vpadding = (getHeight()-border)/2;
+        }
+        Bitmap bitmap = Bitmap.createBitmap(getWidth(),getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        canvas.drawBitmap(sourceBitmap,matrix,null);
+        return Bitmap.createBitmap(bitmap,hpadding,vpadding,getWidth()-2*hpadding,getWidth()-2*hpadding);
     }
 
     private double calculate2FingerDistance(MotionEvent event) {
