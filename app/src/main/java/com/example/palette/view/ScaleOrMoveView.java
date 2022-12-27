@@ -11,7 +11,7 @@ import android.view.View;
 
 import com.example.palette.R;
 
-public class ScaleOrMoveView extends View{
+public class ScaleOrMoveView extends View {
     public static final int STATUS_INIT = 1;
     public static final int STATUS_BIGGER = 2;
     public static final int STATUS_SMALLER = 3;
@@ -36,14 +36,17 @@ public class ScaleOrMoveView extends View{
     float initRatio;
     double lastFingerDis;
     boolean isLimit;
+    boolean centerScale;
     float maxTimes;
     float minTimes;
+
     public ScaleOrMoveView(Context context, AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ScaleOrMoveView);
-        isLimit = typedArray.getBoolean(R.styleable.ScaleOrMoveView_bordLimit,false);
-        maxTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_maxTimes,20f);
-        minTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_minTimes,0f);
+        isLimit = typedArray.getBoolean(R.styleable.ScaleOrMoveView_bordLimit, false);
+        maxTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_maxTimes, 20f);
+        minTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_minTimes, 0f);
+        centerScale = typedArray.getBoolean(R.styleable.ScaleOrMoveView_centerScale, true);
         typedArray.recycle();
         currentStatus = STATUS_INIT;
     }
@@ -81,7 +84,7 @@ public class ScaleOrMoveView extends View{
                     currentStatus = STATUS_MOVE;
                     movedDistanceX = xMove - lastMoveX;
                     movedDistanceY = yMove - lastMoveY;
-                    if(isLimit){
+                    if (isLimit) {
                         if (totalTranslateX + movedDistanceX > 0) {
                             movedDistanceX = 0;
                         } else if (width - (totalTranslateX + movedDistanceX) > currentBitmapWidth) {
@@ -164,27 +167,32 @@ public class ScaleOrMoveView extends View{
         matrix.postScale(totalRatio, totalRatio);
         float scaledWidth = sourceBitmap.getWidth() * totalRatio;
         float scaledHeight = sourceBitmap.getHeight() * totalRatio;
-        float translateX = 0f;
-        float translateY = 0f;
-        if (currentBitmapWidth < width) {
-            translateX = (width - scaledWidth) / 2f;
-        } else {
-            translateX = totalTranslateX * scaledRatio + centerPointX * (1 - scaledRatio);
-            if (translateX > 0) {
-                translateX = 0;
-            } else if (width - translateX > scaledWidth) {
-                translateX = width - scaledWidth;
+        float translateX;
+        float translateY;
+        if (centerScale) {
+            if (currentBitmapWidth < width) {
+                translateX = (width - scaledWidth) / 2f;
+            } else {
+                translateX = totalTranslateX * scaledRatio + centerPointX * (1 - scaledRatio);
+                if (translateX > 0) {
+                    translateX = 0;
+                } else if (width - translateX > scaledWidth) {
+                    translateX = width - scaledWidth;
+                }
             }
-        }
-        if (currentBitmapHeight < height) {
-            translateY = (height - scaledHeight) / 2f;
-        } else {
-            translateY = totalTranslateY * scaledRatio + centerPointY * (1 - scaledRatio);
-            if (translateY > 0) {
-                translateY = 0;
-            } else if (height - translateY > scaledHeight) {
-                translateY = height - scaledHeight;
+            if (currentBitmapHeight < height) {
+                translateY = (height - scaledHeight) / 2f;
+            } else {
+                translateY = totalTranslateY * scaledRatio + centerPointY * (1 - scaledRatio);
+                if (translateY > 0) {
+                    translateY = 0;
+                } else if (height - translateY > scaledHeight) {
+                    translateY = height - scaledHeight;
+                }
             }
+        } else {
+            translateX = totalTranslateX - (scaledWidth - currentBitmapWidth) / 2;
+            translateY = totalTranslateY - (scaledHeight - currentBitmapHeight) / 2;
         }
         matrix.postTranslate(translateX, translateY);
         totalTranslateX = translateX;
@@ -231,23 +239,23 @@ public class ScaleOrMoveView extends View{
         }
     }
 
-    public Bitmap clipBitmap(){
+    public Bitmap clipBitmap() {
         int vpadding;
         int border;
         int hpadding;
-        if(getWidth()>getHeight()){
-            vpadding = getHeight()/6;
-            border = getHeight() - vpadding*2;
-            hpadding = (getWidth()-border)/2;
-        }else{
-            hpadding = getWidth()/6;
-            border = getWidth()-hpadding*2;
-            vpadding = (getHeight()-border)/2;
+        if (getWidth() > getHeight()) {
+            vpadding = getHeight() / 6;
+            border = getHeight() - vpadding * 2;
+            hpadding = (getWidth() - border) / 2;
+        } else {
+            hpadding = getWidth() / 6;
+            border = getWidth() - hpadding * 2;
+            vpadding = (getHeight() - border) / 2;
         }
-        Bitmap bitmap = Bitmap.createBitmap(getWidth(),getHeight(), Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        canvas.drawBitmap(sourceBitmap,matrix,null);
-        return Bitmap.createBitmap(bitmap,hpadding,vpadding,getWidth()-2*hpadding,getWidth()-2*hpadding);
+        canvas.drawBitmap(sourceBitmap, matrix, null);
+        return Bitmap.createBitmap(bitmap, hpadding, vpadding, getWidth() - 2 * hpadding, getWidth() - 2 * hpadding);
     }
 
     private double calculate2FingerDistance(MotionEvent event) {
