@@ -4,7 +4,12 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,7 +44,9 @@ public class ScaleOrMoveView extends View {
     boolean centerScale;
     float maxTimes;
     float minTimes;
-
+    Path roundPath;
+    Path squarePath;
+    int clipType = -1;
     public ScaleOrMoveView(Context context, AttributeSet attrs) {
         super(context, attrs);
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.ScaleOrMoveView);
@@ -49,6 +56,8 @@ public class ScaleOrMoveView extends View {
         centerScale = typedArray.getBoolean(R.styleable.ScaleOrMoveView_centerScale, true);
         typedArray.recycle();
         currentStatus = STATUS_INIT;
+        roundPath = new Path();
+        squarePath = new Path();
     }
 
     public void setImageBitmap(Bitmap bitmap) {
@@ -159,6 +168,13 @@ public class ScaleOrMoveView extends View {
         matrix.postTranslate(translateX, translateY);
         totalTranslateX = translateX;
         totalTranslateY = translateY;
+        if(clipType==1){
+            canvas.clipPath(roundPath);
+            canvas.drawColor(Color.WHITE);
+        }else if(clipType==2){
+            canvas.clipPath(squarePath);
+            canvas.drawColor(Color.WHITE);
+        }
         canvas.drawBitmap(sourceBitmap, matrix, null);
     }
 
@@ -199,6 +215,13 @@ public class ScaleOrMoveView extends View {
         totalTranslateY = translateY;
         currentBitmapWidth = scaledWidth;
         currentBitmapHeight = scaledHeight;
+        if(clipType==1){
+            canvas.clipPath(roundPath);
+            canvas.drawColor(Color.WHITE);
+        }else if(clipType==2){
+            canvas.clipPath(squarePath);
+            canvas.drawColor(Color.WHITE);
+        }
         canvas.drawBitmap(sourceBitmap, matrix, null);
     }
 
@@ -235,27 +258,29 @@ public class ScaleOrMoveView extends View {
                 currentBitmapWidth = bitmapWidth;
                 currentBitmapHeight = bitmapHeight;
             }
+            if(clipType==1){
+                canvas.clipPath(roundPath);
+                canvas.drawColor(Color.WHITE);
+            }else if(clipType==2){
+                canvas.clipPath(squarePath);
+                canvas.drawColor(Color.WHITE);
+            }
             canvas.drawBitmap(sourceBitmap, matrix, null);
         }
     }
 
     public Bitmap clipBitmap() {
-        int vpadding;
-        int border;
-        int hpadding;
-        if (getWidth() > getHeight()) {
-            vpadding = getHeight() / 6;
-            border = getHeight() - vpadding * 2;
-            hpadding = (getWidth() - border) / 2;
-        } else {
-            hpadding = getWidth() / 6;
-            border = getWidth() - hpadding * 2;
-            vpadding = (getHeight() - border) / 2;
-        }
         Bitmap bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
+        if(clipType==1){
+            canvas.clipPath(roundPath);
+            canvas.drawColor(Color.WHITE);
+        }else if(clipType==2){
+            canvas.clipPath(squarePath);
+            canvas.drawColor(Color.WHITE);
+        }
         canvas.drawBitmap(sourceBitmap, matrix, null);
-        return Bitmap.createBitmap(bitmap, hpadding, vpadding, getWidth() - 2 * hpadding, getWidth() - 2 * hpadding);
+        return bitmap;
     }
 
     private double calculate2FingerDistance(MotionEvent event) {
@@ -269,4 +294,27 @@ public class ScaleOrMoveView extends View {
         centerPointY = (event.getY(0) + event.getY(1)) / 2;
     }
 
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        int vpadding;
+        int border;
+        int hpadding;
+        if (getWidth() > getHeight()) {
+            vpadding = getHeight() / 6;
+            border = getHeight() - vpadding * 2;
+            hpadding = (getWidth() - border) / 2;
+            roundPath.addCircle(getWidth()/2,getHeight()/2,Math.min(getWidth()/2,getHeight()/2)-vpadding/2, Path.Direction.CW);
+        } else {
+            hpadding = getWidth() / 6;
+            border = getWidth() - hpadding * 2;
+            vpadding = (getHeight() - border) / 2;
+            roundPath.addCircle(getWidth()/2,getHeight()/2,Math.min(getWidth()/2,getHeight()/2)-hpadding/2, Path.Direction.CW);
+        }
+        squarePath.addRect(hpadding,vpadding,getWidth()-hpadding,getHeight() - vpadding, Path.Direction.CW);
+    }
+
+    public void setClipType(int type) {
+        clipType = type;
+    }
 }
