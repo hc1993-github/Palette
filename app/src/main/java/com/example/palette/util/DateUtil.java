@@ -71,6 +71,25 @@ public class DateUtil {
     }
 
     /**
+     * 获取某月第一天
+     * @param year
+     * @param month
+     * @return
+     */
+    public static Date getFisrtDayOfMonth(int year,int month){
+        Calendar cal = Calendar.getInstance();
+        //设置年份
+        cal.set(Calendar.YEAR,year);
+        //设置月份
+        cal.set(Calendar.MONTH, month-1);
+        //获取某月最小天数
+        int firstDay = cal.getActualMinimum(Calendar.DAY_OF_MONTH);
+        //设置日历中月份的最小天数
+        cal.set(Calendar.DAY_OF_MONTH, firstDay);
+        return cal.getTime();
+    }
+
+    /**
      * 获取某月的天数
      * @param year
      * @param month
