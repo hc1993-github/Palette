@@ -263,9 +263,29 @@ public class BitmapUtil {
      * @return
      */
     public static Bitmap bitmapRotate(Bitmap bitmap,int degree){
+        int w = bitmap.getWidth();
+        int h = bitmap.getHeight();
         Matrix matrix = new Matrix();
-        matrix.setRotate(degree,bitmap.getWidth()/2,bitmap.getHeight()/2);
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),bitmap.getHeight(), matrix, true);
+        matrix.postRotate(degree);
+        return Bitmap.createBitmap(bitmap, 0, 0, w,h, matrix, true);
+    }
+
+    /**
+     * 图片镜像
+     * @param bmp
+     * @param isHorizontal 是否水平方向
+     * @return
+     */
+    public static Bitmap bitmapMirror(Bitmap bmp,boolean isHorizontal)  {
+        int w = bmp.getWidth();
+        int h = bmp.getHeight();
+        Matrix matrix = new Matrix();
+        if(isHorizontal){
+            matrix.postScale(-1f, 1f); // 水平镜像翻转
+        }else {
+            matrix.postScale(1f, -1f);
+        }
+        return Bitmap.createBitmap(bmp, 0, 0, w, h, matrix, true);
     }
 
     /**
