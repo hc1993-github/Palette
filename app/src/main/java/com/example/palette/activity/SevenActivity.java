@@ -2,14 +2,22 @@ package com.example.palette.activity;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
+import androidx.recyclerview.widget.OrientationHelper;
+import androidx.recyclerview.widget.RecyclerView;
+
 
 import com.example.palette.R;
-import com.example.palette.util.ScreenUtil;
-import com.example.palette.view.DiscView;
-import com.example.palette.view.RippleView;
+import com.example.palette.adapter.TestAdapter;
+import com.example.palette.banner.BannerLayout;
+import com.example.palette.layoutmanager.card.CardLayoutManager;
+import com.example.palette.layoutmanager.card.ItemTouchHelperCallback;
+import com.example.palette.layoutmanager.card.OnSwiperListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SevenActivity extends AppCompatActivity {
     private String[] texts = new String[]{"你好","你好","你好","你好","你好","你好"};
@@ -18,8 +26,57 @@ public class SevenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_seven);
-        DiscView discView = findViewById(R.id.dv);
-        discView.setItemLayoutId(R.layout.item_menu);
-        discView.setItems(imgs,texts);
+//        DiscView discView = findViewById(R.id.dv);
+//        discView.setItemLayoutId(R.layout.item_menu);
+//        discView.setItems(imgs,texts);
+
+//        BannerLayout bannerLayout = findViewById(R.id.bl);
+//        List<String> datas = new ArrayList<>();
+//        for (int i = 0; i < 50; i++) {
+//            datas.add("测试数据"+i);
+//        }
+//        TestAdapter adapters = new TestAdapter(this,R.layout.item_banner,datas);
+//        bannerLayout.setAutoPlaying(false);
+//        bannerLayout.setShowIndicator(false);
+//        bannerLayout.setOrientation(OrientationHelper.VERTICAL);
+//        bannerLayout.setAdapter(adapters);
+
+//        RecyclerCoverFlowView recyclerView = findViewById(R.id.rv);
+//        List<String> data = new ArrayList<>();
+//        for (int i = 0; i < 50; i++) {
+//            data.add("测试数据"+i);
+//        }
+//        recyclerView.setLayoutManager(new CoverFlowLayoutManager());
+//        TestAdapter adapter = new TestAdapter(this,R.layout.item_banner,data);
+//        recyclerView.setAdapter(adapter);
+
+        RecyclerView recyclerView = findViewById(R.id.rv);
+        List<String> data = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            data.add("测试数据"+i);
+        }
+        TestAdapter adapter = new TestAdapter(this,R.layout.item_banner,data);
+        recyclerView.setAdapter(adapter);
+        ItemTouchHelperCallback callback = new ItemTouchHelperCallback(recyclerView.getAdapter(),data);
+        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+        CardLayoutManager manager = new CardLayoutManager(recyclerView,touchHelper);
+        recyclerView.setLayoutManager(manager);
+        touchHelper.attachToRecyclerView(recyclerView);
+        callback.setOnSwipeListener(new OnSwiperListener<String>() {
+            @Override
+            public void onSwiping(RecyclerView.ViewHolder viewHolder, float ratio, int direction) {
+
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, String s, int direction) {
+                Log.d("onSwiped", "onSwiped: "+direction);
+            }
+
+            @Override
+            public void onSwipedClear() {
+
+            }
+        });
     }
 }

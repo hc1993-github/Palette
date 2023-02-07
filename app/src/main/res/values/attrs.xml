@@ -72,7 +72,7 @@
         <!--最小缩小倍数 非负数-->
         <attr name="minTimes" format="float"/>
         <!--当图宽小于屏幕宽或图高小于屏幕高时,是否移动到中间缩放-->
-        <attr name="centerScale" format="boolean"/>
+        <attr name="centerIfScale" format="boolean"/>
     </declare-styleable>
     <declare-styleable name="SwitchView">
         <!--圆到边界间隔-->
@@ -111,5 +111,41 @@
         <attr name="tvDefault" format="string"/>
         <!--下拉限制个数-->
         <attr name="itemLimit" format="integer"/>
+    </declare-styleable>
+
+
+    <attr name="interval" format="integer"/>
+    <attr name="showIndicator" format="boolean"/>
+    <attr name="orientation" format="enum">
+        <enum name="horizontal" value="0"/>
+        <enum name="vertical" value="1"/>
+    </attr>
+    <attr name="autoPlaying" format="boolean"/>
+    <declare-styleable name="RecyclerViewBannerBase">
+        <attr name="interval"/>
+        <attr name="showIndicator" />
+        <attr name="orientation" />
+        <attr name="autoPlaying"/>
+        <attr name="indicatorSelectedSrc" format="color|reference"/>
+        <attr name="indicatorUnselectedSrc" format="color|reference"/>
+        <attr name="indicatorSpace" format="dimension|reference"/>
+        <attr name="indicatorMarginLeft" format="dimension|reference"/>
+        <attr name="indicatorMarginRight" format="dimension|reference"/>
+        <attr name="indicatorMarginBottom" format="dimension|reference"/>
+        <attr name="indicatorGravity" format="enum">
+            <enum name="left" value="0"/>
+            <enum name="center" value="1"/>
+            <enum name="right" value="2"/>
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="BannerLayout">
+        <attr name="interval" />
+        <attr name="showIndicator" />
+        <attr name="orientation" />
+        <attr name="autoPlaying"/>
+        <attr name="itemSpace" format="integer"/>
+        <attr name="centerScale" format="float"/>
+        <attr name="moveSpeed" format="float"/>
     </declare-styleable>
 </resources>

@@ -53,7 +53,7 @@ public class ScaleOrMoveView extends View {
         isLimit = typedArray.getBoolean(R.styleable.ScaleOrMoveView_bordLimit, false);
         maxTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_maxTimes, 20f);
         minTimes = typedArray.getFloat(R.styleable.ScaleOrMoveView_minTimes, 0f);
-        centerScale = typedArray.getBoolean(R.styleable.ScaleOrMoveView_centerScale, true);
+        centerScale = typedArray.getBoolean(R.styleable.ScaleOrMoveView_centerIfScale, true);
         typedArray.recycle();
         currentStatus = STATUS_INIT;
         roundPath = new Path();
