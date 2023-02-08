@@ -66,12 +66,30 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>-->
-    <androidx.recyclerview.widget.RecyclerView
+    <!--<androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"/>-->
+        <com.example.palette.view.RotateView
+            android:id="@+id/rov"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+            <TextView
+                android:textSize="36sp"
+                android:text="hello"
+                android:gravity="center"
+                android:padding="10dp"
+                android:background="@drawable/default_dialog_update_progress_default_bg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </com.example.palette.view.RotateView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

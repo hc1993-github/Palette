@@ -2,6 +2,8 @@ package com.example.palette.activity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -15,6 +17,7 @@ import com.example.palette.banner.BannerLayout;
 import com.example.palette.layoutmanager.card.CardLayoutManager;
 import com.example.palette.layoutmanager.card.ItemTouchHelperCallback;
 import com.example.palette.layoutmanager.card.OnSwiperListener;
+import com.example.palette.view.RotateView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,32 +53,39 @@ public class SevenActivity extends AppCompatActivity {
 //        TestAdapter adapter = new TestAdapter(this,R.layout.item_banner,data);
 //        recyclerView.setAdapter(adapter);
 
-        RecyclerView recyclerView = findViewById(R.id.rv);
-        List<String> data = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            data.add("测试数据"+i);
-        }
-        TestAdapter adapter = new TestAdapter(this,R.layout.item_banner,data);
-        recyclerView.setAdapter(adapter);
-        ItemTouchHelperCallback callback = new ItemTouchHelperCallback(recyclerView.getAdapter(),data);
-        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
-        CardLayoutManager manager = new CardLayoutManager(recyclerView,touchHelper);
-        recyclerView.setLayoutManager(manager);
-        touchHelper.attachToRecyclerView(recyclerView);
-        callback.setOnSwipeListener(new OnSwiperListener<String>() {
+//        RecyclerView recyclerView = findViewById(R.id.rv);
+//        List<String> data = new ArrayList<>();
+//        for (int i = 0; i < 10; i++) {
+//            data.add("测试数据"+i);
+//        }
+//        TestAdapter adapter = new TestAdapter(this,R.layout.item_banner,data);
+//        recyclerView.setAdapter(adapter);
+//        ItemTouchHelperCallback callback = new ItemTouchHelperCallback(recyclerView.getAdapter(),data);
+//        ItemTouchHelper touchHelper = new ItemTouchHelper(callback);
+//        CardLayoutManager manager = new CardLayoutManager(recyclerView,touchHelper);
+//        recyclerView.setLayoutManager(manager);
+//        touchHelper.attachToRecyclerView(recyclerView);
+//        callback.setOnSwipeListener(new OnSwiperListener<String>() {
+//            @Override
+//            public void onSwiping(RecyclerView.ViewHolder viewHolder, float ratio, int direction) {
+//
+//            }
+//
+//            @Override
+//            public void onSwiped(RecyclerView.ViewHolder viewHolder, String s, int direction) {
+//                Log.d("onSwiped", "onSwiped: "+direction);
+//            }
+//
+//            @Override
+//            public void onSwipedClear() {
+//
+//            }
+//        });
+        RotateView rotateView = findViewById(R.id.rov);
+        rotateView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onSwiping(RecyclerView.ViewHolder viewHolder, float ratio, int direction) {
-
-            }
-
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, String s, int direction) {
-                Log.d("onSwiped", "onSwiped: "+direction);
-            }
-
-            @Override
-            public void onSwipedClear() {
-
+            public void onClick(View v) {
+                Toast.makeText(SevenActivity.this,"点击",Toast.LENGTH_SHORT).show();
             }
         });
     }
