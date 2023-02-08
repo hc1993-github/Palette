@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 public class SocketClientHelper extends Thread {
@@ -23,12 +24,26 @@ public class SocketClientHelper extends Thread {
     int port;
     SocketClientHelperListener listener;
     boolean isReading = false;
+    int connectNumber=0;
+    int reconnectNumber=3;
+    long reconnectTimePeriod=3000;
+    boolean autoReconnect = true;
     Handler handler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(@NonNull Message msg) {
             switch (msg.what) {
                 case -1:
-                    listener.connectFail("连接服务端失败");
+                    if(autoReconnect){
+                        connectNumber++;
+                        if(connectNumber<reconnectNumber){
+                            listener.connectFail("自动尝试第"+connectNumber+"次连接服务端失败");
+                            handler.sendEmptyMessageDelayed(3,reconnectTimePeriod);
+                        }else {
+                            listener.connectFail("自动尝试最后一次连接服务器失败");
+                        }
+                    }else {
+                        listener.connectFail("连接服务器失败");
+                    }
                     break;
                 case 0:
                     listener.connectSuccess("连接服务端成功");
@@ -38,6 +53,9 @@ public class SocketClientHelper extends Thread {
                     break;
                 case 2:
                     listener.receiveMessage((String) msg.obj);
+                    break;
+                case 3:
+                    run();
                     break;
             }
         }
@@ -52,15 +70,16 @@ public class SocketClientHelper extends Thread {
     @Override
     public void run() {
         try {
-            socket = new Socket(ip, port);
+            socket = new Socket();
+            socket.connect(new InetSocketAddress(ip,port));
             writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), "utf-8")), true);
             reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "utf-8"));
+            if (socket != null) {
+                handler.sendEmptyMessage(0);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             handler.sendEmptyMessage(-1);
-        }
-        if (socket != null) {
-            handler.sendEmptyMessage(0);
         }
     }
 
