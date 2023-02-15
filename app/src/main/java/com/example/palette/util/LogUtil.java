@@ -107,8 +107,44 @@ public class LogUtil {
         }
     }
 
-    public static void log(String msg) {
+    /**
+     * info级别
+     * @param msg
+     */
+    public static void logi(String msg) {
         Log.i(mContext.getPackageName(), getFullDate()+" "+msg);
+    }
+
+    /**
+     * debug级别
+     * @param msg
+     */
+    public static void logd(String msg) {
+        Log.d(mContext.getPackageName(), getFullDate()+" "+msg);
+    }
+
+    /**
+     * error级别
+     * @param msg
+     */
+    public static void loge(String msg) {
+        Log.e(mContext.getPackageName(), getFullDate()+" "+msg);
+    }
+
+    /**
+     * warn级别
+     * @param msg
+     */
+    public static void logw(String msg) {
+        Log.w(mContext.getPackageName(), getFullDate()+" "+msg);
+    }
+
+    /**
+     * verbose级别
+     * @param msg
+     */
+    public static void logv(String msg) {
+        Log.v(mContext.getPackageName(), getFullDate()+" "+msg);
     }
 
     private static String getSimpleDate() {
