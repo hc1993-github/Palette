@@ -92,9 +92,9 @@ public class LogUtil {
     }
 
     //开始输出日志
-    public void start() {
+    public void start(int level) {
         if (mLogReader == null) {
-            mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH);
+            mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH,level);
             mLogReader.start();
         }
     }
@@ -108,11 +108,11 @@ public class LogUtil {
     }
 
     /**
-     * info级别
+     * verbose级别
      * @param msg
      */
-    public static void logi(String msg) {
-        Log.i(mContext.getPackageName(), getFullDate()+" "+msg);
+    public static void logv(String msg) {
+        Log.v(mContext.getPackageName(), getFullDate()+" "+msg);
     }
 
     /**
@@ -124,11 +124,11 @@ public class LogUtil {
     }
 
     /**
-     * error级别
+     * info级别
      * @param msg
      */
-    public static void loge(String msg) {
-        Log.e(mContext.getPackageName(), getFullDate()+" "+msg);
+    public static void logi(String msg) {
+        Log.i(mContext.getPackageName(), getFullDate()+" "+msg);
     }
 
     /**
@@ -140,11 +140,11 @@ public class LogUtil {
     }
 
     /**
-     * verbose级别
+     * error级别
      * @param msg
      */
-    public static void logv(String msg) {
-        Log.v(mContext.getPackageName(), getFullDate()+" "+msg);
+    public static void loge(String msg) {
+        Log.e(mContext.getPackageName(), getFullDate()+" "+msg);
     }
 
     private static String getSimpleDate() {
@@ -161,18 +161,29 @@ public class LogUtil {
         private Process process;
         private BufferedReader bufferedReader;
         private boolean isRunning = true;
-        String cmds = null;
+        private String cmds;
         private String mPID;
         private FileOutputStream fos = null;
-
-        public LogReader(String pid, String dir) {
+        public LogReader(String pid, String dir,int level) {
             mPID = pid;
             try {
                 fos = new FileOutputStream(new File(dir, getSimpleDate() + ".log"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            cmds = "logcat | grep \"(" + mPID + ")\"";
+            if(level==1){
+                cmds = "logcat *:v | grep \"(" + mPID + ")\"";
+            }else if(level==2){
+                cmds = "logcat *:d | grep \"(" + mPID + ")\"";
+            }else if(level==3){
+                cmds = "logcat *:i | grep \"(" + mPID + ")\"";
+            }else if(level==4){
+                cmds = "logcat *:w | grep \"(" + mPID + ")\"";
+            }else if(level==5){
+                cmds = "logcat *:e | grep \"(" + mPID + ")\"";
+            }else {
+                cmds = "logcat | grep \"(" + mPID + ")\"";
+            }
         }
 
         public void stoplog() {
