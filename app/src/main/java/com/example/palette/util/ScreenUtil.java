@@ -2,6 +2,7 @@ package com.example.palette.util;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.Dialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.graphics.Color;
@@ -166,8 +167,13 @@ public class ScreenUtil {
      * 导航栏和状态栏隐藏
      * @param activity
      */
-    public static void barHide(Activity activity){
-        View view = activity.getWindow().getDecorView();
+    public static void barHide(Activity activity, Dialog dialog){
+        View view = null;
+        if(activity!=null && dialog==null){
+            view = activity.getWindow().getDecorView();
+        }else if(activity==null && dialog!=null){
+            view = dialog.getWindow().getDecorView();
+        }
         int option = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN

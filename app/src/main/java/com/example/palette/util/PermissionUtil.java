@@ -29,6 +29,8 @@ import com.permissionx.guolindev.request.ExplainScope;
 import com.permissionx.guolindev.request.ForwardScope;
 import com.permissionx.guolindev.request.PermissionBuilder;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -301,6 +303,17 @@ public class PermissionUtil {
         });
     }
 
+    /**
+     * @param fragmentActivity
+     * @param requestList  需要申请的权限
+     * @param necessaryList  必须同意的权限
+     * @param explainReasonBefore  是否申请前解释原因
+     * @param forwardToSetting  是否转到设置页面
+     * @param reasonDialogBefore 申请前解释弹框
+     * @param reasonDialogAfter  用户可能未全部同意弹框
+     * @param reasonDialogForward  转到设置页面弹框
+     * @param listener
+     */
     public static void checkPermissionsWithReasonDialog(@NonNull FragmentActivity fragmentActivity, @NonNull List<String> requestList, @Nullable List<String> necessaryList, boolean explainReasonBefore, boolean forwardToSetting, @Nullable ReasonDialog reasonDialogBefore, @Nullable ReasonDialog reasonDialogAfter, @Nullable ReasonDialog reasonDialogForward, @NonNull PermissionListener listener) {
         PermissionBuilder permissionBuilder = PermissionX.init(fragmentActivity).permissions(requestList);
         if (explainReasonBefore) {
@@ -417,6 +430,68 @@ public class PermissionUtil {
                 } else {
                     listener.permissionSomeDenied(deniedList);
                 }
+            }
+        });
+    }
+
+    public static void checkPermissions(FragmentActivity fragmentActivity,List<String> requestList,List<String> necessaryList,PermissionListener listener){
+        PermissionX.init(fragmentActivity).permissions(requestList)
+        //.explainReasonBeforeRequest()
+                .onExplainRequestReason((scope, deniedList) -> {
+                    ReasonDialog dialog = new ReasonDialog.Builder()
+                            .setContext(fragmentActivity)
+                            .setLayoutId(R.layout.default_dialog_request_after)
+                            .setRightViewId(R.id.default_dialog_request_after_positive)
+                            .setLeftViewId(R.id.default_dialog_request_after_negative)
+                            .setReasonsRvId(R.id.default_dialog_request_after_rv)
+                            .setReasonItemLayoutId(R.layout.default_reason_after_item)
+                            .setReasonItemTvId(R.id.default_reason_after_item_tv)
+                            .setReasons(permissionConvert(map, deniedList))
+                            .build();
+                    scope.showRequestReasonDialog(dialog);
+//                    scope.showRequestReasonDialog(deniedList,"测试","允许","拒绝");
+                })
+//        .onExplainRequestReason((scope, deniedList, beforeRequest) -> {
+//            if(beforeRequest){
+//                scope.showRequestReasonDialog(new ReasonDialog.Builder()
+//                        .setContext(fragmentActivity)
+//                        .setLayoutId(R.layout.default_dialog_request_before)
+//                        .setRightViewId(R.id.default_dialog_request_before_positive)
+//                        .setLeftViewId(R.id.default_dialog_request_before_negative)
+//                        .setReasonsRvId(R.id.default_dialog_request_before_rv)
+//                        .setReasonItemLayoutId(R.layout.default_reason_before_item)
+//                        .setReasonItemTvId(R.id.default_reason_before_item_tv)
+//                        .setReasons(permissionConvert(map, deniedList))
+//                        .build());
+//            }else {
+//                scope.showRequestReasonDialog(new ReasonDialog.Builder()
+//                        .setContext(fragmentActivity)
+//                        .setLayoutId(R.layout.default_dialog_request_after)
+//                        .setRightViewId(R.id.default_dialog_request_after_positive)
+//                        .setLeftViewId(R.id.default_dialog_request_after_negative)
+//                        .setReasonsRvId(R.id.default_dialog_request_after_rv)
+//                        .setReasonItemLayoutId(R.layout.default_reason_after_item)
+//                        .setReasonItemTvId(R.id.default_reason_after_item_tv)
+//                        .setReasons(permissionConvert(map, deniedList))
+//                        .build());
+//            }
+//        }).onForwardToSettings((scope, deniedList) -> {
+//            scope.showForwardToSettingsDialog(new ReasonDialog.Builder()
+//                    .setContext(fragmentActivity)
+//                    .setLayoutId(R.layout.default_dialog_request_forward)
+//                    .setRightViewId(R.id.default_dialog_request_forward_positive)
+//                    .setLeftViewId(R.id.default_dialog_request_forward_negative)
+//                    .setReasonsRvId(R.id.default_dialog_request_forward_rv)
+//                    .setReasonItemLayoutId(R.layout.default_reason_forward_item)
+//                    .setReasonItemTvId(R.id.default_reason_forward_item_tv)
+//                    .setReasons(permissionConvert(map, deniedList))
+//                    .build());
+//        })
+            .request((allGranted, grantedList, deniedList) -> {
+            if (allGranted) {
+                listener.permissionAllGranted();
+            } else {
+                listener.permissionSomeDenied(deniedList);
             }
         });
     }

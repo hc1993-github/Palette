@@ -4,9 +4,13 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
+
+import com.example.palette.util.ScreenUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +33,25 @@ public class CommonDialog extends Dialog {
         window.setDimAmount(0.5f);//activity昏暗
         window.setTitle(null);//dialog无标题
         initViews();
+    }
+
+    @Override
+    public void show() {
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        super.show();
+        ScreenUtil.barHide(null,this);
+        //fullScreenImmersive(getWindow().getDecorView());
+        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+    }
+
+    private void fullScreenImmersive(View view) {
+        int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        view.setSystemUiVisibility(uiOptions);
     }
 
     protected void initViews() {
