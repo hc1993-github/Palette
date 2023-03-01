@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.widget.TextView;
 import com.example.palette.bean.TextJson;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class ScrollTextView extends TextView {
     private int blinkTime = 1000;
     private String[] strings;
     private int splitTotalHeight;
+    private boolean isTouch = false;
 
     public ScrollTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -103,18 +105,31 @@ public class ScrollTextView extends TextView {
                 offX = 0f;
             }
         }
-        if (textColor == normalColor) {
-            postDelayed(() -> {
-                textColor = blinkColor;
-                paint.setColor(textColor);
-            }, blinkTime);
-        } else {
-            postDelayed(() -> {
-                textColor = normalColor;
-                paint.setColor(textColor);
-            }, blinkTime);
+        if(!isTouch){
+            if (textColor == normalColor) {
+                postDelayed(() -> {
+                    textColor = blinkColor;
+                    paint.setColor(textColor);
+                }, blinkTime);
+            } else {
+                postDelayed(() -> {
+                    textColor = normalColor;
+                    paint.setColor(textColor);
+                }, blinkTime);
+            }
+            invalidate();
         }
-        invalidate();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if(event.getAction()==MotionEvent.ACTION_DOWN){
+            isTouch = true;
+        }else if(event.getAction()==MotionEvent.ACTION_UP){
+            isTouch = false;
+            invalidate();
+        }
+        return true;
     }
 
     public void setTextJson(TextJson textJson) {
