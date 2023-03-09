@@ -27,7 +27,6 @@ import com.permissionx.guolindev.request.ForwardScope;
 import com.permissionx.guolindev.request.PermissionBuilder;
 
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,25 +48,12 @@ public class PermissionUtil {
         map.put(Manifest.permission.READ_SMS, "读取短信");
     }
 
-    public static void checkPermissionsWithDefaultDialog(FragmentActivity fragmentActivity,List<String> requestList,List<String> necessaryList, boolean forwardToSetting,PermissionListener listener) {
+    public static void checkPermissionsByDefaultDialog(FragmentActivity fragmentActivity, List<String> requestList, boolean forwardToSetting, PermissionListener listener) {
         PermissionBuilder permissionBuilder = PermissionX.init(fragmentActivity).permissions(requestList);
         permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
             @Override
             public void onExplainReason(ExplainScope scope, List<String> deniedList) {
-                List<String> current = null;
-                for (String s : deniedList) {
-                    if (necessaryList == null) {
-                        current = deniedList;
-                    } else {
-                        if (necessaryList.contains(s)) {
-                            if (current == null) {
-                                current = new ArrayList<>();
-                            }
-                            current.add(s);
-                        }
-                    }
-                }
-                scope.showRequestReasonDialog(permissionConvert(map, current), "为保证应用正常运行,即将申请以下权限", "接受", "拒绝");
+                scope.showRequestReasonDialog(permissionConvert(map, deniedList), "为保证应用正常运行,即将申请以下权限", "接受", "拒绝");
             }
         });
         if (forwardToSetting) {
@@ -90,25 +76,12 @@ public class PermissionUtil {
         });
     }
 
-    public static void checkPermissionsWithDefaultDialog(Fragment fragment,List<String> requestList,List<String> necessaryList, boolean forwardToSetting,PermissionListener listener) {
+    public static void checkPermissionsByDefaultDialog(Fragment fragment, List<String> requestList, boolean forwardToSetting, PermissionListener listener) {
         PermissionBuilder permissionBuilder = PermissionX.init(fragment).permissions(requestList);
         permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
             @Override
             public void onExplainReason(ExplainScope scope, List<String> deniedList) {
-                List<String> current = null;
-                for (String s : deniedList) {
-                    if (necessaryList == null) {
-                        current = deniedList;
-                    } else {
-                        if (necessaryList.contains(s)) {
-                            if (current == null) {
-                                current = new ArrayList<>();
-                            }
-                            current.add(s);
-                        }
-                    }
-                }
-                scope.showRequestReasonDialog(permissionConvert(map, current), "为保证应用正常运行,即将申请以下权限", "接受", "拒绝");
+                scope.showRequestReasonDialog(permissionConvert(map, deniedList), "为保证应用正常运行,即将申请以下权限", "接受", "拒绝");
             }
         });
         if (forwardToSetting) {
@@ -131,7 +104,7 @@ public class PermissionUtil {
         });
     }
 
-    public static void checkPermissionsWithReasonDialog(Fragment fragment,List<String> permissions, boolean forwardToSetting,ReasonDialog reasonDialogExplain,ReasonDialog reasonDialogForward,PermissionListener listener) {
+    public static void checkPermissionsByReasonDialog(Fragment fragment, List<String> permissions, boolean forwardToSetting, ReasonDialog reasonDialogExplain, ReasonDialog reasonDialogForward, PermissionListener listener) {
         PermissionBuilder permissionBuilder = PermissionX.init(fragment).permissions(permissions);
         permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
             @Override
@@ -189,13 +162,13 @@ public class PermissionUtil {
 
     /**
      * @param fragmentActivity
-     * @param permissions  必须的权限
-     * @param forwardToSetting  永久拒绝时是否转到设置页面
-     * @param reasonDialogExplain  申请未同意时解释弹框
-     * @param reasonDialogForward  永久拒绝时手动设置的页面弹框
+     * @param permissions         必须的权限
+     * @param forwardToSetting    永久拒绝时是否转到设置页面
+     * @param reasonDialogExplain 申请未同意时解释弹框
+     * @param reasonDialogForward 永久拒绝时手动设置的页面弹框
      * @param listener
      */
-    public static void checkPermissionsWithReasonDialog(FragmentActivity fragmentActivity,List<String> permissions, boolean forwardToSetting,ReasonDialog reasonDialogExplain,ReasonDialog reasonDialogForward,PermissionListener listener) {
+    public static void checkPermissionsByReasonDialog(FragmentActivity fragmentActivity, List<String> permissions, boolean forwardToSetting, ReasonDialog reasonDialogExplain, ReasonDialog reasonDialogForward, PermissionListener listener) {
         PermissionBuilder permissionBuilder = PermissionX.init(fragmentActivity).permissions(permissions);
         permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
             @Override
@@ -323,6 +296,7 @@ public class PermissionUtil {
             private int reasonItemTextViewId;
             private List<String> reasons;
             private List<String> deniedList;
+
             public Builder setContext(Context context) {
                 this.context = context;
                 return this;
