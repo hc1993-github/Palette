@@ -68,7 +68,7 @@ dependencies {
     annotationProcessor 'com.google.dagger:hilt-android-compiler:2.40.5'
 
     implementation 'io.netty:netty-all:5.0.0.Alpha2'
-    implementation 'net.lingala.zip4j:zip4j:2.7.0'
+    implementation 'net.lingala.zip4j:zip4j:2.11.1'
     implementation 'com.guolindev.permissionx:permissionx:1.6.0'
     implementation project(path: ':SerialPortLibrary')
     implementation project(path: ':zxing-lib')

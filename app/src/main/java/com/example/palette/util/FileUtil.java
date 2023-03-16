@@ -1,9 +1,14 @@
 package com.example.palette.util;
 
 import android.graphics.Bitmap;
+import android.text.TextUtils;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,23 +16,24 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class FileUtil {
-
     /**
      * zip解压文件
      * @param src 原文件路径
      * @param password 解压密码
      * @return
      */
-    public static int unZipFile(String src,String password) {
-        File zipFile_ = new File(src);
-        File sourceFile = new File(zipFile_.getParent());
-        int result = -1;
+    public static String unzip(String src,String password) {
+        File srcFile = new File(src);
+        File sourceFile = new File(srcFile.getParent());
         try {
-            ZipFile zipFile = new ZipFile(zipFile_);
+            ZipFile zipFile = new ZipFile(srcFile);
             zipFile.setCharset(Charset.forName("GBK"));
             if (!zipFile.isValidZipFile()) {
                 throw new ZipException("压缩文件不合法,可能被损坏.");
@@ -38,55 +44,72 @@ public class FileUtil {
             if (zipFile.isEncrypted()) {
                 zipFile.setPassword(password.toCharArray());
             }
-            zipFile.extractAll(zipFile_.getParent());
-
-        } catch (ZipException e) {
-            result = -1;
-            return result;
+            zipFile.extractAll(srcFile.getParent());
+            return srcFile.getParent();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return result;
+        return null;
     }
 
     /**
      * zip压缩文件
-     * @param src 原文件路径
-     * @param dest 目标文件路径
+     * @param src 文件名或文件夹
+     * @param pwd 压缩密码
+     * @return
      */
-    public static void zipFile(String src,String dest){
-        File srcFile = new File(src);
-        File destFile = new File(dest);
-        FileInputStream fis = null;
-        FileOutputStream fos = null;
-        ZipOutputStream zos = null;
+    public static String zip(String src,String pwd){
         try {
-            fis = new FileInputStream(srcFile);
-            fos = new FileOutputStream(destFile);
-            ZipEntry zipEntry = new ZipEntry(srcFile.getName());
-            zos = new ZipOutputStream(fos);
-            zos.putNextEntry(zipEntry);
-            byte[] buffer=new byte[1024];
-            int len = 0;
-            while((len =  fis.read(buffer)) != -1) {
-                zos.write(buffer,0,len);
+            File srcFile = new File(src);
+            String destPath = generateDestPath(srcFile,srcFile.getParent());
+            ZipParameters parameters = new ZipParameters();
+            parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            parameters.setCompressionLevel(CompressionLevel.NORMAL);
+            if(!TextUtils.isEmpty(pwd)){
+                parameters.setEncryptFiles(true);
+                parameters.setEncryptionMethod(EncryptionMethod.ZIP_STANDARD);
             }
-            zos.flush();
+            ZipFile zipFile = new ZipFile(destPath,pwd.toCharArray());
+            zipFile.setCharset(Charset.forName("GBK"));
+            if(srcFile.isDirectory()){
+                zipFile.addFolder(srcFile,parameters);
+            }else {
+                zipFile.addFile(srcFile,parameters);
+            }
+            return destPath;
         }catch (Exception e){
             e.printStackTrace();
-        }finally {
-            try {
-                if (fos != null) {
-                    fos.close();
+        }
+        return null;
+    }
+
+    private static String generateDestPath(File srcFile,String dest){
+        if(TextUtils.isEmpty(dest)){
+            if(srcFile.isDirectory()){
+                dest = srcFile.getParent()+File.separator+srcFile.getName()+".zip";
+            }else {
+                String fileName = srcFile.getName().substring(0,srcFile.getName().lastIndexOf("."));
+                dest = srcFile.getParent()+File.separator+fileName+".zip";
+            }
+        }else {
+            File destDir;
+            if(dest.endsWith(File.separator)){
+                destDir = new File(dest);
+                String fileName;
+                if(srcFile.isDirectory()){
+                    fileName = srcFile.getName();
+                }else {
+                    fileName = srcFile.getName().substring(0,srcFile.getName().lastIndexOf("."));
                 }
-                if(fis!=null){
-                    fis.close();
-                }
-                if(zos!=null){
-                    zos.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
+                dest +=fileName+".zip";
+            }else {
+                destDir = new File(dest.substring(0,dest.lastIndexOf(File.separator)));
+            }
+            if(!destDir.exists()){
+                destDir.mkdirs();
             }
         }
+        return dest;
     }
 
     /**

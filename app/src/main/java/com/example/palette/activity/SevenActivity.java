@@ -90,13 +90,5 @@ public class SevenActivity extends AppCompatActivity {
 //                Toast.makeText(SevenActivity.this,"点击",Toast.LENGTH_SHORT).show();
 //            }
 //        });
-        ScrollTextView scrollTextView1 = findViewById(R.id.stv1);
-        scrollTextView1.setTextJson(new TextJson(1,"这是一条测试数据",true,"left","",1,"","",0,0,0,0,"#000000","#ff0000",20,"","",1,1));
-        ScrollTextView scrollTextView2 = findViewById(R.id.stv2);
-        scrollTextView2.setTextJson(new TextJson(1,"你好,北京",true,"right","",1,"","",0,0,0,0,"#000000","#ff0000",20,"","",1,1));
-        ScrollTextView scrollTextView3 = findViewById(R.id.stv3);
-        scrollTextView3.setTextJson(new TextJson(1,"这是一条很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长的数据",true,"top","",1,"","",0,0,0,0,"#000000","#ff0000",20,"","",1,1));
-        ScrollTextView scrollTextView4 = findViewById(R.id.stv4);
-        scrollTextView4.setTextJson(new TextJson(1,"北京,欢迎你",true,"bottom","",1,"","",0,0,0,0,"#000000","#ff0000",20,"","",1,1));
     }
 }

@@ -6,10 +6,13 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.widget.TextView;
+
 import com.example.palette.bean.TextJson;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +26,7 @@ public class ScrollTextView extends TextView {
     private static final int direction_right = 1;
     private static final int direction_top = 2;
     private static final int direction_bottom = 3;
+    private static final int direction_none = -1;
     private static final String str_left = "left";
     private static final String str_right = "right";
     private static final String str_top = "top";
@@ -41,6 +45,11 @@ public class ScrollTextView extends TextView {
     private String[] strings;
     private int splitTotalHeight;
     private boolean isTouch = false;
+    private boolean isblink = false;
+
+    public ScrollTextView(Context context) {
+        super(context);
+    }
 
     public ScrollTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -49,8 +58,10 @@ public class ScrollTextView extends TextView {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int paddingTop = getPaddingTop();
+        int paddingBottom = getPaddingBottom();
         if (direction == direction_left || direction == direction_right) {
-            setMeasuredDimension(widthMeasureSpec, rect.height());
+            setMeasuredDimension(widthMeasureSpec, rect.height()+paddingTop+paddingBottom);
         }
     }
 
@@ -66,58 +77,69 @@ public class ScrollTextView extends TextView {
     @Override
     protected void onDraw(Canvas canvas) {
         float x, y;
-        if (direction == direction_left) {
-            x = getWidth() - offX;
-            y = getHeight() / 2 - (rect.top + rect.bottom) / 2;
-            canvas.drawText(text, x, y, paint);
-            offX += step;
-            if (offX >= getWidth() + rect.width()) {
-                offX = 0f;
+        if(!TextUtils.isEmpty(text)){
+            if (direction == direction_left) {
+                x = getWidth() - offX;
+                y = getHeight() / 2 - (rect.top + rect.bottom) / 2;
+                canvas.drawText(text, x, y, paint);
+                offX += step;
+                if (offX >= getWidth() + rect.width()) {
+                    offX = 0f;
+                }
+            } else if (direction == direction_right) {
+                x = -rect.width() + offX;
+                y = getHeight() / 2 - (rect.top + rect.bottom) / 2;
+                canvas.drawText(text, x, y, paint);
+                offX += step;
+                if (offX >= getWidth() + rect.width()) {
+                    offX = 0f;
+                }
+            } else if (direction == direction_top) {
+                x = 0;
+                y = -splitTotalHeight + offX;
+                for (int i = strings.length - 1; i >= 0; i--) {
+                    canvas.drawText(strings[i], x, y, paint);
+                    y -= rect.height();
+                }
+                offX += step;
+                if (offX >= getHeight() + splitTotalHeight * 2) {
+                    offX = 0f;
+                }
+            } else if (direction == direction_bottom) {
+                x = 0;
+                y = getHeight() - offX;
+                for (int i = 0; i < strings.length; i++) {
+                    canvas.drawText(strings[i], x, y, paint);
+                    y += rect.height();
+                }
+                offX += step;
+                if (offX >= getHeight() + splitTotalHeight) {
+                    offX = 0f;
+                }
+            } else if(direction == direction_none){
+                x = 0;
+                y = getHeight() / 2 - (rect.top + rect.bottom) / 2;
+                canvas.drawText(text, x, y, paint);
             }
-        } else if (direction == direction_right) {
-            x = -rect.width() + offX;
-            y = getHeight() / 2 - (rect.top + rect.bottom) / 2;
-            canvas.drawText(text, x, y, paint);
-            offX += step;
-            if (offX >= getWidth() + rect.width()) {
-                offX = 0f;
-            }
-        } else if (direction == direction_top) {
-            x = 0;
-            y = -splitTotalHeight + offX;
-            for (int i = strings.length - 1; i >= 0; i--) {
-                canvas.drawText(strings[i], x, y, paint);
-                y -= rect.height();
-            }
-            offX += step;
-            if (offX >= getHeight() + splitTotalHeight * 2) {
-                offX = 0f;
-            }
-        } else if (direction == direction_bottom) {
-            x = 0;
-            y = getHeight() - offX;
-            for (int i = 0; i < strings.length; i++) {
-                canvas.drawText(strings[i], x, y, paint);
-                y += rect.height();
-            }
-            offX += step;
-            if (offX >= getHeight() + splitTotalHeight) {
-                offX = 0f;
-            }
-        }
-        if(!isTouch){
-            if (textColor == normalColor) {
-                postDelayed(() -> {
-                    textColor = blinkColor;
-                    paint.setColor(textColor);
-                }, blinkTime);
-            } else {
-                postDelayed(() -> {
+            if(!isTouch){
+                if(isblink){
+                    if (textColor == normalColor) {
+                        postDelayed(() -> {
+                            textColor = blinkColor;
+                            paint.setColor(textColor);
+                        }, blinkTime);
+                    } else {
+                        postDelayed(() -> {
+                            textColor = normalColor;
+                            paint.setColor(textColor);
+                        }, blinkTime);
+                    }
+                }else {
                     textColor = normalColor;
                     paint.setColor(textColor);
-                }, blinkTime);
+                }
+                invalidate();
             }
-            invalidate();
         }
     }
 
@@ -144,16 +166,25 @@ public class ScrollTextView extends TextView {
             direction = direction_top;
         } else if (str_bottom.equals(rollType)) {
             direction = direction_bottom;
+        } else {
+            direction = direction_none;
         }
         textSize = textJson.getFontSize();
         text = textJson.getContent();
-        normalColor = Color.parseColor(textJson.getFontColor());
+        isblink = textJson.getBlink();
+        normalColor = Color.parseColor(convertColor(textJson.getFontColor()));
         blinkColor = Color.RED;
         textColor = normalColor;
         paint.setColor(textColor);
         paint.setTextSize(textSize);
 //        paint.setTypeface(Typeface.createFromAsset(getContext().getAssets(),""));
-        paint.getTextBounds(text, 0, text.length(), rect);
+        if(TextUtils.isEmpty(text)){
+            String str = "北京,欢迎你";
+            paint.getTextBounds(str, 0, str.length(), rect);
+        }else {
+            paint.getTextBounds(text, 0, text.length(), rect);
+        }
+        setBackgroundColor(Color.parseColor(convertColor(textJson.getBackColor())));
     }
 
     public void setSpeed(int scrollMod) {
@@ -187,5 +218,19 @@ public class ScrollTextView extends TextView {
             end += 1;
         }
         return result.toArray(new String[0]);
+    }
+
+    private String convertColor(String color){
+        if(!TextUtils.isEmpty(color)){
+            if(color.length()>7){
+                String rgb = color.substring(1,6);
+                String alpha = color.substring(7);
+                return "#"+alpha+rgb;
+            }else {
+                return color;
+            }
+        }else {
+            return "#FF000000";
+        }
     }
 }
