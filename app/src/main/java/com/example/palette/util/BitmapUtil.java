@@ -9,6 +9,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.util.Base64;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.EncodeHintType;
@@ -297,6 +298,16 @@ public class BitmapUtil {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG,100,baos);
         return baos.toByteArray();
+    }
+
+    /**
+     * 字符串转bitmap
+     * @param base64data base64字符串数据
+     * @return
+     */
+    public static Bitmap stringToBitmap(String base64data){
+        byte[] bytes = Base64.decode(base64data, Base64.DEFAULT);
+        return BitmapFactory.decodeByteArray(bytes,0,bytes.length);
     }
 
     /**

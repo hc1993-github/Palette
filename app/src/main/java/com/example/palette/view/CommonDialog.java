@@ -39,7 +39,9 @@ public class CommonDialog extends Dialog {
     public void show() {
 //        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
         super.show();
-        ScreenUtil.barHide(null,this);
+        if (builder.isFullScreen){
+            ScreenUtil.barHide(null,this);
+        }
         //fullScreenImmersive(getWindow().getDecorView());
         //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
     }
@@ -91,7 +93,7 @@ public class CommonDialog extends Dialog {
         private CommonDialogDefaultOnClickListener defaultListener;
         private CommonDialogOtherOnClickListener otherListener;
         private boolean cancelable = true;
-
+        private boolean isFullScreen = false;
         public Builder setContext(Context context) {
             this.context = context;
             return this;
@@ -131,6 +133,11 @@ public class CommonDialog extends Dialog {
 
         public Builder setLayoutId(int layoutId) {
             this.layoutId = layoutId;
+            return this;
+        }
+
+        public Builder setFullScreen(boolean fullScreen) {
+            isFullScreen = fullScreen;
             return this;
         }
 
