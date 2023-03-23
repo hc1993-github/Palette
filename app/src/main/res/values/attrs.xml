@@ -148,4 +148,15 @@
         <attr name="centerScale" format="float"/>
         <attr name="moveSpeed" format="float"/>
     </declare-styleable>
+
+    <declare-styleable name="KeyWordView">
+        <attr name="bg_width" format="dimension" />
+        <attr name="bg_color" format="color" />
+        <attr name="password_count" format="integer" />
+        <attr name="division_color" format="color" />
+        <attr name="division_width" format="dimension" />
+        <attr name="password_color" format="color" />
+        <attr name="password_size" format="dimension" />
+        <attr name="bg_radius" format="dimension" />
+    </declare-styleable>
 </resources>
