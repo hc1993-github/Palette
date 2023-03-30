@@ -159,4 +159,16 @@
         <attr name="password_size" format="dimension" />
         <attr name="bg_radius" format="dimension" />
     </declare-styleable>
+
+    <declare-styleable name="CircleProgressbar">
+        <attr name="border_bg_color" format="color"/>
+        <attr name="center_bg_color" format="color"/>
+        <attr name="loadProgress_color" format="color"/>
+        <attr name="loadText_color" format="color"/>
+        <attr name="progress_max" format="integer"/>
+        <attr name="border_scale" format="integer"/>
+        <attr name="text_scale" format="integer"/>
+        <attr name="default_size" format="integer"/>
+        <attr name="start_angle" format="integer"/>
+    </declare-styleable>
 </resources>

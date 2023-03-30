@@ -43,6 +43,16 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
 
 public class MyClass {
+    /**
+     *                    **                  **     **
+     *      ********     ********        ******    **     *********
+     *           **     **    **            **     **     **     **
+     *       ** **        **                 *     **     **   * **
+     *         **        ***                 **    ** *   **     **
+     *        ** **     **  **              ****   *     *
+     *       **   **   **    **          ****   ********************
+     *                **      **
+     */
     public static void main(String[] args) {
         try {
 //            MouseServer mouseServer = new MouseServer(9999);
