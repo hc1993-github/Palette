@@ -117,7 +117,7 @@ public class MyClass {
             DecimalFormat format = new DecimalFormat("#.0");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n\t");
-            writer.write("<dimen name=\"sp_size_"+1+"\">"+scale+"sp</dimen>\n");
+            writer.write("<dimen name=\"sp_size_"+1+"\">"+format.format(scale)+"sp</dimen>\n");
             writer.write("\t");
             for(int i=2;i<spline+1;i++){
                 writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(i*scale)+"sp</dimen>\n");
@@ -129,7 +129,7 @@ public class MyClass {
             writer.write("\t");
             writer.write("<dimen name=\"dp_size_"+0+"\">"+0+"dp</dimen>\n");
             writer.write("\t");
-            writer.write("<dimen name=\"dp_size_"+1+"\">"+scale+"dp</dimen>\n");
+            writer.write("<dimen name=\"dp_size_"+1+"\">"+format.format(scale)+"dp</dimen>\n");
             writer.write("\t");
             for(int i=2;i<dpline+1;i++){
                 writer.write("<dimen name=\"dp_size_"+i+"\">"+format.format(i*scale)+"dp</dimen>\n");
