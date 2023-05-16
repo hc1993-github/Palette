@@ -24,6 +24,11 @@ public class LogUtil {
     public static final int HOUR = 3600000;
     public static final int DAY = 86400000;
     private static Context mContext;
+
+    private SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private Date simpleDate = new Date();
+    private Date fullDate = new Date();
     private LogUtil(Context context) {
         this.mContext = context;
         init();
@@ -112,7 +117,7 @@ public class LogUtil {
      * @param msg
      */
     public static void logv(String msg) {
-        Log.v(mContext.getPackageName(), getFullDate()+" "+msg);
+        Log.v(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
     }
 
     /**
@@ -120,7 +125,7 @@ public class LogUtil {
      * @param msg
      */
     public static void logd(String msg) {
-        Log.d(mContext.getPackageName(), getFullDate()+" "+msg);
+        Log.d(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
     }
 
     /**
@@ -128,7 +133,7 @@ public class LogUtil {
      * @param msg
      */
     public static void logi(String msg) {
-        Log.i(mContext.getPackageName(), getFullDate()+" "+msg);
+        Log.i(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
     }
 
     /**
@@ -136,7 +141,7 @@ public class LogUtil {
      * @param msg
      */
     public static void logw(String msg) {
-        Log.w(mContext.getPackageName(), getFullDate()+" "+msg);
+        Log.w(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
     }
 
     /**
@@ -144,17 +149,17 @@ public class LogUtil {
      * @param msg
      */
     public static void loge(String msg) {
-        Log.e(mContext.getPackageName(), getFullDate()+" "+msg);
+        Log.e(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
     }
 
-    private static String getSimpleDate() {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        return simpleDateFormat.format(new Date(System.currentTimeMillis()));
+    private String getSimpleDate() {
+        simpleDate.setTime(System.currentTimeMillis());
+        return simpleFormat.format(simpleDate);
     }
 
-    private static String getFullDate() {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        return simpleDateFormat.format(new Date(System.currentTimeMillis()));
+    private String getFullDate() {
+        fullDate.setTime(System.currentTimeMillis());
+        return fullFormat.format(fullDate);
     }
 
     private class LogReader extends Thread {
