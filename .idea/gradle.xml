@@ -10,8 +10,11 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/SerialPortLibrary" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/autoUpdate" />
             <option value="$PROJECT_DIR$/other" />
+            <option value="$PROJECT_DIR$/zxing-lib" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

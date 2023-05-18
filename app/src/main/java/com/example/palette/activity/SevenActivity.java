@@ -1,8 +1,10 @@
 package com.example.palette.activity;
 
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -18,6 +20,7 @@ import com.example.palette.bean.TextJson;
 import com.example.palette.layoutmanager.card.CardLayoutManager;
 import com.example.palette.layoutmanager.card.ItemTouchHelperCallback;
 import com.example.palette.layoutmanager.card.OnSwiperListener;
+import com.example.palette.util.BitmapUtil;
 import com.example.palette.view.RotateView;
 import com.example.palette.view.ScrollTextView;
 
@@ -31,6 +34,8 @@ public class SevenActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_seven);
+        ImageView imageView = findViewById(R.id.iv);
+        imageView.setImageBitmap(BitmapUtil.createQRCode("b83e13be7fdd9ae675156423e5c424cb34210cd6cac77b8ac69b339ecc272659b5fa9e8d949dd2ba56334fd4ba4fffbf27cda1de5281e5894799a64adc20df149f72700b9bbbe3e85d02b48b70fa2025", 500, 500, null));
 //        DiscView discView = findViewById(R.id.dv);
 //        discView.setItemLayoutId(R.layout.item_menu);
 //        discView.setItems(imgs,texts);
