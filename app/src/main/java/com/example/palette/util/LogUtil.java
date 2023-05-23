@@ -1,8 +1,15 @@
 package com.example.palette.util;
 
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -10,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -30,32 +38,49 @@ public class LogUtil {
     private Date simpleDate = new Date();
     private Date fullDate = new Date();
     private LogUtil(Context context) {
-        this.mContext = context;
+        this.mContext = context.getApplicationContext();
         init();
         mPid = android.os.Process.myPid();
     }
 
     private void init() {
         try {
-            if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                String[] split = mContext.getPackageName().split("\\.");
-                LOG_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator+split[split.length-1]+File.separator+"log";
-            } else {
-                LOG_PATH = mContext.getFilesDir().getAbsolutePath() + File.separator + "log";
-            }
-            File file = new File(LOG_PATH);
-            if (!file.exists()) {
-                file.mkdirs();
-            }
-            //删除30天日志
-            if (file.exists() && file.isDirectory()) {
-                File[] files = file.listFiles();
-                String days = date2String(getDate(new Date(), -30, DAY), "yyyy-MM-dd");
-                if (files != null) {
-                    for (File f : files) {
-                        if (f.getName().compareTo(days) < 0) {
-                            f.delete();
+            if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
+                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+                    String[] split = mContext.getPackageName().split("\\.");
+                    LOG_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator+split[split.length-1]+File.separator+"log";
+                } else {
+                    LOG_PATH = mContext.getFilesDir().getAbsolutePath() + File.separator + "log";
+                }
+                File file = new File(LOG_PATH);
+                if (!file.exists()) {
+                    file.mkdirs();
+                }
+                //删除30天日志
+                if (file.exists() && file.isDirectory()) {
+                    File[] files = file.listFiles();
+                    String days = date2String(getDate(new Date(), -30, DAY), "yyyy-MM-dd");
+                    if (files != null) {
+                        for (File f : files) {
+                            if (f.getName().compareTo(days) < 0) {
+                                f.delete();
+                            }
                         }
+                    }
+                }
+            }else {
+                String[] splits = mContext.getPackageName().split("\\.");
+                LOG_PATH = Environment.DIRECTORY_DOWNLOADS+File.separator+splits[splits.length-1]+File.separator+"log";
+                Uri uri = MediaStore.Files.getContentUri("external");
+                ContentResolver contentResolver = mContext.getContentResolver();
+                for (int i = 1; i <= 30; i++) {
+                    String preLog = date2String(getDate(new Date(),-i,DAY),"yyyy-MM-dd")+".log";
+                    Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{ preLog }, null);
+                    if(cursor!=null && cursor.moveToFirst()){
+                        Uri queryUri = ContentUris.withAppendedId(uri, cursor.getLong(25));
+                        contentResolver.delete(queryUri, null, null);
+                    }else {
+                        continue;
                     }
                 }
             }
@@ -168,12 +193,32 @@ public class LogUtil {
         private boolean isRunning = true;
         private String cmds;
         private String mPID;
-        private FileOutputStream fos = null;
+        private OutputStream fos = null;
         public LogReader(String pid, String dir,int level) {
             mPID = pid;
             try {
-                fos = new FileOutputStream(new File(dir, getSimpleDate() + ".log"));
-            } catch (Exception e) {
+                if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
+                    fos = new FileOutputStream(new File(dir, getSimpleDate() + ".log"));
+                }else {
+                    Uri uri = MediaStore.Files.getContentUri("external");
+                    ContentResolver contentResolver = mContext.getContentResolver();
+                    ContentValues contentValues = new ContentValues();
+                    contentValues.put(MediaStore.Downloads.RELATIVE_PATH,dir);
+                    contentValues.put(MediaStore.Downloads.DISPLAY_NAME,getSimpleDate() + ".log");
+                    contentValues.put(MediaStore.Downloads.TITLE,getSimpleDate() + ".log");
+                    Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{ getSimpleDate() + ".log" }, null);
+                    if(cursor!=null && cursor.moveToFirst()){
+                        Uri queryUri = ContentUris.withAppendedId(uri, cursor.getLong(25));
+                        fos = contentResolver.openOutputStream(queryUri);
+                        cursor.close();
+                    }else {
+                        Uri insert = contentResolver.insert(uri, contentValues);
+                        if(insert!=null){
+                            fos = contentResolver.openOutputStream(insert);
+                        }
+                    }
+                }
+            }catch (Exception e){
                 e.printStackTrace();
             }
             if(level==1){
@@ -205,8 +250,12 @@ public class LogUtil {
                     if (line.length() == 0) {
                         continue;
                     }
-                    if (fos != null && line.contains(mPID)) {
-                        fos.write((getSimpleDate() + " " + line + "\n").getBytes());
+                    if (fos != null) {
+                        if(line.contains(mPID)){
+                            fos.write((getSimpleDate() + " " + line + "\n").getBytes());
+                        }
+                    }else {
+                        break;
                     }
                 }
             } catch (Exception e) {
