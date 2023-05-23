@@ -6,12 +6,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.palette.R;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -27,11 +24,11 @@ public class StringAdapter extends RecyclerView.Adapter<StringAdapter.StringHold
     }
 
     @Override
-    public void onAttachedToRecyclerView(@NonNull @NotNull RecyclerView recyclerView) {
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(@NonNull @NotNull RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 if(newState==SCROLL_STATE_IDLE){
                     isEnable = true;

@@ -1,8 +1,5 @@
 package com.example.palette.module;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.io.IOException;
 
 import okhttp3.MediaType;
@@ -62,7 +59,7 @@ public class ProgressResponseBody extends ResponseBody {
     private class ProgressSource extends ForwardingSource{
         long totalBytesRead =0;
         int currentProgress;
-        public ProgressSource(@NotNull Source source) {
+        public ProgressSource(Source source) {
             super(source);
         }
 

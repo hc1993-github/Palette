@@ -2,25 +2,17 @@ package com.example.palette.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -29,9 +21,6 @@ import com.example.palette.adapter.BaseAdapter;
 import com.example.palette.adapter.BaseHolder;
 import com.example.palette.util.ScreenUtil;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
 import java.util.List;
 
 public class DownPullView extends LinearLayout {
@@ -48,7 +37,7 @@ public class DownPullView extends LinearLayout {
     private Paint paint;
     private Rect rect;
     private String strDefault;
-    public DownPullView(Context context, @Nullable AttributeSet attrs) {
+    public DownPullView(Context context,AttributeSet attrs) {
         super(context, attrs);
         paint = new Paint();
         rect = new Rect();

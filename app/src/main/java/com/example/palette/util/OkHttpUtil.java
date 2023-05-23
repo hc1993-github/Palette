@@ -122,7 +122,7 @@ public class OkHttpUtil {
         }
         Request request;
         if (!TextUtils.isEmpty(json)) {
-            request = builder.url(url).post(RequestBody.create(json, MediaType.parse("application/json; charset=utf-8"))).build();
+            request = builder.url(url).post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"),json)).build();
         } else {
             request = builder.url(url).build();
         }
@@ -281,7 +281,7 @@ public class OkHttpUtil {
             }
         }
         MultipartBody.Builder form = new MultipartBody.Builder();
-        form.addFormDataPart("file", file.getName(), RequestBody.create(file, MediaType.parse("application/octet-stream")));
+        form.addFormDataPart("file", file.getName(), RequestBody.create(MediaType.parse("application/octet-stream"),file));
         if (bodyParams != null && !bodyParams.isEmpty()) {
             form.setType(MultipartBody.FORM);
             for (Map.Entry<String, String> entry : bodyParams.entrySet()) {

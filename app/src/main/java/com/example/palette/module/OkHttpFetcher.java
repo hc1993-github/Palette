@@ -1,17 +1,10 @@
 package com.example.palette.module;
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
-
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.Priority;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.data.DataFetcher;
 import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.util.ContentLengthInputStream;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -81,8 +74,6 @@ public class OkHttpFetcher implements DataFetcher<InputStream> {
         return InputStream.class;
     }
 
-    @NonNull
-    @NotNull
     @Override
     public DataSource getDataSource() {
         return DataSource.REMOTE;

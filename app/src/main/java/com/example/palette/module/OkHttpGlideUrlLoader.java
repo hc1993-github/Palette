@@ -1,8 +1,5 @@
 package com.example.palette.module;
 
-import android.util.Log;
-
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.bumptech.glide.load.Options;
@@ -10,8 +7,6 @@ import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.load.model.ModelLoader;
 import com.bumptech.glide.load.model.ModelLoaderFactory;
 import com.bumptech.glide.load.model.MultiModelLoaderFactory;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 
@@ -31,7 +26,7 @@ public class OkHttpGlideUrlLoader implements ModelLoader<GlideUrl, InputStream> 
     }
 
     @Override
-    public boolean handles(@NonNull @NotNull GlideUrl glideUrl) {
+    public boolean handles(GlideUrl glideUrl) {
         return true;
     }
     public static class Factory implements ModelLoaderFactory<GlideUrl, InputStream>{

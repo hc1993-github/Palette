@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -17,8 +16,6 @@ import com.bumptech.glide.request.transition.Transition;
 import com.example.palette.R;
 import com.example.palette.module.ProgressInterceptor;
 import com.example.palette.module.ProgressListener;
-
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -35,11 +32,11 @@ public class ProgressAdapter extends RecyclerView.Adapter<ProgressAdapter.holder
     }
 
     @Override
-    public void onAttachedToRecyclerView(@NonNull @NotNull RecyclerView recyclerView) {
+    public void onAttachedToRecyclerView(RecyclerView recyclerView) {
         super.onAttachedToRecyclerView(recyclerView);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(@NonNull @NotNull RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 switch (newState){
                     case SCROLL_STATE_IDLE:
                         Glide.with(context).resumeRequests();
