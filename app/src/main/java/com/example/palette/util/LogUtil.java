@@ -48,15 +48,12 @@ public class LogUtil {
             if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
                 if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                     String[] split = mContext.getPackageName().split("\\.");
-                    LOG_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator+split[split.length-1]+File.separator+"log";
-                } else {
-                    LOG_PATH = mContext.getFilesDir().getAbsolutePath() + File.separator + "log";
+                    LOG_PATH = Environment.DIRECTORY_DOWNLOADS + File.separator+split[split.length-1]+File.separator+"log";
                 }
-                File file = new File(LOG_PATH);
+                File file = new File(Environment.getExternalStorageDirectory(),LOG_PATH);
                 if (!file.exists()) {
                     file.mkdirs();
                 }
-                //删除30天日志
                 if (file.exists() && file.isDirectory()) {
                     File[] files = file.listFiles();
                     String days = date2String(getDate(new Date(), -30, DAY), "yyyy-MM-dd");
@@ -198,7 +195,7 @@ public class LogUtil {
             mPID = pid;
             try {
                 if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
-                    fos = new FileOutputStream(new File(dir, getSimpleDate() + ".log"));
+                    fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory()+File.separator+dir,getSimpleDate() + ".log"));
                 }else {
                     Uri uri = MediaStore.Files.getContentUri("external");
                     ContentResolver contentResolver = mContext.getContentResolver();
