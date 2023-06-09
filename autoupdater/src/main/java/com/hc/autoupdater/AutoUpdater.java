@@ -1,4 +1,4 @@
-package com.hc;
+package com.hc.autoupdater;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
+import com.hc.R;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

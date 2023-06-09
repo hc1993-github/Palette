@@ -1,4 +1,4 @@
-package com.hc;
+package com.hc.autoupdater;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +7,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.hc.R;
 
 import java.util.List;
 

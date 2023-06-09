@@ -4,7 +4,9 @@
     <bytecodeTargetLevel target="1.8">
       <module name="Palette.app" target="11" />
       <module name="Palette.autoUpdate" target="11" />
+      <module name="Palette.autoupdater" target="11" />
       <module name="Palette.kotlinStudy" target="11" />
+      <module name="Palette.ScopeStore" target="11" />
       <module name="Palette.SerialPortLibrary" target="11" />
       <module name="Palette.zxing-lib" target="11" />
     </bytecodeTargetLevel>

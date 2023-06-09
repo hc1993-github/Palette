@@ -1,4 +1,4 @@
-package com.hc;
+package com.hc.autoupdater;
 
 import android.app.Dialog;
 import android.content.Context;
