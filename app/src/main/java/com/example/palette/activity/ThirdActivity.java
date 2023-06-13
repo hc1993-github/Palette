@@ -29,15 +29,10 @@ public class ThirdActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_third);
-        String[] keyPair = SecurityUtil.generateRSAKeyPair();
         StringBuilder builder = new StringBuilder();
         for(int i=0;i<100;i++){
             builder.append("WORLD");
         }
-        String encryptString = SecurityUtil.encryptStringRSAPublic(keyPair[0], builder.toString(),NO_WRAP);
-        Log.d("ThirdActivity", "encrypt "+encryptString);
-        String decryptString = SecurityUtil.decryptStringRSAPrivate(keyPair[1], encryptString,NO_WRAP);
-        Log.d("ThirdActivity", "decrypt "+decryptString);
         findViewById(R.id.textView).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
