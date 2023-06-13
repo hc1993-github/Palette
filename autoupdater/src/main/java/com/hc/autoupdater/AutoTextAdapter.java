@@ -8,8 +8,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.hc.R;
-
 import java.util.List;
 
 public class AutoTextAdapter extends RecyclerView.Adapter<AutoTextAdapter.TextHolder> {

@@ -3,16 +3,14 @@ package com.example.palette.activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.palette.R;
 import com.example.palette.hilt.MyInterface;
 import com.example.palette.hilt.MyObserver;
-import com.example.palette.view.GestureView;
 import com.example.palette.view.TemperatureView;
-import com.hc.SerialPortHelper;
+import com.hc.serialport.SerialPortHelper;
 
 import java.io.File;
 

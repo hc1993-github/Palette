@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
-import com.hc.R;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

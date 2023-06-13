@@ -1,4 +1,4 @@
-package com.hc;
+package com.hc.serialport;
 
 import android.os.Handler;
 import android.os.HandlerThread;

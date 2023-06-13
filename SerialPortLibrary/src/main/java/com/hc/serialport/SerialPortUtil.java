@@ -1,4 +1,4 @@
-package com.hc;
+package com.hc.serialport;
 
 import java.util.Locale;
 
