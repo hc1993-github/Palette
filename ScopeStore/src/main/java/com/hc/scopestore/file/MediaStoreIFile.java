@@ -1,8 +1,10 @@
 package com.hc.scopestore.file;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -13,7 +15,9 @@ import com.hc.scopestore.base.BaseResponse;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class MediaStoreIFile implements IFile {
@@ -49,7 +53,7 @@ public class MediaStoreIFile implements IFile {
     }
 
     @Override
-    public <T extends BaseRequest> BaseResponse create(Context context, T request) {
+    public <T extends BaseRequest> BaseResponse add(Context context, T request) {
         Uri uri = map.get(request.getType());
         ContentResolver contentResolver = context.getContentResolver();
         ContentValues contentValues = request2Values(request);
@@ -58,6 +62,43 @@ public class MediaStoreIFile implements IFile {
         if(insertUri!=null){
             baseResponse.setSuccess(true);
             baseResponse.setUri(insertUri);
+        }else {
+            baseResponse.setSuccess(false);
+            baseResponse.setUri(null);
+        }
+        return baseResponse;
+    }
+
+    @Override
+    public <T extends BaseRequest> BaseResponse delete(Context context, T request) {
+        Uri uri = query(context, request).getUri();
+        ContentResolver contentResolver = context.getContentResolver();
+        int i = contentResolver.delete(uri, null, null);
+        BaseResponse baseResponse = new BaseResponse();
+        if(i>=1){
+            baseResponse.setSuccess(true);
+        }else {
+            baseResponse.setSuccess(false);
+        }
+        return baseResponse;
+    }
+
+    @Override
+    public <T extends BaseRequest> BaseResponse query(Context context, T request) {
+        Uri uri = map.get(request.getType());
+        ContentValues contentValues = request2Values(request);
+        Condition condition = new Condition(contentValues);
+        ContentResolver contentResolver = context.getContentResolver();
+        Cursor cursor = contentResolver.query(uri, new String[]{"_id"}, condition.whereCasue, condition.whereArgs, null);
+        Uri queryUri=null;
+        if(cursor!=null && cursor.moveToFirst()){
+            queryUri = ContentUris.withAppendedId(uri,cursor.getLong(25));
+            cursor.close();
+        }
+        BaseResponse baseResponse = new BaseResponse();
+        if(queryUri!=null){
+            baseResponse.setSuccess(true);
+            baseResponse.setUri(queryUri);
         }else {
             baseResponse.setSuccess(false);
             baseResponse.setUri(null);
@@ -90,5 +131,27 @@ public class MediaStoreIFile implements IFile {
             }
         }
         return contentValues;
+    }
+
+    private class Condition{
+        private String whereCasue;
+        private String[] whereArgs;
+        public Condition( ContentValues contentValues) {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("1=1");
+            ArrayList list = new ArrayList();
+            Iterator<Map.Entry<String, Object>> set= contentValues.valueSet().iterator() ;
+            while (set.hasNext()) {
+                Map.Entry<String, Object> entry=set.next();
+                String key = entry.getKey();
+                String value = (String) entry.getValue();
+                if (value != null) {
+                    stringBuilder.append(" and " + key + " =? ");
+                    list.add(value);
+                }
+            }
+            whereCasue = stringBuilder.toString();
+            whereArgs = (String[]) list.toArray(new String[list.size()]);
+        }
     }
 }

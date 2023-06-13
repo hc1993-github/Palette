@@ -7,7 +7,17 @@ import com.hc.scopestore.base.BaseResponse;
 
 public class CommonIFile implements IFile {
     @Override
-    public <T extends BaseRequest> BaseResponse create(Context context, T request) {
+    public <T extends BaseRequest> BaseResponse add(Context context, T request) {
+        return null;
+    }
+
+    @Override
+    public <T extends BaseRequest> BaseResponse delete(Context context, T request) {
+        return null;
+    }
+
+    @Override
+    public <T extends BaseRequest> BaseResponse query(Context context, T request) {
         return null;
     }
 }
