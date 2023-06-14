@@ -171,4 +171,8 @@
         <attr name="default_size" format="integer"/>
         <attr name="start_angle" format="integer"/>
     </declare-styleable>
+    <declare-styleable name="SliderView">
+        <attr name="slider_start" format="integer"/>
+        <attr name="slider_end" format="integer"/>
+    </declare-styleable>
 </resources>
