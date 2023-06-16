@@ -1,5 +1,10 @@
 package com.example.palette.util;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.text.TextUtils;
 
@@ -217,5 +222,52 @@ public class FileUtil {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     * 检查某APK是否已经安装了高版本
+     * @param context
+     * @param file
+     * @return
+     */
+    private static boolean checkIsInstalled(Context context, File file) {
+        PackageManager packageManager = context.getPackageManager();
+        PackageInfo archiveInfo = packageManager.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_ACTIVITIES);
+        String destApplicationId = archiveInfo.applicationInfo.packageName;
+//        currentInstallApkApplicationId = destApplicationId;
+        int destVersionCode = archiveInfo.versionCode;
+        List<PackageInfo> packageInfos = packageManager.getInstalledPackages(0);
+        for (int i = 0; i < packageInfos.size(); i++) {
+            PackageInfo packageInfo = packageInfos.get(i);
+            String applicationId = packageInfo.packageName;
+            int versionCode = packageInfo.versionCode;
+            if (applicationId.equals(destApplicationId)) {
+                if (versionCode >= destVersionCode) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 获取某个应用的启动Activity
+     * @param context
+     * @param applicationId
+     * @return
+     */
+    public static String getLauncherActivityName(Context context,String applicationId){
+        String className = null;
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.MAIN");
+        intent.addCategory("android.intent.category.LAUNCHER");
+        intent.setPackage(applicationId);
+        List<ResolveInfo> resolveInfos = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_ALL);
+        ResolveInfo resolveInfo = resolveInfos.iterator().next();
+        if(resolveInfo!=null){
+            className = resolveInfo.activityInfo.name;
+        }
+        LogUtil.logi("启动activity名 "+className);
+        return className;
     }
 }
