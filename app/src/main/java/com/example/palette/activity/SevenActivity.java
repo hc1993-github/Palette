@@ -37,17 +37,17 @@ public class SevenActivity extends AppCompatActivity {
                     }
                 }, new OkHttpUtil.ResultCallback() {
                     @Override
-                    public void onNetError(String message) {
+                    public void onNetFailure(String message) {
                         Log.i("SevenActivity", "onNetError: "+message);
                     }
 
                     @Override
-                    public void onFailResponse(String info) {
+                    public void onResponseFailure(String info) {
                         Log.i("onFailResponse", "onFailResponse: "+info);
                     }
 
                     @Override
-                    public void onSuccessResponse(String info) throws IOException {
+                    public void onResponseSuccess(String info) throws IOException {
                         Log.i("onSuccessResponse", "onSuccessResponse: "+info);
                     }
                 });

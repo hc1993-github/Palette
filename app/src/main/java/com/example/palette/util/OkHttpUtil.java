@@ -1,5 +1,6 @@
 package com.example.palette.util;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
@@ -8,10 +9,26 @@ import com.example.palette.module.ProgressInterceptor;
 import com.example.palette.module.ProgressListener;
 import com.example.palette.module.ProgressRequestBody;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -31,6 +48,13 @@ public class OkHttpUtil {
 
     private OkHttpUtil() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
+//                .sslSocketFactory(createSSLSocketFactory()) //信任所有证书
+//                .hostnameVerifier(new HostnameVerifier() {
+//                    @Override
+//                    public boolean verify(String hostname, SSLSession session) {
+//                        return true;
+//                    }
+//                })
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .writeTimeout(20, TimeUnit.SECONDS)
                 .readTimeout(20, TimeUnit.SECONDS);
@@ -91,15 +115,20 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetError("网络连接失败,请稍后重试", callback);
+                onNetFailure("网络连接失败,请稍后重试", callback);
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    onSuccessCallback(response.body().string(), callback);
-                } else {
-                    onFailCallback(response.body().string(), callback);
+            public void onResponse(Call call, Response response){
+                try {
+                    if (response.isSuccessful()) {
+                        onResponseSuccess(response.body().string(), callback);
+                    } else {
+                        onResponseFailure(response.body().string(), callback);
+                    }
+                }catch (Exception e){
+                    onResponseFailure("请求异常",callback);
+                    e.printStackTrace();
                 }
             }
         });
@@ -129,15 +158,20 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetError("网络连接失败,请稍后重试", callback);
+                onNetFailure("网络连接失败,请稍后重试", callback);
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    onSuccessCallback(response.body().string(), callback);
-                } else {
-                    onFailCallback(response.body().string(), callback);
+            public void onResponse(Call call, Response response){
+                try {
+                    if (response.isSuccessful()) {
+                        onResponseSuccess(response.body().string(), callback);
+                    } else {
+                        onResponseFailure(response.body().string(), callback);
+                    }
+                }catch (Exception e){
+                    onResponseFailure("请求异常",callback);
+                    e.printStackTrace();
                 }
             }
         });
@@ -189,15 +223,20 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetError("网络连接失败,请稍后重试", callback);
+                onNetFailure("网络连接失败,请稍后重试", callback);
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    onSuccessCallback(response.body().string(), callback);
-                } else {
-                    onFailCallback(response.body().string(), callback);
+            public void onResponse(Call call, Response response) {
+                try {
+                    if (response.isSuccessful()) {
+                        onResponseSuccess(response.body().string(), callback);
+                    } else {
+                        onResponseFailure(response.body().string(), callback);
+                    }
+                }catch (Exception e){
+                    onResponseFailure("请求异常",callback);
+                    e.printStackTrace();
                 }
             }
         });
@@ -245,20 +284,26 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetError("网络连接失败,请稍后重试", callback);
+                onNetFailure("网络连接失败,请稍后重试", callback);
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    long contentLength = response.body().contentLength();
-                    FileUtil.writeToFile(file.getAbsolutePath(), response.body().byteStream());
-                    if (file.length() == contentLength) {
-                        onSuccessCallback(null, callback);
+            public void onResponse(Call call, Response response){
+                try {
+                    if (response.isSuccessful()) {
+                        long contentLength = response.body().contentLength();
+                        FileUtil.writeToFile(file.getAbsolutePath(), response.body().byteStream());
+                        if (file.length() == contentLength) {
+                            onResponseSuccess(null, callback);
+                        }
+                    } else {
+                        onResponseFailure(response.body().string(), callback);
                     }
-                } else {
-                    onFailCallback(response.body().string(), callback);
+                }catch (Exception e){
+                    onResponseFailure("请求异常",callback);
+                    e.printStackTrace();
                 }
+
             }
         });
     }
@@ -294,25 +339,30 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onNetError("网络连接失败,请稍后重试", callback);
+                onNetFailure("网络连接失败,请稍后重试", callback);
             }
 
             @Override
-            public void onResponse(Call call,Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    onSuccessCallback(response.body().string(), callback);
-                } else {
-                    onFailCallback(response.body().string(), callback);
+            public void onResponse(Call call,Response response) {
+                try {
+                    if (response.isSuccessful()) {
+                        onResponseSuccess(response.body().string(), callback);
+                    } else {
+                        onResponseFailure(response.body().string(), callback);
+                    }
+                }catch (Exception e){
+                    onResponseFailure("请求异常",callback);
+                    e.printStackTrace();
                 }
             }
         });
     }
 
-    private void onSuccessCallback(String info, ResultCallback callback) {
+    private void onResponseSuccess(String info, ResultCallback callback) {
         handler.post(() -> {
             if (callback != null) {
                 try {
-                    callback.onSuccessResponse(info);
+                    callback.onResponseSuccess(info);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -320,18 +370,18 @@ public class OkHttpUtil {
         });
     }
 
-    private void onNetError(String message, ResultCallback callback) {
+    private void onNetFailure(String message, ResultCallback callback) {
         handler.post(() -> {
             if (callback != null) {
-                callback.onNetError(message);
+                callback.onNetFailure(message);
             }
         });
     }
 
-    private void onFailCallback(String info, ResultCallback callback) {
+    private void onResponseFailure(String info, ResultCallback callback) {
         handler.post(() -> {
             if (callback != null) {
-                callback.onFailResponse(info);
+                callback.onResponseFailure(info);
             }
         });
     }
@@ -354,10 +404,76 @@ public class OkHttpUtil {
     }
 
     public interface ResultCallback {
-        void onNetError(String message);
+        void onNetFailure(String message);
 
-        void onFailResponse(String info);
+        void onResponseFailure(String info);
 
-        void onSuccessResponse(String info) throws IOException;
+        void onResponseSuccess(String info) throws IOException;
+    }
+
+    private SSLSocketFactory createSSLSocketFactory(){
+        SSLSocketFactory factory = null;
+        try {
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null,new TrustManager[]{new TrustAllCerts()},new SecureRandom());
+            factory = sslContext.getSocketFactory();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return factory;
+    }
+
+    private class TrustAllCerts implements X509TrustManager{
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
+    }
+
+    private SSLSocketFactory createSSLSocketFactory(InputStream certStream){
+        SSLContext sslContext = null;
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            Certificate certificate;
+            try {
+                certificate = certificateFactory.generateCertificate(certStream);
+            }finally {
+                certStream.close();
+            }
+            String defaultType = KeyStore.getDefaultType();
+            KeyStore keyStore = KeyStore.getInstance(defaultType);
+            keyStore.load(null,null);
+            keyStore.setCertificateEntry("ca",certificate);
+            String algorithm = TrustManagerFactory.getDefaultAlgorithm();
+            TrustManagerFactory factory = TrustManagerFactory.getInstance(algorithm);
+            factory.init(keyStore);
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null,factory.getTrustManagers(),null);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return sslContext!=null?sslContext.getSocketFactory():null;
+    }
+
+    private InputStream getCertStream(Context context){
+        InputStream inputStream = null;
+        try {
+            inputStream = context.getAssets().open("");
+//            inputStream = new ByteArrayInputStream("".getBytes("UTF-8"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return inputStream;
     }
 }
