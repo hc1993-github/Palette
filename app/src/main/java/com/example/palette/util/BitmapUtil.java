@@ -311,6 +311,18 @@ public class BitmapUtil {
     }
 
     /**
+     * bitmap转字符串
+     * @param bitmap
+     * @return
+     */
+    public static String bitmapToString(Bitmap bitmap){
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG,100,baos);
+        byte[] bytes = baos.toByteArray();
+        return Base64.encodeToString(bytes,Base64.DEFAULT);
+    }
+
+    /**
      * bitmap转文件
      * @param bitmap
      * @param file
