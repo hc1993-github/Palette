@@ -195,7 +195,7 @@ public class LogUtil {
             mPID = pid;
             try {
                 if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
-                    fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory()+File.separator+dir,getSimpleDate() + ".log"));
+                    fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory()+File.separator+dir,getSimpleDate() + ".log"),true);
                 }else {
                     Uri uri = MediaStore.Files.getContentUri("external");
                     ContentResolver contentResolver = mContext.getContentResolver();
