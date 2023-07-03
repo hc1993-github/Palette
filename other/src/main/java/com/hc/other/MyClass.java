@@ -57,8 +57,8 @@ public class MyClass {
         try {
 //            MouseServer mouseServer = new MouseServer(9999);
 //            mouseServer.start();
-            System.out.print((getMd5ByFile(new File("D:\\HealthQianHeAPP_chsV2.1_3_debug.apk"))));
-//            createFile(40,500,0.533f);
+//            System.out.print((getMd5ByFile(new File("D:\\HealthQianHeAPP_chsV2.1_3_debug.apk"))));
+            createFile(40,500,0.47f);
             System.out.print(pwdCheck("12a"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -125,7 +125,11 @@ public class MyClass {
                 writer.write("\t");
             }
             for(int i=2;i<spline+1;i++){
-                writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(i*scale)+"sp</dimen>\n");
+                float temp = i * scale;
+                if(temp<1.0f){
+                    temp = 1.0f;
+                }
+                writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(temp)+"sp</dimen>\n");
                 if(i!=spline){
                     writer.write("\t");
                 }
@@ -142,7 +146,11 @@ public class MyClass {
                 writer.write("\t");
             }
             for(int i=2;i<dpline+1;i++){
-                writer.write("<dimen name=\"dp_size_"+i+"\">"+format.format(i*scale)+"dp</dimen>\n");
+                float temp = i * scale;
+                if(temp<1.0f){
+                    temp = 1.0f;
+                }
+                writer.write("<dimen name=\"dp_size_"+i+"\">"+format.format(temp)+"dp</dimen>\n");
                 if(i!=dpline){
                     writer.write("\t");
                 }
