@@ -58,7 +58,7 @@ public class MyClass {
 //            MouseServer mouseServer = new MouseServer(9999);
 //            mouseServer.start();
             System.out.print((getMd5ByFile(new File("D:\\HealthQianHeAPP_chsV2.1_3_debug.apk"))));
-            //createFile(30,300,1f);
+//            createFile(40,500,0.533f);
             System.out.print(pwdCheck("12a"));
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,8 +117,13 @@ public class MyClass {
             DecimalFormat format = new DecimalFormat("#.0");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<resources>\n\t");
-            writer.write("<dimen name=\"sp_size_"+1+"\">"+format.format(scale)+"sp</dimen>\n");
-            writer.write("\t");
+            if(scale<=1.0f){
+                writer.write("<dimen name=\"sp_size_"+1+"\">"+format.format(1.0)+"sp</dimen>\n");
+                writer.write("\t");
+            }else {
+                writer.write("<dimen name=\"sp_size_"+1+"\">"+format.format(scale)+"sp</dimen>\n");
+                writer.write("\t");
+            }
             for(int i=2;i<spline+1;i++){
                 writer.write("<dimen name=\"sp_size_"+i+"\">"+format.format(i*scale)+"sp</dimen>\n");
                 if(i!=spline){
@@ -129,8 +134,13 @@ public class MyClass {
             writer.write("\t");
             writer.write("<dimen name=\"dp_size_"+0+"\">"+0+"dp</dimen>\n");
             writer.write("\t");
-            writer.write("<dimen name=\"dp_size_"+1+"\">"+format.format(scale)+"dp</dimen>\n");
-            writer.write("\t");
+            if(scale<=1.0f){
+                writer.write("<dimen name=\"dp_size_"+1+"\">"+format.format(1.0)+"dp</dimen>\n");
+                writer.write("\t");
+            }else {
+                writer.write("<dimen name=\"dp_size_"+1+"\">"+format.format(scale)+"dp</dimen>\n");
+                writer.write("\t");
+            }
             for(int i=2;i<dpline+1;i++){
                 writer.write("<dimen name=\"dp_size_"+i+"\">"+format.format(i*scale)+"dp</dimen>\n");
                 if(i!=dpline){

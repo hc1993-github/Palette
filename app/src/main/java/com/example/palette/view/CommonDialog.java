@@ -32,6 +32,11 @@ public class CommonDialog extends Dialog {
         window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));//dialog透明
         window.setDimAmount(0.5f);//activity昏暗
         window.setTitle(null);//dialog无标题
+        int id = builder.context.getResources().getIdentifier("android:id/titleDivider", null, null);//去除老设备蓝线问题
+        View view = findViewById(id);
+        if(view!=null){
+            view.setBackgroundColor(Color.TRANSPARENT);
+        }
         initViews();
     }
 
