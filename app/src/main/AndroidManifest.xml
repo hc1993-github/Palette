@@ -37,7 +37,7 @@
         <activity android:name=".activity.FourActivity" />
         <activity android:name=".activity.SecActivity" />
         <activity android:name=".activity.MainActivity" />
-
+        <activity android:name="com.google.zxing.activity.CaptureActivity"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.FileProvider"

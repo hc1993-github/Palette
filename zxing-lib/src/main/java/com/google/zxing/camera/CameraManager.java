@@ -75,6 +75,8 @@ public final class CameraManager {
      */
     private final AutoFocusCallback autoFocusCallback;
 
+    private boolean isFront = true;
+
     /**
      * Initializes this static object with the Context of the calling Activity.
      *
@@ -118,27 +120,36 @@ public final class CameraManager {
      * @throws IOException Indicates the camera driver failed to open.
      */
     public void openDriver(SurfaceHolder holder) throws IOException {
-        if (camera == null) {
-            camera = Camera.open();
+        try {
             if (camera == null) {
-                throw new IOException();
-            }
-            camera.setPreviewDisplay(holder);
+                if(isFront){
+                    camera = Camera.open(0);
+                }
+                if (camera == null) {
+                    isFront = false;
+                    openDriver(holder);
+                    return;
+                }
+                camera.setPreviewDisplay(holder);
+                if (!initialized) {
+                    initialized = true;
+                    configManager.initFromCameraParameters(camera);
+                }
+                configManager.setDesiredCameraParameters(camera);
 
-            if (!initialized) {
-                initialized = true;
-                configManager.initFromCameraParameters(camera);
-            }
-            configManager.setDesiredCameraParameters(camera);
-
-            //FIXME
-            //     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            //�Ƿ�ʹ��ǰ��
+                //FIXME
+                //     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+                //�Ƿ�ʹ��ǰ��
 //      if (prefs.getBoolean(PreferencesActivity.KEY_FRONT_LIGHT, false)) {
 //        FlashlightManager.enableFlashlight();
 //      }
-            FlashlightManager.enableFlashlight();
+                FlashlightManager.enableFlashlight();
+            }
+        }catch (Exception e){
+            isFront = false;
+            openDriver(holder);
         }
+
     }
 
     /**
