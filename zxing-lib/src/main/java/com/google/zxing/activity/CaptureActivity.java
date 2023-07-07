@@ -47,9 +47,16 @@ import java.util.Vector;
 
 
 /**
- * Initial the camera
+ * Intent intent = new Intent(MainActivity.this, CaptureActivity.class);
+ * startActivityForResult(intent,1);
  *
- * @author Ryan.Tang
+ * @Override
+ * protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+ *    super.onActivityResult(requestCode, resultCode, data);
+ *    if(requestCode==1 && resultCode==RESULT_OK){
+ *         tv_info.setText(data.getStringExtra(Constant.INTENT_EXTRA_KEY_QR_SCAN));
+ *    }
+ * }
  */
 public class CaptureActivity extends AppCompatActivity implements Callback {
 
