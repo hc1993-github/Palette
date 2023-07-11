@@ -9,7 +9,6 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Typeface;
 import android.util.AttributeSet;
 import android.widget.ProgressBar;
 
@@ -42,7 +41,7 @@ public class CustomProgressbar extends ProgressBar {
         color = Color.parseColor("#45C2D8");
         paint.setColor(color);
         paint.setAntiAlias(true);
-        setProgressDrawable(ContextCompat.getDrawable(context, R.drawable.default_dialog_update_progress_default_bg));
+        setProgressDrawable(ContextCompat.getDrawable(context, R.drawable.bg_rectangle_blue_border_corner));
         setMax(100);
     }
 

@@ -1,6 +1,5 @@
 package com.example.palette.activity;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.graphics.ColorUtils;
@@ -15,7 +14,6 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -44,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 return insets;
             }
         });
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.white);
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.img_white);
         imageView.setImageBitmap(bitmap);
         Palette.from(bitmap).maximumColorCount(5).setRegion(0,0,getScreenWidth(),getStatusBarHeight()).generate(new Palette.PaletteAsyncListener() {
             @Override

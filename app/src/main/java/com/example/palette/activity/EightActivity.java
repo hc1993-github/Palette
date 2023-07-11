@@ -25,7 +25,7 @@ public class EightActivity extends AppCompatActivity {
         setContentView(R.layout.activity_eight);
         SPUtil.init(this);
         SPUtil.setName("test");
-        SPUtil.put("bitmap",bitmapToString(BitmapFactory.decodeResource(getResources(),R.drawable.white),100));
+        SPUtil.put("bitmap",bitmapToString(BitmapFactory.decodeResource(getResources(),R.drawable.img_white),100));
         mServer = AndServer.webServer(this)
                 .port(9999)
                 .timeout(10, TimeUnit.SECONDS).listener(new Server.ServerListener() {

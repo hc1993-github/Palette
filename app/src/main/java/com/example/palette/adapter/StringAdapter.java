@@ -69,13 +69,13 @@ public class StringAdapter extends RecyclerView.Adapter<StringAdapter.StringHold
                 if(isEnable){
                     if(event.getAction()==MotionEvent.ACTION_DOWN){
                         listener.onFingerDown((String) tv.getTag(R.id.id1));
-                        tv.setBackgroundResource(R.drawable.side_selected);
+                        tv.setBackgroundResource(R.drawable.bg_selector_item_one);
                     }else if(event.getAction()==MotionEvent.ACTION_UP){
                         listener.onFingerUp((String) tv.getTag(R.id.id1));
-                        tv.setBackgroundResource(R.drawable.side_unselected);
+                        tv.setBackgroundResource(R.drawable.bg_selector_item_two);
                     }
                 }else {
-                    tv.setBackgroundResource(R.drawable.side_unselected);
+                    tv.setBackgroundResource(R.drawable.bg_selector_item_two);
                     return true;
                 }
                 return true;
