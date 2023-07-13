@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import java.io.BufferedReader;
@@ -22,6 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class LogUtil {
+    private static final String TAG = "LogUtil";
     private static LogUtil INSTANCE = null;
     private static String LOG_PATH;
     private LogReader mLogReader = null;
@@ -31,12 +33,12 @@ public class LogUtil {
     public static final int MIN = 60000;
     public static final int HOUR = 3600000;
     public static final int DAY = 86400000;
+    private int mSize = 3;
     private static Context mContext;
-
-    private SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
-    private SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private Date simpleDate = new Date();
-    private Date fullDate = new Date();
+    private static SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
+    private static SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static Date simpleDate = new Date();
+    private static Date fullDate = new Date();
     private LogUtil(Context context) {
         this.mContext = context.getApplicationContext();
         init();
@@ -45,10 +47,11 @@ public class LogUtil {
 
     private void init() {
         try {
+
             if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
                 if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                     String[] split = mContext.getPackageName().split("\\.");
-                    LOG_PATH = Environment.DIRECTORY_DOWNLOADS + File.separator+split[split.length-1]+File.separator+"log";
+                    LOG_PATH = split[split.length-1]+File.separator+"log";
                 }
                 File file = new File(Environment.getExternalStorageDirectory(),LOG_PATH);
                 if (!file.exists()) {
@@ -56,7 +59,7 @@ public class LogUtil {
                 }
                 if (file.exists() && file.isDirectory()) {
                     File[] files = file.listFiles();
-                    String days = date2String(getDate(new Date(), -30, DAY), "yyyy-MM-dd");
+                    String days = date2String(getDate(new Date(), -mSize, DAY), "yyyy-MM-dd");
                     if (files != null) {
                         for (File f : files) {
                             if (f.getName().compareTo(days) < 0) {
@@ -67,10 +70,10 @@ public class LogUtil {
                 }
             }else {
                 String[] splits = mContext.getPackageName().split("\\.");
-                LOG_PATH = Environment.DIRECTORY_DOWNLOADS+File.separator+splits[splits.length-1]+File.separator+"log";
+                LOG_PATH = splits[splits.length-1]+File.separator+"log";
                 Uri uri = MediaStore.Files.getContentUri("external");
                 ContentResolver contentResolver = mContext.getContentResolver();
-                for (int i = 1; i <= 30; i++) {
+                for (int i = 1; i <= mSize; i++) {
                     String preLog = date2String(getDate(new Date(),-i,DAY),"yyyy-MM-dd")+".log";
                     Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{ preLog }, null);
                     if(cursor!=null && cursor.moveToFirst()){
@@ -118,7 +121,6 @@ public class LogUtil {
         return INSTANCE;
     }
 
-    //开始输出日志
     public void start(int level) {
         if (mLogReader == null) {
             mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH,level);
@@ -126,7 +128,6 @@ public class LogUtil {
         }
     }
 
-    //停止输出日志
     public void stop() {
         if (mLogReader != null) {
             mLogReader.stoplog();
@@ -134,44 +135,44 @@ public class LogUtil {
         }
     }
 
-    /**
-     * verbose级别
-     * @param msg
-     */
     public static void logv(String msg) {
-        Log.v(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
+        if(mContext==null){
+            Log.v(TAG, getFullDate()+" "+msg);
+        }else {
+            Log.v(mContext.getPackageName(), getFullDate()+" "+msg);
+        }
     }
 
-    /**
-     * debug级别
-     * @param msg
-     */
     public static void logd(String msg) {
-        Log.d(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
+        if(mContext==null){
+            Log.d(TAG, getFullDate()+" "+msg);
+        }else {
+            Log.d(mContext.getPackageName(), getFullDate()+" "+msg);
+        }
     }
 
-    /**
-     * info级别
-     * @param msg
-     */
     public static void logi(String msg) {
-        Log.i(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
+        if(mContext==null){
+            Log.i(TAG, getFullDate()+" "+msg);
+        }else {
+            Log.i(mContext.getPackageName(), getFullDate()+" "+msg);
+        }
     }
 
-    /**
-     * warn级别
-     * @param msg
-     */
     public static void logw(String msg) {
-        Log.w(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
+        if(mContext==null){
+            Log.w(TAG, getFullDate()+" "+msg);
+        }else {
+            Log.w(mContext.getPackageName(), getFullDate()+" "+msg);
+        }
     }
 
-    /**
-     * error级别
-     * @param msg
-     */
     public static void loge(String msg) {
-        Log.e(mContext.getPackageName(), LogUtil.getInstance(mContext).getFullDate()+" "+msg);
+        if(mContext==null){
+            Log.e(TAG, getFullDate()+" "+msg);
+        }else {
+            Log.e(mContext.getPackageName(), getFullDate()+" "+msg);
+        }
     }
 
     private String getSimpleDate() {
@@ -179,7 +180,7 @@ public class LogUtil {
         return simpleFormat.format(simpleDate);
     }
 
-    private String getFullDate() {
+    private static String getFullDate() {
         fullDate.setTime(System.currentTimeMillis());
         return fullFormat.format(fullDate);
     }
@@ -215,21 +216,21 @@ public class LogUtil {
                         }
                     }
                 }
+                if(level==1){
+                    cmds = "logcat *:v | grep \"(" + mPID + ")\"";
+                }else if(level==2){
+                    cmds = "logcat *:d | grep \"(" + mPID + ")\"";
+                }else if(level==3){
+                    cmds = "logcat *:i | grep \"(" + mPID + ")\"";
+                }else if(level==4){
+                    cmds = "logcat *:w | grep \"(" + mPID + ")\"";
+                }else if(level==5){
+                    cmds = "logcat *:e | grep \"(" + mPID + ")\"";
+                }else {
+                    cmds = "logcat | grep \"(" + mPID + ")\"";
+                }
             }catch (Exception e){
                 e.printStackTrace();
-            }
-            if(level==1){
-                cmds = "logcat *:v | grep \"(" + mPID + ")\"";
-            }else if(level==2){
-                cmds = "logcat *:d | grep \"(" + mPID + ")\"";
-            }else if(level==3){
-                cmds = "logcat *:i | grep \"(" + mPID + ")\"";
-            }else if(level==4){
-                cmds = "logcat *:w | grep \"(" + mPID + ")\"";
-            }else if(level==5){
-                cmds = "logcat *:e | grep \"(" + mPID + ")\"";
-            }else {
-                cmds = "logcat | grep \"(" + mPID + ")\"";
             }
         }
 
@@ -240,9 +241,12 @@ public class LogUtil {
         @Override
         public void run() {
             try {
+                if(TextUtils.isEmpty(cmds)){
+                    return;
+                }
                 process = Runtime.getRuntime().exec(cmds);
                 bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()), 1024);
-                String line = null;
+                String line;
                 while (isRunning && (line = bufferedReader.readLine()) != null) {
                     if (line.length() == 0) {
                         continue;
