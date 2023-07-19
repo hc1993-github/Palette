@@ -124,6 +124,8 @@ public final class CameraManager {
             if (camera == null) {
                 if(isFront){
                     camera = Camera.open(0);
+                }else {
+                    camera = Camera.open(1);
                 }
                 if (camera == null) {
                     isFront = false;
