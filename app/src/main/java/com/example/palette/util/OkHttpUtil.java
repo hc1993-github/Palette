@@ -44,8 +44,10 @@ import okhttp3.Response;
 public class OkHttpUtil {
     private volatile static OkHttpUtil okHttpUtil;
     private OkHttpClient client;
-    private Handler handler;
-
+    private static Handler handler;
+    private static final String FAILURE_NET_INFO = "网络连接失败,请稍后重试";
+    private static final String FAILURE_RESPONSE_INFO = "网络请求异常,请稍后重试";
+    private static final int FAILURE_RESPONSE_CODE = -404;
     private OkHttpUtil() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
 //                .sslSocketFactory(createSSLSocketFactory()) //信任所有证书
@@ -62,7 +64,6 @@ public class OkHttpUtil {
                 //.addInterceptor(new NoNetInterceptor())
                 //.eventListenerFactory(OkHttpEventListener.FACTORY)
                 .build();
-        handler = new Handler(Looper.getMainLooper());
     }
 
     public static OkHttpUtil getInstance() {
@@ -72,6 +73,9 @@ public class OkHttpUtil {
                     okHttpUtil = new OkHttpUtil();
                 }
             }
+        }
+        if(handler==null){
+            handler = new Handler(Looper.getMainLooper());
         }
         return okHttpUtil;
     }
@@ -115,7 +119,7 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetFailure("网络连接失败,请稍后重试", callback);
+                onNetFailure(FAILURE_NET_INFO, callback);
             }
 
             @Override
@@ -124,10 +128,10 @@ public class OkHttpUtil {
                     if (response.isSuccessful()) {
                         onResponseSuccess(response.body().string(), callback);
                     } else {
-                        onResponseFailure(response.body().string(), callback);
+                        onResponseFailure(response.code(),response.body().string(), callback);
                     }
                 }catch (Exception e){
-                    onResponseFailure("请求异常",callback);
+                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
                     e.printStackTrace();
                 }
             }
@@ -158,7 +162,7 @@ public class OkHttpUtil {
         client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetFailure("网络连接失败,请稍后重试", callback);
+                onNetFailure(FAILURE_NET_INFO, callback);
             }
 
             @Override
@@ -167,10 +171,10 @@ public class OkHttpUtil {
                     if (response.isSuccessful()) {
                         onResponseSuccess(response.body().string(), callback);
                     } else {
-                        onResponseFailure(response.body().string(), callback);
+                        onResponseFailure(response.code(),response.body().string(), callback);
                     }
                 }catch (Exception e){
-                    onResponseFailure("请求异常",callback);
+                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
                     e.printStackTrace();
                 }
             }
@@ -223,7 +227,7 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetFailure("网络连接失败,请稍后重试", callback);
+                onNetFailure(FAILURE_NET_INFO, callback);
             }
 
             @Override
@@ -232,10 +236,10 @@ public class OkHttpUtil {
                     if (response.isSuccessful()) {
                         onResponseSuccess(response.body().string(), callback);
                     } else {
-                        onResponseFailure(response.body().string(), callback);
+                        onResponseFailure(response.code(),response.body().string(), callback);
                     }
                 }catch (Exception e){
-                    onResponseFailure("请求异常",callback);
+                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
                     e.printStackTrace();
                 }
             }
@@ -284,7 +288,7 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetFailure("网络连接失败,请稍后重试", callback);
+                onNetFailure(FAILURE_NET_INFO, callback);
             }
 
             @Override
@@ -297,10 +301,10 @@ public class OkHttpUtil {
                             onResponseSuccess(null, callback);
                         }
                     } else {
-                        onResponseFailure(response.body().string(), callback);
+                        onResponseFailure(response.code(),response.body().string(), callback);
                     }
                 }catch (Exception e){
-                    onResponseFailure("请求异常",callback);
+                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
                     e.printStackTrace();
                 }
 
@@ -339,7 +343,7 @@ public class OkHttpUtil {
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call,IOException e) {
-                onNetFailure("网络连接失败,请稍后重试", callback);
+                onNetFailure(FAILURE_NET_INFO, callback);
             }
 
             @Override
@@ -348,10 +352,10 @@ public class OkHttpUtil {
                     if (response.isSuccessful()) {
                         onResponseSuccess(response.body().string(), callback);
                     } else {
-                        onResponseFailure(response.body().string(), callback);
+                        onResponseFailure(response.code(),response.body().string(), callback);
                     }
                 }catch (Exception e){
-                    onResponseFailure("请求异常",callback);
+                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
                     e.printStackTrace();
                 }
             }
@@ -359,56 +363,36 @@ public class OkHttpUtil {
     }
 
     private void onResponseSuccess(String info, ResultCallback callback) {
-        handler.post(() -> {
-            if (callback != null) {
-                try {
-                    callback.onResponseSuccess(info);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        if(handler!=null && callback!=null){
+            handler.post(() -> callback.onSuccessResponse(info));
+        }
     }
 
     private void onNetFailure(String message, ResultCallback callback) {
-        handler.post(() -> {
-            if (callback != null) {
-                callback.onNetFailure(message);
-            }
-        });
-    }
-
-    private void onResponseFailure(String info, ResultCallback callback) {
-        handler.post(() -> {
-            if (callback != null) {
-                callback.onResponseFailure(info);
-            }
-        });
-    }
-
-    public void cancelTag(Object tag) {
-        for (Call call : client.dispatcher().queuedCalls()) {
-            if (tag.equals(call.request().tag())) {
-                call.cancel();
-            }
-        }
-        for (Call call : client.dispatcher().runningCalls()) {
-            if (tag.equals(call.request().tag())) {
-                call.cancel();
-            }
+        if(handler!=null && callback!=null){
+            handler.post(() -> callback.onFailureNet(message));
         }
     }
 
-    public void cancelAll() {
-        client.dispatcher().cancelAll();
+    private void onResponseFailure(int failureCode,String info, ResultCallback callback) {
+        if(handler!=null && callback!=null){
+            handler.post(() -> callback.onFailureResponse(failureCode, info));
+        }
+    }
+
+    public void clear(){
+        if(handler!=null){
+            handler.removeCallbacksAndMessages(null);
+            handler = null;
+        }
     }
 
     public interface ResultCallback {
-        void onNetFailure(String message);
+        void onFailureNet(String message);
 
-        void onResponseFailure(String info);
+        void onFailureResponse(int failureCode,String info);
 
-        void onResponseSuccess(String info) throws IOException;
+        void onSuccessResponse(String info);
     }
 
     private SSLSocketFactory createSSLSocketFactory(){
