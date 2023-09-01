@@ -6,8 +6,14 @@ public interface AutoProgressListener {
 
     void progress(int progress);
 
-    void end(String destFilePath);
+    void pause(int progress);
+
+    void cancel();
+
+    void finish(String fileAbsolutePath);
 
     void error(String message);
+
+    void existed(String message);
 
 }
