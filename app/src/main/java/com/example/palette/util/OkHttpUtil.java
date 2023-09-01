@@ -285,7 +285,7 @@ public class OkHttpUtil {
         client.newCall(build.build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetFailure("网络连接失败", callback);
+                onNetFailure(FAILURE_NET_INFO, callback);
                 e.printStackTrace();
             }
 
@@ -299,7 +299,7 @@ public class OkHttpUtil {
                     }
                 }catch (Exception e){
                     e.printStackTrace();
-                    onResponseFailure(-404,"请求异常", callback);
+                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO, callback);
                 }
             }
         });
