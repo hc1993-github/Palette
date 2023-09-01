@@ -19,6 +19,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -247,107 +248,49 @@ public class OkHttpUtil {
     }
 
     /**
-     * 文件下载
+     * 文件上传
      * @param url
-     * @param isGet 是否get
-     * @param headerParams request头部参数
-     * @param params 请求参数
-     * @param file 下载的文件
-     * @param listener 进度监听器
+     * @param headerParams
+     * @param params
+     * @param listener
      * @param callback
      */
-    public void requestDownLoadWithParams(String url, boolean isGet, Map<String, String> headerParams, Map<String, String> params, File file, ProgressListener listener, ResultCallback callback) {
-        Request.Builder builder = new Request.Builder();
-        if (headerParams != null && !headerParams.isEmpty()) {
-            for (Map.Entry<String, String> entry : headerParams.entrySet()) {
-                builder.addHeader(entry.getKey(), entry.getValue());
-            }
+    public void requestUpload(String url, Map<String, String> headerParams,Map<String,Object> params, ProgressListener listener, ResultCallback callback){
+        MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+        if(headerParams==null){
+            headerParams = new HashMap<>();
         }
-        Request request;
-        if (isGet) {
-            String param = "";
-            if (params != null && !params.isEmpty()) {
-                for (Map.Entry<String, String> entry : params.entrySet()) {
-                    param += "&" + entry.getKey() + "=" + entry.getValue();
+        headerParams.put("Content-Type","multipart/form-data");
+        if(params!=null && params.size()>0){
+            for (Map.Entry<String, Object> entry:params.entrySet()) {
+                Object value = entry.getValue();
+                if(value instanceof String){
+                    builder.addFormDataPart(entry.getKey(), (String) entry.getValue());
+                }else if(value instanceof File){
+                    File f = (File) entry.getValue();
+                    builder.addFormDataPart(entry.getKey(),f.getName(), RequestBody.create(MediaType.parse("application/octet-stream"),f));
                 }
             }
-            if (!TextUtils.isEmpty(param)) url += "?" + param.substring(1);
-            request = builder.url(url).build();
-        } else {
-            FormBody.Builder form = new FormBody.Builder();
-            if (params != null && !params.isEmpty()) {
-                for (Map.Entry<String, String> entry : params.entrySet()) {
-                    form.add(entry.getKey(), entry.getValue());
-                }
-                request = builder.url(url).post(form.build()).build();
-            } else {
-                request = builder.url(url).post(form.build()).build();
-            }
         }
-        OkHttpClient okHttpClient = client.newBuilder().addInterceptor(new ProgressInterceptor(listener)).build();
-        okHttpClient.newCall(request).enqueue(new Callback() {
+        RequestBody requestBody;
+        if(listener!=null){
+            requestBody = new ProgressRequestBody(builder.build(),listener);
+        }else {
+            requestBody = builder.build();
+        }
+        Request.Builder build = new Request.Builder().url(url).post(requestBody);
+        for (Map.Entry<String, String> entry:headerParams.entrySet()) {
+            build.header(entry.getKey(),entry.getValue());
+        }
+        client.newCall(build.build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
-                onNetFailure(FAILURE_NET_INFO, callback);
+                onNetFailure("网络连接失败", callback);
+                e.printStackTrace();
             }
 
             @Override
             public void onResponse(Call call, Response response){
-                try {
-                    if (response.isSuccessful()) {
-                        long contentLength = response.body().contentLength();
-                        FileUtil.writeToFile(file.getAbsolutePath(), response.body().byteStream());
-                        if (file.length() == contentLength) {
-                            onResponseSuccess(null, callback);
-                        }
-                    } else {
-                        onResponseFailure(response.code(),response.body().string(), callback);
-                    }
-                }catch (Exception e){
-                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
-                    e.printStackTrace();
-                }
-
-            }
-        });
-    }
-
-    /**
-     * 文件上传
-     * @param url
-     * @param headerParams request头部参数
-     * @param bodyParams 请求体参数
-     * @param file 上传的文件
-     * @param listener 进度监听器
-     * @param callback
-     */
-    public void requestUpLoadWithParams(String url, Map<String, String> headerParams, Map<String, String> bodyParams, File file, ProgressListener listener, ResultCallback callback) {
-        Request.Builder builder = new Request.Builder();
-        builder.addHeader("Content-Type", "multipart/form-data");
-        if (headerParams != null && !headerParams.isEmpty()) {
-            for (Map.Entry<String, String> entry : headerParams.entrySet()) {
-                builder.addHeader(entry.getKey(), entry.getValue());
-            }
-        }
-        MultipartBody.Builder form = new MultipartBody.Builder();
-        form.addFormDataPart("file", file.getName(), RequestBody.create(MediaType.parse("application/octet-stream"),file));
-        if (bodyParams != null && !bodyParams.isEmpty()) {
-            form.setType(MultipartBody.FORM);
-            for (Map.Entry<String, String> entry : bodyParams.entrySet()) {
-                form.addFormDataPart(entry.getKey(), entry.getValue());
-            }
-        }
-        ProgressRequestBody requestBody = new ProgressRequestBody(form.build(), listener);
-        Request request = builder.url(url).post(requestBody).build();
-        OkHttpClient okHttpClient = client.newBuilder().build();
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call,IOException e) {
-                onNetFailure(FAILURE_NET_INFO, callback);
-            }
-
-            @Override
-            public void onResponse(Call call,Response response) {
                 try {
                     if (response.isSuccessful()) {
                         onResponseSuccess(response.body().string(), callback);
@@ -355,8 +298,8 @@ public class OkHttpUtil {
                         onResponseFailure(response.code(),response.body().string(), callback);
                     }
                 }catch (Exception e){
-                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
                     e.printStackTrace();
+                    onResponseFailure(-404,"请求异常", callback);
                 }
             }
         });

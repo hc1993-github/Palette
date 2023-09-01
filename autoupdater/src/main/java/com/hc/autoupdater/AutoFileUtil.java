@@ -4,6 +4,9 @@ import android.graphics.Bitmap;
 
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.CompressionLevel;
+import net.lingala.zip4j.model.enums.CompressionMethod;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,40 +56,20 @@ public class AutoFileUtil {
      * @param src 原文件路径
      * @param dest 目标文件路径
      */
-    public static void zipFile(String src,String dest){
+    public static void zipFile(String src,String dest,ZipFileListener listener){
         File srcFile = new File(src);
-        File destFile = new File(dest);
-        FileInputStream fis = null;
-        FileOutputStream fos = null;
-        ZipOutputStream zos = null;
+        String substring = src.substring(src.lastIndexOf("/")+1,src.lastIndexOf("."));
+        File destFile = new File(dest,substring+".zip");
+        ZipParameters parameters = new ZipParameters();
+        parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+        parameters.setCompressionLevel(CompressionLevel.NORMAL);
         try {
-            fis = new FileInputStream(srcFile);
-            fos = new FileOutputStream(destFile);
-            ZipEntry zipEntry = new ZipEntry(srcFile.getName());
-            zos = new ZipOutputStream(fos);
-            zos.putNextEntry(zipEntry);
-            byte[] buffer=new byte[1024];
-            int len = 0;
-            while((len =  fis.read(buffer)) != -1) {
-                zos.write(buffer,0,len);
-            }
-            zos.flush();
+            ZipFile zipFile = new ZipFile(destFile);
+            zipFile.addFile(srcFile,parameters);
+            listener.onZipFinish(true,destFile);
         }catch (Exception e){
+            listener.onZipFinish(false,null);
             e.printStackTrace();
-        }finally {
-            try {
-                if (fos != null) {
-                    fos.close();
-                }
-                if(fis!=null){
-                    fis.close();
-                }
-                if(zos!=null){
-                    zos.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -236,4 +219,20 @@ public class AutoFileUtil {
         return null;
     }
 
+    public static void deleteFile(File file) {
+        if (file.isDirectory()) {
+            File[] files = file.listFiles();
+            for (int i = 0; i < files.length; i++) {
+                File f = files[i];
+                deleteFile(f);
+            }
+            file.delete();
+        } else if (file.exists()) {
+            file.delete();
+        }
+    }
+
+    public interface ZipFileListener{
+        void onZipFinish(boolean isSuccess,File destZipFile);
+    }
 }
