@@ -25,6 +25,11 @@ public class AutoProgressRequestBody extends RequestBody {
     }
 
     @Override
+    public long contentLength() throws IOException {
+        return mRequestBody.contentLength();
+    }
+
+    @Override
     public void writeTo(BufferedSink bufferedSink) throws IOException {
         long totalLength = contentLength();
         BufferedSink buffer = Okio.buffer(new ProgressSink(bufferedSink, totalLength,mListener));
