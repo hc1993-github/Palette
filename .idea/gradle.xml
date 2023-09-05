@@ -13,7 +13,6 @@
             <option value="$PROJECT_DIR$/ScopeStore" />
             <option value="$PROJECT_DIR$/SerialPortLibrary" />
             <option value="$PROJECT_DIR$/app" />
-            <option value="$PROJECT_DIR$/autoupdater" />
             <option value="$PROJECT_DIR$/other" />
             <option value="$PROJECT_DIR$/zxing-lib" />
           </set>

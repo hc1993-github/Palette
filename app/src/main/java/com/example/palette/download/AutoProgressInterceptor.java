@@ -1,6 +1,4 @@
-package com.hc.autoupdater;
-
-
+package com.example.palette.download;
 
 import java.io.IOException;
 
@@ -23,7 +21,7 @@ public class AutoProgressInterceptor implements Interceptor {
         Response response = chain.proceed(request);
         String url = request.url().toString();
         ResponseBody body = response.body();
-        Response newresponse = response.newBuilder().body(new AutoProgressResponseBody(body,listener)).build();
+        Response newresponse = response.newBuilder().body(new AutoProgressResponseBody(body, listener)).build();
         return newresponse;
     }
 }

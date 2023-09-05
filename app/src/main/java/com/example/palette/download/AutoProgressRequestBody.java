@@ -1,4 +1,4 @@
-package com.hc.autoupdater;
+package com.example.palette.download;
 
 import java.io.IOException;
 
@@ -40,7 +40,7 @@ public class AutoProgressRequestBody extends RequestBody {
         long mTotalLength;
         long mCurrentLength;
         AutoProgressListener listener;
-        public ProgressSink(Sink delegate, long totalLength,AutoProgressListener ls) {
+        public ProgressSink(Sink delegate, long totalLength, AutoProgressListener ls) {
             super(delegate);
             mTotalLength = totalLength;
             listener = ls;

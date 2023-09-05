@@ -1,4 +1,4 @@
-package com.hc.autoupdater;
+package com.example.palette.download;
 
 import android.app.Activity;
 import android.content.Context;
@@ -15,7 +15,6 @@ import android.text.TextUtils;
 import androidx.core.content.FileProvider;
 
 import net.lingala.zip4j.ZipFile;
-import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
@@ -23,16 +22,12 @@ import net.lingala.zip4j.model.enums.CompressionMethod;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class AutoFileUtil {
 

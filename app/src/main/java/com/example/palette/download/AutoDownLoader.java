@@ -1,27 +1,17 @@
-package com.hc.autoupdater;
+package com.example.palette.download;
 
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.provider.MediaStore;
 import android.text.TextUtils;
-
-import androidx.annotation.NonNull;
 
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.util.concurrent.TimeUnit;
 
@@ -102,7 +92,7 @@ public class AutoDownLoader {
      * @param destFileAbsolutePath 为空则默认/sdcard/applicationId后缀名/
      * @param isBreakPoint 是否断点下载
      */
-    public void download(String url,AutoProgressListener listener,String destFileAbsolutePath,boolean isBreakPoint){
+    public void download(String url, AutoProgressListener listener, String destFileAbsolutePath, boolean isBreakPoint){
         mIsBreakPoint = isBreakPoint;
         if(mIsBreakPoint){
             breakPointDownLoad(url, listener, destFileAbsolutePath);
@@ -117,7 +107,7 @@ public class AutoDownLoader {
      * @param listener 监听器
      * @param destFileAbsolutePath 文件绝对路径
      */
-    private void breakPointDownLoad(String url,AutoProgressListener listener, String destFileAbsolutePath){
+    private void breakPointDownLoad(String url, AutoProgressListener listener, String destFileAbsolutePath){
         try {
             mUrl = url;
             mIsPause = false;

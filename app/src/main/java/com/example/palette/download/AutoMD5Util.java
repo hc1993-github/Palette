@@ -1,4 +1,4 @@
-package com.hc.autoupdater;
+package com.example.palette.download;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -80,8 +80,6 @@ public class AutoMD5Util {
         }
         return new String(ret);
     }
-
-
 
     private static String md5(byte[] buffer){
         String result=null;

@@ -1,4 +1,4 @@
-package com.hc.autoupdater;
+package com.example.palette.download;
 
 import java.io.IOException;
 

@@ -1,4 +1,4 @@
-package com.hc.autoupdater;
+package com.example.palette.download;
 
 public interface AutoProgressListener {
 
@@ -13,7 +13,5 @@ public interface AutoProgressListener {
     void finish(String fileAbsolutePath);
 
     void error(String message);
-
-    void existed(String message);
 
 }
