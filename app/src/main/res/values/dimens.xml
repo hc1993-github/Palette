@@ -4,4 +4,18 @@
     <dimen name="dp_2">2dp</dimen>
     <dimen name="picker_view_height">160dp</dimen>
     <dimen name="date_unit_text_size">18sp</dimen>
+
+    <dimen name="auto_sp_size_14">14.0sp</dimen>
+    <dimen name="auto_sp_size_15">15.0sp</dimen>
+    <dimen name="auto_sp_size_16">16.0sp</dimen>
+    <dimen name="auto_sp_size_24">24.0sp</dimen>
+    <dimen name="auto_dp_size_0">0.0dp</dimen>
+    <dimen name="auto_dp_size_1">1.0dp</dimen>
+    <dimen name="auto_dp_size_3">3.0dp</dimen>
+    <dimen name="auto_dp_size_5">5.0dp</dimen>
+    <dimen name="auto_dp_size_8">8.0dp</dimen>
+    <dimen name="auto_dp_size_10">10.0dp</dimen>
+    <dimen name="auto_dp_size_20">20.0dp</dimen>
+    <dimen name="auto_dp_size_100">100.0dp</dimen>
+    <dimen name="auto_dp_size_300">300.0dp</dimen>
 </resources>

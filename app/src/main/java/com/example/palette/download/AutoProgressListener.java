@@ -2,16 +2,16 @@ package com.example.palette.download;
 
 public interface AutoProgressListener {
 
-    void start(int totalsize);
+    void start(int totalSize);
 
     void progress(int progress);
 
     void pause(int progress);
 
-    void cancel();
+    void cancel(int progress);
 
     void finish(String fileAbsolutePath);
 
-    void error(String message);
+    void error(int code,String info);
 
 }

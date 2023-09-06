@@ -13,47 +13,55 @@ import com.example.palette.util.LogUtil;
 
 import java.io.ByteArrayOutputStream;
 
-public class CameraOpener implements SurfaceHolder.Callback, Camera.PreviewCallback{
-    private Camera camera;
-    private int picture_width = 400;
-    private boolean pictureZoom = true;
-    private Camera.Size size;
-    private volatile boolean isCaptrue;
-    private PictureDataCallback callback;
-
-    private static CameraOpener instance = new CameraOpener();
+public class CameraOpener implements SurfaceHolder.Callback, Camera.PreviewCallback, Camera.ErrorCallback{
+    private Camera mCamera;
+    private Camera.Size mSize;
+    private volatile boolean mIsCaptrue;
+    private PreviewFrameCallback mCallback;
+    private int mExposureSize;
+    private int mCameraId;
+    private int mPreviewDirect;
+    private int mPictureDirect;
+    private SurfaceHolder mHolder;
+    private static CameraOpener mInstance = new CameraOpener();
 
     private CameraOpener(){
 
     }
 
     public static CameraOpener getInstance() {
-        if(instance==null){
+        if(mInstance==null){
             synchronized (CameraOpener.class){
-                if(instance==null){
-                    instance = new CameraOpener();
+                if(mInstance==null){
+                    mInstance = new CameraOpener();
                 }
             }
         }
-        return instance;
+        return mInstance;
     }
 
-    public void openCamera(SurfaceHolder holder){
-        holder.addCallback(this);
+    public void openCamera(SurfaceHolder holder,int exposureSize,int cameraId,int previewDirect,int pictureDirect){
+        mExposureSize = exposureSize;
+        mCameraId = cameraId;
+        mPreviewDirect = previewDirect;
+        mPictureDirect = pictureDirect;
+        mHolder = holder;
+        mHolder.addCallback(this);
     }
 
-    public void takePicture(PictureDataCallback callback){
-        this.callback = callback;
-        isCaptrue = true;
+    public void takePicture(PreviewFrameCallback callback){
+        mCallback = callback;
+        mIsCaptrue = true;
     }
 
     public void closeCamera(){
+        mHolder = null;
         if(isCameraOpen()){
             try {
-                camera.setPreviewCallback(null);
-                camera.stopPreview();
-                camera.release();
-                camera = null;
+                mCamera.setPreviewCallback(null);
+                mCamera.stopPreview();
+                mCamera.release();
+                mCamera = null;
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -61,28 +69,29 @@ public class CameraOpener implements SurfaceHolder.Callback, Camera.PreviewCallb
     }
 
     public boolean isCameraOpen(){
-        return camera != null;
+        return mCamera != null;
     }
 
     private void open(SurfaceHolder holder) {
         try {
-            camera = Camera.open(0);
-            if(camera!=null){
-                int angle = 0;
-                camera.setDisplayOrientation(angle);
-                camera.setPreviewDisplay(holder);
-                Camera.Parameters parameters = camera.getParameters();
-                size = parameters.getPreviewSize();
-                if(size!=null){
-                    parameters.setPictureSize(size.width,size.height);
-                    camera.setParameters(parameters);
-                    pictureZoom = false;
+            mCamera = Camera.open(mCameraId);
+            if(mCamera!=null){
+                mCamera.setDisplayOrientation(mPreviewDirect);
+                mCamera.setPreviewDisplay(holder);
+                Camera.Parameters parameters = mCamera.getParameters();
+                parameters.setExposureCompensation(mExposureSize);
+                mSize = parameters.getPreviewSize();
+                if(mSize!=null){
+                    parameters.setPictureSize(mSize.width,mSize.height);
+                    mCamera.setParameters(parameters);
                 }
-                camera.setPreviewCallback(this);
-                camera.startPreview();
+                mCamera.setPreviewCallback(this);
+                mCamera.startPreview();
+//                mCamera.setErrorCallback(this);
             }
         }catch (Exception e){
-            LogUtil.logi("-----相机打开失败-----");
+            mCamera = null;
+            e.printStackTrace();
         }
     }
 
@@ -117,21 +126,23 @@ public class CameraOpener implements SurfaceHolder.Callback, Camera.PreviewCallb
         return 0;
     }
 
-    private void captrue(byte[] temp){
+    private void previewFrame(byte[] temp){
         try {
-            YuvImage image = new YuvImage(temp, ImageFormat.NV21,size.width,size.height, null);
-            if(image!=null){
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                image.compressToJpeg(new Rect(0, 0, size.width,size.height),100, stream);
-                if(callback!=null){
-                    callback.getPicture(toRotate(toHorizontalMirror(BitmapFactory.decodeByteArray(stream.toByteArray(),0,stream.size())),caculateRotation(0,0)),pictureZoom,picture_width);
+            if(mCallback!=null){
+                YuvImage image = new YuvImage(temp, ImageFormat.NV21,mSize.width,mSize.height, null);
+                if(image!=null){
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    image.compressToJpeg(new Rect(0, 0, mSize.width,mSize.height),100, stream);
+                    mCallback.onPreviewFrame(toRotate(toHorizontalMirror(BitmapFactory.decodeByteArray(stream.toByteArray(),0,stream.size())),caculateRotation(mPreviewDirect,mPictureDirect)));
+                }else {
+                    mCallback.onPreviewFrame(null);
                 }
             }
         }catch (Exception e){
-            if(callback!=null){
-                callback.getPicture(null,pictureZoom,picture_width);
+            if(mCallback!=null){
+                mCallback.onPreviewFrame(null);
             }
-            LogUtil.logi("-----图像处理异常-----");
+            e.printStackTrace();
         }
     }
 
@@ -147,15 +158,15 @@ public class CameraOpener implements SurfaceHolder.Callback, Camera.PreviewCallb
         int w = bmp.getWidth();
         int h = bmp.getHeight();
         Matrix matrix = new Matrix();
-        matrix.postScale(-1f, 1f); // 水平镜像翻转
+        matrix.postScale(-1f, 1f);
         return Bitmap.createBitmap(bmp, 0, 0, w, h, matrix, true);
     }
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        if(isCaptrue){
-            isCaptrue = false;
-            captrue(data);
+        if(mIsCaptrue){
+            mIsCaptrue = false;
+            previewFrame(data);
         }
     }
 
@@ -174,7 +185,12 @@ public class CameraOpener implements SurfaceHolder.Callback, Camera.PreviewCallb
 
     }
 
-    public interface PictureDataCallback{
-        void getPicture(Bitmap bitmap, boolean zoom, int width);
+    @Override
+    public void onError(int error, Camera camera) {
+//        open(mHolder);
+    }
+
+    public interface PreviewFrameCallback{
+        void onPreviewFrame(Bitmap bitmap);
     }
 }

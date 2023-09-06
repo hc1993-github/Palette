@@ -11,4 +11,10 @@
     <color name="date_picker_text_dark">#333333</color>
     <color name="date_picker_bg">#FFFFFF</color>
     <color name="date_picker_divider">#11112233</color>
+
+    <color name="auto_color_000000">#000000</color>
+    <color name="auto_color_BFA9A9">#BFA9A9</color>
+    <color name="auto_color_45C2D8">#45C2D8</color>
+    <color name="auto_color_ffffff">#ffffff</color>
+    <color name="auto_color_F6F1F1">#F6F1F1</color>
 </resources>

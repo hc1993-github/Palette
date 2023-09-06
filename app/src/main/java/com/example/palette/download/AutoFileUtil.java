@@ -101,7 +101,7 @@ public class AutoFileUtil {
      * @param unzipPwd 解压密码
      * @param listener
      */
-    public static void checkIsNeedUnzip(Activity context, String apkAbsolutePath, String remoteMD5, String unzipPwd, installListener listener) {
+    public static void checkIsNeedUnzip(Activity context, String apkAbsolutePath, String remoteMD5, String unzipPwd, InstallListener listener) {
         File file = new File(apkAbsolutePath);
         if (!file.exists()) {
             listener.onCheckedFail(FILE_NOT_EXIST,FILE_NOT_EXIST_INFO);
@@ -145,16 +145,16 @@ public class AutoFileUtil {
      * @param file
      * @param listener
      */
-    public static void realInstall(Activity context, File file, installListener listener){
+    public static void realInstall(Activity context, File file, InstallListener listener){
         try {
             if (checkIsInstalled(context, file)) {
                 deleteSimilarFile(context, mCurrentInstallApkName);
                 listener.onInstallFail(APP_EXISTED,APP_EXISTED_INFO);
             } else {
                 if(isRoot()){
-                    realInstallSlience(file);
+                    realInstallSlience(context,file,listener);
                 }else {
-                    realInstallCommon(context,file);
+                    realInstallCommon(context,file,listener);
                 }
             }
         }catch (Exception e){
@@ -167,7 +167,7 @@ public class AutoFileUtil {
      * @param context
      * @param file
      */
-    private static void realInstallCommon(Activity context,File file){
+    private static void realInstallCommon(Activity context,File file,InstallListener listener){
         try {
             Intent intent = new Intent();
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -180,6 +180,9 @@ public class AutoFileUtil {
                 uri = Uri.fromFile(file);
             }
             intent.setDataAndType(uri, "application/vnd.android.package-archive");
+            if(listener!=null){
+                context.runOnUiThread(() -> listener.onExecuteInstall());
+            }
             context.startActivityForResult(intent,APP_COMMON_INSTALLING);
 //          activity回调接收
 //            @Override
@@ -198,12 +201,15 @@ public class AutoFileUtil {
      * 静默安装 需要root权限
      * @param file
      */
-    private static void realInstallSlience(File file){
+    private static void realInstallSlience(Activity context,File file,InstallListener listener){
         //此静默安装方法只能将apk放在如sdcard/updateapp/xxxx.apk下 再多目录就抛异常
         boolean result = false;
         BufferedReader es = null;
         DataOutputStream os = null;
         StringBuilder esbuilder = new StringBuilder();
+        if(listener!=null){
+            context.runOnUiThread(() -> listener.onExecuteInstall());
+        }
         try {
             Process process = Runtime.getRuntime().exec("su");
             os = new DataOutputStream(process.getOutputStream());
@@ -487,12 +493,13 @@ public class AutoFileUtil {
         }
     }
 
-    public interface installListener {
+    public interface InstallListener {
         void onCheckedFail(int code,String message);
         void onUnzipFail(int code,String message);
-        void onUnzipSuccess(Activity context, File file, installListener listener);
+        void onUnzipSuccess(Activity context, File file, InstallListener listener);
         void onUnzipIng(int code,String message);
         void onInstallFail(int code,String message);
+        void onExecuteInstall();
     }
 
     /**
