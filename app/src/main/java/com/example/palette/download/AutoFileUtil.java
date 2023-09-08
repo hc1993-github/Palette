@@ -507,24 +507,37 @@ public class AutoFileUtil {
      * @param src 原文件路径
      * @param dest 目标文件路径
      */
-    public static void zipFile(String src,String dest,ZipFileListener listener){
+    public static void zipFile(Activity context,String src,String dest,ZipFileListener listener){
         File srcFile = new File(src);
         String substring = src.substring(src.lastIndexOf("/")+1,src.lastIndexOf("."));
         File destFile = new File(dest,substring+".zip");
         ZipParameters parameters = new ZipParameters();
         parameters.setCompressionMethod(CompressionMethod.DEFLATE);
         parameters.setCompressionLevel(CompressionLevel.NORMAL);
-        try {
-            ZipFile zipFile = new ZipFile(destFile);
-            zipFile.addFile(srcFile,parameters);
-            listener.onZipFinish(true,destFile);
-        }catch (Exception e){
-            if(destFile.exists()){
-                destFile.delete();
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    ZipFile zipFile = new ZipFile(destFile);
+                    zipFile.addFile(srcFile,parameters);
+                    if(context != null){
+                        context.runOnUiThread(() -> listener.onZipFinish(true,destFile));
+                    }else {
+                        listener.onZipFinish(true,destFile);
+                    }
+                }catch (Exception e){
+                    if(destFile.exists()){
+                        destFile.delete();
+                    }
+                    if(context != null){
+                        context.runOnUiThread(() -> listener.onZipFinish(false,null));
+                    }else {
+                        listener.onZipFinish(false,null);
+                    }
+                    e.printStackTrace();
+                }
             }
-            listener.onZipFinish(false,null);
-            e.printStackTrace();
-        }
+        }.start();
     }
 
     public static void deleteFile(File file) {
