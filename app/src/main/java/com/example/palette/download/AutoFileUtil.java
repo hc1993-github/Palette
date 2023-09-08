@@ -177,6 +177,9 @@ public class AutoFileUtil {
      * @param file
      */
     private static void realInstallCommon(Activity context,File file,InstallListener listener){
+        if(listener != null){
+            context.runOnUiThread(() -> listener.onExecuteInstall());
+        }
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setAction(Intent.ACTION_VIEW);
@@ -188,9 +191,6 @@ public class AutoFileUtil {
             uri = Uri.fromFile(file);
         }
         intent.setDataAndType(uri, "application/vnd.android.package-archive");
-        if(listener != null){
-            context.runOnUiThread(() -> listener.onExecuteInstall());
-        }
         context.startActivityForResult(intent,APP_COMMON_INSTALLING);
 //          activity回调接收
 //            @Override
@@ -551,6 +551,10 @@ public class AutoFileUtil {
         }.start();
     }
 
+    /**
+     * 删除某个文件或某个目录及子文件
+     * @param file
+     */
     public static void deleteFile(File file) {
         if (file.isDirectory()) {
             File[] files = file.listFiles();

@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
-
+    android:layout_gravity="center">
     <TextView
-        android:id="@+id/item_tv"
-        android:layout_width="wrap_content"
+        android:id="@+id/default_item_tv"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:paddingLeft="@dimen/auto_dp_size_20"
+        android:gravity="left|center_vertical"
+        android:paddingLeft="@dimen/auto_dp_size_30"
         android:paddingTop="@dimen/auto_dp_size_5"
         android:paddingBottom="@dimen/auto_dp_size_5"
-        android:text="1.修复已知问题"
+        android:text="优化用户体验"
         android:textColor="@color/auto_color_000000"
         android:textSize="@dimen/auto_sp_size_15" />
-</LinearLayout>
+</RelativeLayout>

@@ -16,6 +16,7 @@
     <dimen name="auto_dp_size_8">8.0dp</dimen>
     <dimen name="auto_dp_size_10">10.0dp</dimen>
     <dimen name="auto_dp_size_20">20.0dp</dimen>
+    <dimen name="auto_dp_size_30">30.0dp</dimen>
     <dimen name="auto_dp_size_100">100.0dp</dimen>
     <dimen name="auto_dp_size_300">300.0dp</dimen>
 </resources>

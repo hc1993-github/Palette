@@ -2,12 +2,12 @@ package com.example.palette.download;
 
 import android.app.Activity;
 import android.app.Dialog;
-import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -45,7 +45,6 @@ public class AutoUpdater {
     private static final int mReadTimeout = 5;
     private static final int mWriteTimeout = 5;
     protected Activity mContext;
-    protected AutoDownLoader mAutoDownLoader;
     protected List<String> mUpdateInfo;
     protected String mUrl;
     protected String mUnZipPwd;
@@ -59,6 +58,7 @@ public class AutoUpdater {
     private int mProgressBarId = -1;
     private int mRecyclerViewId = -1;
     private int mRecyclerViewItemLayoutId = -1;
+    private int mRecyclerViewItemTvId = -1;
     private View tv_negative;
     private View tv_positive;
     private TextView tv_title;
@@ -82,6 +82,99 @@ public class AutoUpdater {
         }
     };
 
+    public AutoUpdater(Activity activity) {
+        mContext = activity;
+        mUpdateInfo = new ArrayList<>();
+    }
+
+    public void beforeCheckUpdate(Object...params){
+        checkUpdate(params);
+    }
+
+    public void checkUpdate(Object...params){
+        try {
+            PackageManager packageManager = mContext.getPackageManager();
+            PackageInfo packageInfo = packageManager.getPackageInfo(mContext.getPackageName(), PackageManager.GET_ACTIVITIES);
+            int currentVersionCode = packageInfo.versionCode;
+            Request request = new Request.Builder().url((String) params[0]).build();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                    .connectTimeout(mConnectTimeout, TimeUnit.SECONDS)
+                    .readTimeout(mReadTimeout,TimeUnit.SECONDS)
+                    .writeTimeout(mWriteTimeout,TimeUnit.SECONDS);
+            OkHttpClient client = builder.build();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    sendMessage(-1,NET_ERROR_CODE,NET_ERROR_INFO);
+                    e.printStackTrace();
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try {
+                        if(response.isSuccessful()){
+                            mRemoteVersionCode = dealResponse(response.body().string());
+                            if(mRemoteVersionCode>currentVersionCode){
+                                mHandler.sendEmptyMessage(0);
+                            }else {
+                                sendMessage(-1,NEWEST_CODE,NEWEST_INFO);
+                            }
+                        }else {
+                            sendMessage(-1,SERVER_ERROR_CODE,SERVER_ERROR_INFO);
+                        }
+                    }catch (Exception e){
+                        sendMessage(-1,NET_ERROR_CODE,NET_ERROR_INFO);
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }catch (Exception e){
+            sendMessage(-1,UNKNOWN_ERROR_CODE,UNKNOWN_ERROR_INFO);
+            e.printStackTrace();
+        }
+    }
+
+    public void setCustomUpdateDialogLayout(int updateDialogLayoutId,int vPositiveId,int vNegativeId,int tvTitleId,int tvProgressId,int progressBarId,int recyclerViewId,int recyclerViewItemLayoutId,int recyclerViewItemTvId){
+        mUpdateDialogLayoutId = updateDialogLayoutId;
+        mTvPositiveId = vPositiveId;
+        mTvNegativeId = vNegativeId;
+        mTvTitleId = tvTitleId;
+        mTvProgressId = tvProgressId;
+        mProgressBarId = progressBarId;
+        mRecyclerViewId = recyclerViewId;
+        mRecyclerViewItemLayoutId = recyclerViewItemLayoutId;
+        mRecyclerViewItemTvId = recyclerViewItemTvId;
+    }
+
+    public void setCheckUpdateListener(CheckUpdateListener checkUpdateListener) {
+        mCheckUpdateListener = checkUpdateListener;
+    }
+
+    public void pause(){
+        AutoDownLoader.getInstance(mContext).pause();
+    }
+
+    public void cancel(){
+        AutoDownLoader.getInstance(mContext).cancel();
+    }
+
+    public void resume(){
+        AutoDownLoader.getInstance(mContext).resume();
+    }
+
+    private int dealResponse(String string) {
+        AutoVersionInfo autoVersionInfo = new Gson().fromJson(string,AutoVersionInfo.class);
+        mUrl = autoVersionInfo.getUrl();
+        mUnZipPwd = autoVersionInfo.getUnZipPwd();
+        mRemoteMD5 = autoVersionInfo.getMd5();
+        String[] infos = autoVersionInfo.getUpdateInfo().split("_");
+        mUpdateInfo.clear();
+        for (String s:infos){
+            mUpdateInfo.add(s);
+        }
+        return Integer.parseInt(TextUtils.isEmpty(autoVersionInfo.getVersionCode())?"-1":autoVersionInfo.getVersionCode());
+    }
+
     private void showUpdateDialog() {
         AutoCommonDialog.Builder builder = new AutoCommonDialog.Builder()
                 .setContext(mContext)
@@ -99,21 +192,7 @@ public class AutoUpdater {
 
                     @Override
                     public void onRightViewClick(Dialog dialog) {
-                        if(tv_positive!=null){
-                            tv_positive.setVisibility(View.INVISIBLE);
-                        }
-                        if(tv_negative!=null){
-                            tv_negative.setVisibility(View.INVISIBLE);
-                        }
-                        if(tv_progress!=null){
-                            tv_progress.setVisibility(View.VISIBLE);
-                        }
-                        if(tv_title!=null){
-                            tv_title.setVisibility(View.VISIBLE);
-                        }
-                        if(progressBar != null){
-                            progressBar.setVisibility(View.VISIBLE);
-                        }
+                        changeViews();
                         download();
                     }
                 });
@@ -139,15 +218,43 @@ public class AutoUpdater {
             RecyclerView recyclerView = mUpdateDialog.findViewById(mRecyclerViewId);
             if(recyclerView != null){
                 recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
-                AutoTextAdapter textAdapter = new AutoTextAdapter(mUpdateInfo,mRecyclerViewItemLayoutId);
+                AutoTextAdapter textAdapter = new AutoTextAdapter(mUpdateInfo,mRecyclerViewItemLayoutId,mRecyclerViewItemTvId);
                 recyclerView.setAdapter(textAdapter);
             }
+        }else {
+            tv_negative = mUpdateDialog.findViewById(R.id.default_negative);
+            tv_positive = mUpdateDialog.findViewById(R.id.default_positive);
+            tv_progress = mUpdateDialog.findViewById(R.id.default_tv_progress);
+            tv_title = mUpdateDialog.findViewById(R.id.default_tv_title);
+            progressBar = mUpdateDialog.findViewById(R.id.default_progressbar);
+            RecyclerView recyclerView = mUpdateDialog.findViewById(R.id.default_rv_info);
+            recyclerView.setLayoutManager(new LinearLayoutManager(mContext));
+            AutoTextAdapter textAdapter = new AutoTextAdapter(mUpdateInfo,R.layout.default_dialog_update_recyclerview_item,R.id.default_item_tv);
+            recyclerView.setAdapter(textAdapter);
+        }
+    }
+
+    private void changeViews(){
+        if(tv_positive!=null){
+            tv_positive.setVisibility(View.INVISIBLE);
+        }
+        if(tv_negative!=null){
+            tv_negative.setVisibility(View.INVISIBLE);
+        }
+        if(tv_progress!=null){
+            tv_progress.setVisibility(View.VISIBLE);
+        }
+        if(tv_title!=null){
+            tv_title.setVisibility(View.VISIBLE);
+        }
+        if(progressBar != null){
+            progressBar.setVisibility(View.VISIBLE);
         }
     }
 
     private void download() {
         String apkFilePath = AutoFileUtil.createDefaultDir(mContext, mDefaultDir) + File.separator + mUrl.substring(mUrl.lastIndexOf("/") + 1).trim();
-        mAutoDownLoader.download(mUrl, new AutoProgressListener() {
+        AutoDownLoader.getInstance(mContext).download(mUrl, new AutoProgressListener() {
             @Override
             public void start(int totalSize) {
                 tv_title.setText("下载新版本中,请稍等");
@@ -209,87 +316,6 @@ public class AutoUpdater {
                 mUpdateDialog.dismiss();
             }
         },apkFilePath,true);
-    }
-
-    public void setCustomUpdateDialogLayout(int layoutId,int positiveId,int negativeId,int titleId,int progressId,int progressBarId,int recyclerViewId,int recyclerViewItemId){
-        mUpdateDialogLayoutId = layoutId;
-        mTvPositiveId = positiveId;
-        mTvNegativeId = negativeId;
-        mTvTitleId = titleId;
-        mTvProgressId = progressId;
-        mProgressBarId = progressBarId;
-        mRecyclerViewId = recyclerViewId;
-        mRecyclerViewItemLayoutId = recyclerViewItemId;
-    }
-
-    public AutoUpdater(Activity context) {
-        mContext = context;
-        mAutoDownLoader = AutoDownLoader.getInstance(context);
-        mUpdateInfo = new ArrayList<>();
-    }
-
-    public void setCheckUpdateListener(CheckUpdateListener checkUpdateListener) {
-        mCheckUpdateListener = checkUpdateListener;
-    }
-
-    public void beforeCheckUpdate(Object...params){
-        checkUpdate(params);
-    }
-
-    public void checkUpdate(Object...params){
-        try {
-            PackageManager packageManager = mContext.getPackageManager();
-            PackageInfo packageInfo = packageManager.getPackageInfo(mContext.getPackageName(), PackageManager.GET_ACTIVITIES);
-            int currentVersionCode = packageInfo.versionCode;
-            Request request = new Request.Builder().url((String) params[0]).build();
-            OkHttpClient.Builder builder = new OkHttpClient.Builder()
-                    .connectTimeout(mConnectTimeout, TimeUnit.SECONDS)
-                    .readTimeout(mReadTimeout,TimeUnit.SECONDS)
-                    .writeTimeout(mWriteTimeout,TimeUnit.SECONDS);
-            OkHttpClient client = builder.build();
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    sendMessage(-1,NET_ERROR_CODE,NET_ERROR_INFO);
-                    e.printStackTrace();
-                }
-
-                @Override
-                public void onResponse(Call call, Response response) {
-                    try {
-                        if(response.isSuccessful()){
-                            mRemoteVersionCode = dealResponse(response.body().string());
-                            if(mRemoteVersionCode>currentVersionCode){
-                                mHandler.sendEmptyMessage(0);
-                            }else {
-                                sendMessage(-1,NEWEST_CODE,NEWEST_INFO);
-                            }
-                        }else {
-                            sendMessage(-1,SERVER_ERROR_CODE,SERVER_ERROR_INFO);
-                        }
-                    }catch (Exception e){
-                        sendMessage(-1,NET_ERROR_CODE,NET_ERROR_INFO);
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }catch (Exception e){
-            sendMessage(-1,UNKNOWN_ERROR_CODE,UNKNOWN_ERROR_INFO);
-            e.printStackTrace();
-        }
-    }
-
-    private int dealResponse(String string) {
-        AutoVersionInfo autoVersionInfo = new Gson().fromJson(string,AutoVersionInfo.class);
-        mUrl = autoVersionInfo.getUrl();
-        mUnZipPwd = autoVersionInfo.getUnZipPwd();
-        mRemoteMD5 = autoVersionInfo.getMd5();
-        String[] infos = autoVersionInfo.getUpdateInfo().split("_");
-        mUpdateInfo.clear();
-        for (String s:infos){
-            mUpdateInfo.add(s);
-        }
-        return Integer.parseInt(autoVersionInfo.getVersionCode());
     }
 
     private void sendMessage(int type,int arg1,String info){

@@ -15,9 +15,11 @@ import java.util.List;
 public class AutoTextAdapter extends RecyclerView.Adapter<AutoTextAdapter.TextHolder> {
     List<String> data;
     int layoutId;
-    public AutoTextAdapter(List<String> data, int layoutId) {
+    int itemTvId;
+    public AutoTextAdapter(List<String> data, int layoutId,int item_tvId) {
         this.data = data;
         this.layoutId = layoutId;
+        this.itemTvId = item_tvId;
     }
 
     @NonNull
@@ -42,7 +44,7 @@ public class AutoTextAdapter extends RecyclerView.Adapter<AutoTextAdapter.TextHo
 
         public TextHolder(View itemView) {
             super(itemView);
-            tv = itemView.findViewById(R.id.item_tv);
+            tv = itemView.findViewById(itemTvId);
         }
     }
 }

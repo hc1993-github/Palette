@@ -11,8 +11,8 @@
             <shape>
                 <corners android:radius="@dimen/auto_dp_size_10" />
                 <gradient
-                    android:startColor="@color/auto_color_45C2D8"
-                    android:endColor="@color/auto_color_45C2D8"
+                    android:startColor="@color/auto_color_ffffff"
+                    android:endColor="@color/auto_color_ffffff"
                     android:angle="0"/>
             </shape>
         </clip>
