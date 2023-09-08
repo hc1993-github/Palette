@@ -519,6 +519,9 @@ public class AutoFileUtil {
             zipFile.addFile(srcFile,parameters);
             listener.onZipFinish(true,destFile);
         }catch (Exception e){
+            if(destFile.exists()){
+                destFile.delete();
+            }
             listener.onZipFinish(false,null);
             e.printStackTrace();
         }
