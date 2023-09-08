@@ -46,6 +46,8 @@ public class AutoFileUtil {
     public static final String FILE_UNZIP_FAILED_INFO = "文件解压失败";
     public static final int APP_EXISTED = 10005;
     public static final String APP_EXISTED_INFO = "已安装最新版本,请先卸载后重新下载";
+    public static final int UNKNOWN_ERROR = 10006;
+    public static final String UNKNOWN_ERROR_INFO = "未知错误";
     /**
      * 是否有root权限
      * @return
@@ -147,17 +149,24 @@ public class AutoFileUtil {
      */
     public static void realInstall(Activity context, File file, InstallListener listener){
         try {
-            if (checkIsInstalled(context, file)) {
-                deleteSimilarFile(context, mCurrentInstallApkName);
-                listener.onInstallFail(APP_EXISTED,APP_EXISTED_INFO);
-            } else {
-                if(isRoot()){
-                    realInstallSlience(context,file,listener);
-                }else {
-                    realInstallCommon(context,file,listener);
+            if(context != null){
+                if (checkIsInstalled(context, file)) {
+                    deleteSimilarFile(context, mCurrentInstallApkName);
+                    if(listener != null){
+                        listener.onInstallFail(APP_EXISTED,APP_EXISTED_INFO);
+                    }
+                } else {
+                    if(isRoot()){
+                        realInstallSlience(context,file,listener);
+                    }else {
+                        realInstallCommon(context,file,listener);
+                    }
                 }
             }
         }catch (Exception e){
+            if(listener != null){
+                listener.onInstallFail(UNKNOWN_ERROR,UNKNOWN_ERROR_INFO);
+            }
             e.printStackTrace();
         }
     }
@@ -168,22 +177,21 @@ public class AutoFileUtil {
      * @param file
      */
     private static void realInstallCommon(Activity context,File file,InstallListener listener){
-        try {
-            Intent intent = new Intent();
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            intent.setAction(Intent.ACTION_VIEW);
-            Uri uri;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                uri = FileProvider.getUriForFile(context, context.getPackageName() + ".FileProvider", file);
-            } else {
-                uri = Uri.fromFile(file);
-            }
-            intent.setDataAndType(uri, "application/vnd.android.package-archive");
-            if(listener!=null){
-                context.runOnUiThread(() -> listener.onExecuteInstall());
-            }
-            context.startActivityForResult(intent,APP_COMMON_INSTALLING);
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setAction(Intent.ACTION_VIEW);
+        Uri uri;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            uri = FileProvider.getUriForFile(context, context.getPackageName() + ".FileProvider", file);
+        } else {
+            uri = Uri.fromFile(file);
+        }
+        intent.setDataAndType(uri, "application/vnd.android.package-archive");
+        if(listener != null){
+            context.runOnUiThread(() -> listener.onExecuteInstall());
+        }
+        context.startActivityForResult(intent,APP_COMMON_INSTALLING);
 //          activity回调接收
 //            @Override
 //            protected void onActivityResult(int requestCode, int resultCode,Intent data) {
@@ -192,9 +200,6 @@ public class AutoFileUtil {
 //                    finish();
 //                }
 //            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -207,7 +212,7 @@ public class AutoFileUtil {
         BufferedReader es = null;
         DataOutputStream os = null;
         StringBuilder esbuilder = new StringBuilder();
-        if(listener!=null){
+        if(listener != null){
             context.runOnUiThread(() -> listener.onExecuteInstall());
         }
         try {
@@ -251,21 +256,26 @@ public class AutoFileUtil {
      * @return
      */
     private static boolean checkIsInstalled(Context context, File file) {
-        PackageManager packageManager = context.getPackageManager();
-        PackageInfo archiveInfo = packageManager.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_ACTIVITIES);
-        String destApplicationId = archiveInfo.applicationInfo.packageName;
-        mCurrentInstallApkApplicationId = destApplicationId;
-        int destVersionCode = archiveInfo.versionCode;
-        List<PackageInfo> packageInfos = packageManager.getInstalledPackages(0);
-        for (int i = 0; i < packageInfos.size(); i++) {
-            PackageInfo packageInfo = packageInfos.get(i);
-            String applicationId = packageInfo.packageName;
-            int versionCode = packageInfo.versionCode;
-            if (applicationId.equals(destApplicationId)) {
-                if (versionCode >= destVersionCode) {
-                    return true;
+        try {
+            PackageManager packageManager = context.getPackageManager();
+            PackageInfo archiveInfo = packageManager.getPackageArchiveInfo(file.getAbsolutePath(), PackageManager.GET_ACTIVITIES);
+            String destApplicationId = archiveInfo.applicationInfo.packageName;
+            mCurrentInstallApkApplicationId = destApplicationId;
+            int destVersionCode = archiveInfo.versionCode;
+            List<PackageInfo> packageInfos = packageManager.getInstalledPackages(0);
+            for (int i = 0; i < packageInfos.size(); i++) {
+                PackageInfo packageInfo = packageInfos.get(i);
+                String applicationId = packageInfo.packageName;
+                int versionCode = packageInfo.versionCode;
+                if (applicationId.equals(destApplicationId)) {
+                    if (versionCode >= destVersionCode) {
+                        return true;
+                    }
                 }
             }
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
         }
         return false;
     }
@@ -508,16 +518,16 @@ public class AutoFileUtil {
      * @param dest 目标文件路径
      */
     public static void zipFile(Activity context,String src,String dest,ZipFileListener listener){
-        File srcFile = new File(src);
-        String substring = src.substring(src.lastIndexOf("/")+1,src.lastIndexOf("."));
-        File destFile = new File(dest,substring+".zip");
-        ZipParameters parameters = new ZipParameters();
-        parameters.setCompressionMethod(CompressionMethod.DEFLATE);
-        parameters.setCompressionLevel(CompressionLevel.NORMAL);
         new Thread(){
             @Override
             public void run() {
+                File srcFile = new File(src);
+                String substring = src.substring(src.lastIndexOf("/")+1,src.lastIndexOf("."));
+                File destFile = new File(dest,substring+".zip");
                 try {
+                    ZipParameters parameters = new ZipParameters();
+                    parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+                    parameters.setCompressionLevel(CompressionLevel.NORMAL);
                     ZipFile zipFile = new ZipFile(destFile);
                     zipFile.addFile(srcFile,parameters);
                     if(context != null){
@@ -526,15 +536,16 @@ public class AutoFileUtil {
                         listener.onZipFinish(true,destFile);
                     }
                 }catch (Exception e){
-                    if(destFile.exists()){
-                        destFile.delete();
-                    }
                     if(context != null){
                         context.runOnUiThread(() -> listener.onZipFinish(false,null));
                     }else {
                         listener.onZipFinish(false,null);
                     }
                     e.printStackTrace();
+                }finally {
+                    if(destFile.exists()){
+                        destFile.delete();
+                    }
                 }
             }
         }.start();
