@@ -34,14 +34,30 @@ public class SecurityUtil {
     private static final int SM4_ENCRYPT = 1;
     private static final int SM4_DECRYPT = 0;
 
+    /**
+     * 获取字符串md5值
+     * @param string
+     * @return
+     */
     public static String md5FromString(String string){
         return md5(string.getBytes());
     }
 
+    /**
+     * 获取文件md5值
+     * @param file
+     * @return
+     */
     public static String md5FromFile(File file){
         return bytes2HexString(encryptMD5File(file),true);
     }
 
+    /**
+     * RSA公钥解密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String rsaDecryptStringByPublicKey(String string,String key){
         try {
             byte[] stringbytes = Base64.decode(string, Base64.NO_WRAP);
@@ -58,6 +74,12 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * RSA私钥解密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String rsaDecryptStringByPrivateKey(String string,String key){
         try {
             PKCS8EncodedKeySpec pkcs8KeySpec = new PKCS8EncodedKeySpec(Base64.decode(key,Base64.NO_WRAP));
@@ -72,6 +94,12 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * RSA公钥加密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String rsaEncryptStringByPublicKey(String string, String key) {
         try {
             X509EncodedKeySpec x509KeySpec = new X509EncodedKeySpec(Base64.decode(key,Base64.NO_WRAP));
@@ -86,6 +114,12 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * RSA私钥解密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String rsaEncryptStringByPrivateKey(String string, String key) {
         try {
             byte[] keyBytes = Base64.decode(key,Base64.NO_WRAP);
@@ -102,6 +136,12 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * DES解密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String desDecryptString(String string,String key){
         if(key==null || key.length()<8){
             return null;
@@ -121,6 +161,12 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * DES加密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String desEncryptString(String string,String key){
         if(key==null || key.length()<8){
             return null;
@@ -141,6 +187,13 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * DES加密文件
+     * @param srcFile
+     * @param destFile
+     * @param key
+     * @return
+     */
     public static String desEncryptFile(String srcFile,String destFile,String key){
         if(key==null || key.length()<8){
             return null;
@@ -167,6 +220,13 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * DES解密文件
+     * @param srcFile
+     * @param destFile
+     * @param key
+     * @return
+     */
     public static String desDecryptFile(String srcFile,String destFile,String key){
         if(key==null || key.length()<8){
             return null;
@@ -198,6 +258,12 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * AES加密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String aesEncryptString(String string,String key){
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
@@ -210,6 +276,12 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * AES解密字符串
+     * @param string
+     * @param key
+     * @return
+     */
     public static String aesDecryptString(String string,String key){
         try {
             byte[] data = Base64.decode(string,Base64.NO_WRAP);
@@ -223,6 +295,13 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * AES加密文件
+     * @param srcFile
+     * @param destFile
+     * @param key
+     * @return
+     */
     public static String aesEncryptFile(String srcFile,String destFile,String key){
         FileOutputStream outputStream = null;
         try {
@@ -254,6 +333,13 @@ public class SecurityUtil {
         return null;
     }
 
+    /**
+     * ASE解密文件
+     * @param srcFile
+     * @param destFile
+     * @param key
+     * @return
+     */
     public static String aesDecryptFile(String srcFile,String destFile,String key){
         FileInputStream inputStream = null;
         try {
@@ -382,6 +468,4 @@ public class SecurityUtil {
         }
         return sb.toString();
     }
-
-
 }

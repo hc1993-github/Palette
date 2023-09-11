@@ -1,15 +1,12 @@
 package com.example.palette.util;
 
-import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 
-import com.example.palette.module.ProgressInterceptor;
 import com.example.palette.module.ProgressListener;
 import com.example.palette.module.ProgressRequestBody;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,9 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -49,6 +44,10 @@ public class OkHttpUtil {
     private static final String FAILURE_NET_INFO = "网络连接失败,请稍后重试";
     private static final String FAILURE_RESPONSE_INFO = "网络请求异常,请稍后重试";
     private static final int FAILURE_RESPONSE_CODE = -404;
+    private static final int TIME_OUT_CONNECT = 5;
+    private static final int TIME_OUT_READ = 5;
+    private static final int TIME_OUT_WRITE = 5;
+
     private OkHttpUtil() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
 //                .sslSocketFactory(createSSLSocketFactory()) //信任所有证书
@@ -58,9 +57,9 @@ public class OkHttpUtil {
 //                        return true;
 //                    }
 //                })
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(20, TimeUnit.SECONDS)
-                .readTimeout(20, TimeUnit.SECONDS);
+                .connectTimeout(TIME_OUT_CONNECT, TimeUnit.SECONDS)
+                .writeTimeout(TIME_OUT_WRITE, TimeUnit.SECONDS)
+                .readTimeout(TIME_OUT_READ, TimeUnit.SECONDS);
         client = builder
                 //.addInterceptor(new NoNetInterceptor())
                 //.eventListenerFactory(OkHttpEventListener.FACTORY)
@@ -75,7 +74,7 @@ public class OkHttpUtil {
                 }
             }
         }
-        if(handler==null){
+        if (handler == null) {
             handler = new Handler(Looper.getMainLooper());
         }
         return okHttpUtil;
@@ -83,113 +82,11 @@ public class OkHttpUtil {
 
     /**
      * get post请求
-     * @param url
-     * @param isGet 是否get
+     * @param url 地址
+     * @param isGet        是否get
      * @param headerParams request头部参数
-     * @param params 请求参数
-     * @param callback
-     */
-    public void requestWithParams(String url, boolean isGet, Map<String, String> headerParams, Map<String, String> params, ResultCallback callback) {
-        Request.Builder builder = new Request.Builder();
-        if (headerParams != null && !headerParams.isEmpty()) {
-            for (Map.Entry<String, String> entry : headerParams.entrySet()) {
-                builder.addHeader(entry.getKey(), entry.getValue());
-            }
-        }
-        Request request;
-        if (isGet) {
-            String param = "";
-            if (params != null && !params.isEmpty()) {
-                for (Map.Entry<String, String> entry : params.entrySet()) {
-                    param += "&" + entry.getKey() + "=" + entry.getValue();
-                }
-            }
-            if (!TextUtils.isEmpty(param)) url += "?" + param.substring(1);
-            request = builder.url(url).build();
-        } else {
-            FormBody.Builder form = new FormBody.Builder();
-            if (params != null && !params.isEmpty()) {
-                for (Map.Entry<String, String> entry : params.entrySet()) {
-                    form.add(entry.getKey(), entry.getValue());
-                }
-                request = builder.url(url).post(form.build()).build();
-            } else {
-                request = builder.url(url).post(form.build()).build();
-            }
-        }
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                onNetFailure(FAILURE_NET_INFO, callback);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response){
-                try {
-                    if (response.isSuccessful()) {
-                        onResponseSuccess(response.body().string(), callback);
-                    } else {
-                        onResponseFailure(response.code(),response.body().string(), callback);
-                    }
-                }catch (Exception e){
-                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
-                    e.printStackTrace();
-                }
-            }
-        });
-
-    }
-
-    /**
-     * post请求
-     * @param url
-     * @param headerParams request头部参数
-     * @param json json数据
-     * @param callback
-     */
-    public void requestWithJson(String url, Map<String, String> headerParams, String json, ResultCallback callback) {
-        Request.Builder builder = new Request.Builder();
-        if (headerParams != null && !headerParams.isEmpty()) {
-            for (Map.Entry<String, String> entry : headerParams.entrySet()) {
-                builder.addHeader(entry.getKey(), entry.getValue());
-            }
-        }
-        Request request;
-        if (!TextUtils.isEmpty(json)) {
-            request = builder.url(url).post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"),json)).build();
-        } else {
-            request = builder.url(url).build();
-        }
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                onNetFailure(FAILURE_NET_INFO, callback);
-            }
-
-            @Override
-            public void onResponse(Call call, Response response){
-                try {
-                    if (response.isSuccessful()) {
-                        onResponseSuccess(response.body().string(), callback);
-                    } else {
-                        onResponseFailure(response.code(),response.body().string(), callback);
-                    }
-                }catch (Exception e){
-                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    /**
-     * get post请求
-     * @param url
-     * @param isGet 是否get
-     * @param headerParams request头部参数
-     * @param params 请求参数
-     * @param callback
-     * @param interceptors 自定义拦截器
+     * @param params       其他请求参数(get拼接至url post放至body)
+     * @param callback 回调
      */
     public void requestWithParams(String url, boolean isGet, Map<String, String> headerParams, Map<String, String> params, ResultCallback callback, Interceptor... interceptors) {
         Request.Builder builder = new Request.Builder();
@@ -219,13 +116,77 @@ public class OkHttpUtil {
                 request = builder.url(url).post(form.build()).build();
             }
         }
+        if (interceptors != null && interceptors.length > 0) {
+            OkHttpClient.Builder newBuilder = client.newBuilder();
+            for (Interceptor interceptor : interceptors) {
+                newBuilder.addInterceptor(interceptor);
+            }
+            OkHttpClient okHttpClient = newBuilder.build();
+            okHttpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    onNetFailure(FAILURE_NET_INFO, callback);
+                }
 
-        OkHttpClient.Builder newBuilder = client.newBuilder();
-        for (Interceptor interceptor : interceptors) {
-            newBuilder.addInterceptor(interceptor);
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try {
+                        if (response.isSuccessful()) {
+                            onResponseSuccess(response.body().string(), callback);
+                        } else {
+                            onResponseFailure(response.code(), response.body().string(), callback);
+                        }
+                    } catch (Exception e) {
+                        onResponseFailure(FAILURE_RESPONSE_CODE, FAILURE_RESPONSE_INFO, callback);
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } else {
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    onNetFailure(FAILURE_NET_INFO, callback);
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try {
+                        if (response.isSuccessful()) {
+                            onResponseSuccess(response.body().string(), callback);
+                        } else {
+                            onResponseFailure(response.code(), response.body().string(), callback);
+                        }
+                    } catch (Exception e) {
+                        onResponseFailure(FAILURE_RESPONSE_CODE, FAILURE_RESPONSE_INFO, callback);
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
-        OkHttpClient okHttpClient = newBuilder.build();
-        okHttpClient.newCall(request).enqueue(new Callback() {
+    }
+
+    /**
+     * Json请求
+     * @param url 地址
+     * @param headerParams request头部参数
+     * @param json         json数据
+     * @param callback 回调
+     */
+    public void requestWithJson(String url, Map<String, String> headerParams, String json, ResultCallback callback) {
+        Request.Builder builder = new Request.Builder();
+        if (headerParams != null && !headerParams.isEmpty()) {
+            for (Map.Entry<String, String> entry : headerParams.entrySet()) {
+                builder.addHeader(entry.getKey(), entry.getValue());
+            }
+        }
+        Request request;
+        if (!TextUtils.isEmpty(json)) {
+            request = builder.url(url).post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), json)).build();
+        } else {
+            request = builder.url(url).build();
+        }
+        client.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 onNetFailure(FAILURE_NET_INFO, callback);
@@ -237,10 +198,10 @@ public class OkHttpUtil {
                     if (response.isSuccessful()) {
                         onResponseSuccess(response.body().string(), callback);
                     } else {
-                        onResponseFailure(response.code(),response.body().string(), callback);
+                        onResponseFailure(response.code(), response.body().string(), callback);
                     }
-                }catch (Exception e){
-                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO,callback);
+                } catch (Exception e) {
+                    onResponseFailure(FAILURE_RESPONSE_CODE, FAILURE_RESPONSE_INFO, callback);
                     e.printStackTrace();
                 }
             }
@@ -248,39 +209,39 @@ public class OkHttpUtil {
     }
 
     /**
-     * 文件上传
-     * @param url
-     * @param headerParams
-     * @param params
-     * @param listener
-     * @param callback
+     * 文件请求
+     * @param url 地址
+     * @param headerParams 请求参数
+     * @param params 文件等其他参数
+     * @param listener 进度监听
+     * @param callback 回调
      */
-    public void requestUpload(String url, Map<String, String> headerParams,Map<String,Object> params, ProgressListener listener, ResultCallback callback){
+    public void requestWithFile(String url, Map<String, String> headerParams, Map<String, Object> params, ProgressListener listener, ResultCallback callback) {
         MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
-        if(headerParams==null){
+        if (headerParams == null) {
             headerParams = new HashMap<>();
         }
-        headerParams.put("Content-Type","multipart/form-data");
-        if(params!=null && params.size()>0){
-            for (Map.Entry<String, Object> entry:params.entrySet()) {
+        headerParams.put("Content-Type", "multipart/form-data");
+        if (params != null && params.size() > 0) {
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
                 Object value = entry.getValue();
-                if(value instanceof String){
+                if (value instanceof String) {
                     builder.addFormDataPart(entry.getKey(), (String) entry.getValue());
-                }else if(value instanceof File){
+                } else if (value instanceof File) {
                     File f = (File) entry.getValue();
-                    builder.addFormDataPart(entry.getKey(),f.getName(), RequestBody.create(MediaType.parse("application/octet-stream"),f));
+                    builder.addFormDataPart(entry.getKey(), f.getName(), RequestBody.create(MediaType.parse("application/octet-stream"), f));
                 }
             }
         }
         RequestBody requestBody;
-        if(listener!=null){
-            requestBody = new ProgressRequestBody(builder.build(),listener);
-        }else {
+        if (listener != null) {
+            requestBody = new ProgressRequestBody(builder.build(), listener);
+        } else {
             requestBody = builder.build();
         }
         Request.Builder build = new Request.Builder().url(url).post(requestBody);
-        for (Map.Entry<String, String> entry:headerParams.entrySet()) {
-            build.header(entry.getKey(),entry.getValue());
+        for (Map.Entry<String, String> entry : headerParams.entrySet()) {
+            build.header(entry.getKey(), entry.getValue());
         }
         client.newCall(build.build()).enqueue(new Callback() {
             @Override
@@ -290,41 +251,41 @@ public class OkHttpUtil {
             }
 
             @Override
-            public void onResponse(Call call, Response response){
+            public void onResponse(Call call, Response response) {
                 try {
                     if (response.isSuccessful()) {
                         onResponseSuccess(response.body().string(), callback);
                     } else {
-                        onResponseFailure(response.code(),response.body().string(), callback);
+                        onResponseFailure(response.code(), response.body().string(), callback);
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     e.printStackTrace();
-                    onResponseFailure(FAILURE_RESPONSE_CODE,FAILURE_RESPONSE_INFO, callback);
+                    onResponseFailure(FAILURE_RESPONSE_CODE, FAILURE_RESPONSE_INFO, callback);
                 }
             }
         });
     }
 
     private void onResponseSuccess(String info, ResultCallback callback) {
-        if(handler!=null && callback!=null){
+        if (handler != null && callback != null) {
             handler.post(() -> callback.onSuccessResponse(info));
         }
     }
 
     private void onNetFailure(String message, ResultCallback callback) {
-        if(handler!=null && callback!=null){
+        if (handler != null && callback != null) {
             handler.post(() -> callback.onFailureNet(message));
         }
     }
 
-    private void onResponseFailure(int failureCode,String info, ResultCallback callback) {
-        if(handler!=null && callback!=null){
+    private void onResponseFailure(int failureCode, String info, ResultCallback callback) {
+        if (handler != null && callback != null) {
             handler.post(() -> callback.onFailureResponse(failureCode, info));
         }
     }
 
-    public void clear(){
-        if(handler!=null){
+    public void clear() {
+        if (handler != null) {
             handler.removeCallbacksAndMessages(null);
             handler = null;
         }
@@ -333,24 +294,24 @@ public class OkHttpUtil {
     public interface ResultCallback {
         void onFailureNet(String message);
 
-        void onFailureResponse(int failureCode,String info);
+        void onFailureResponse(int failureCode, String info);
 
         void onSuccessResponse(String info);
     }
 
-    private SSLSocketFactory createSSLSocketFactory(){
+    private SSLSocketFactory createSSLSocketFactory() {
         SSLSocketFactory factory = null;
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null,new TrustManager[]{new TrustAllCerts()},new SecureRandom());
+            sslContext.init(null, new TrustManager[]{new TrustAllCerts()}, new SecureRandom());
             factory = sslContext.getSocketFactory();
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return factory;
     }
 
-    private class TrustAllCerts implements X509TrustManager{
+    private class TrustAllCerts implements X509TrustManager {
 
         @Override
         public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
@@ -368,39 +329,28 @@ public class OkHttpUtil {
         }
     }
 
-    private SSLSocketFactory createSSLSocketFactory(InputStream certStream){
+    private SSLSocketFactory createSSLSocketFactory(InputStream certStream) {
         SSLContext sslContext = null;
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             Certificate certificate;
             try {
                 certificate = certificateFactory.generateCertificate(certStream);
-            }finally {
+            } finally {
                 certStream.close();
             }
             String defaultType = KeyStore.getDefaultType();
             KeyStore keyStore = KeyStore.getInstance(defaultType);
-            keyStore.load(null,null);
-            keyStore.setCertificateEntry("ca",certificate);
+            keyStore.load(null, null);
+            keyStore.setCertificateEntry("ca", certificate);
             String algorithm = TrustManagerFactory.getDefaultAlgorithm();
             TrustManagerFactory factory = TrustManagerFactory.getInstance(algorithm);
             factory.init(keyStore);
             sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null,factory.getTrustManagers(),null);
-        }catch (Exception e){
+            sslContext.init(null, factory.getTrustManagers(), null);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        return sslContext!=null?sslContext.getSocketFactory():null;
-    }
-
-    private InputStream getCertStream(Context context){
-        InputStream inputStream = null;
-        try {
-            inputStream = context.getAssets().open("");
-//            inputStream = new ByteArrayInputStream("".getBytes("UTF-8"));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return inputStream;
+        return sslContext != null ? sslContext.getSocketFactory() : null;
     }
 }

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Window;
@@ -26,17 +27,22 @@ import com.permissionx.guolindev.request.ExplainScope;
 import com.permissionx.guolindev.request.ForwardScope;
 import com.permissionx.guolindev.request.PermissionBuilder;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class PermissionUtil {
-    static Map<String, String> map = new HashMap<>();
+
+    private static Map<String, String> map = new HashMap<>();
+    private static final String DEFAULT_EXPLAIN_TITLE = "为保证应用正常运行,即将申请以下权限";
+    private static final String DEFAULT_EXPLAIN_POSITIVE = "接受";
+    private static final String DEFAULT_EXPLAIN_NEGATIVE = "拒绝";
+    private static final String DEFAULT_FORWARD_TITLE = "您需要应用权限设置中手动开启权限!";
+    private static final String DEFAULT_FORWARD_POSITIVE = "好的";
+    private static final String DEFAULT_FORWARD_NEGATIVE = "取消";
 
     static {
-        map.put(Manifest.permission.REQUEST_INSTALL_PACKAGES, "允许安装应用");
         map.put(Manifest.permission.CAMERA, "相机");
         map.put(Manifest.permission.WRITE_EXTERNAL_STORAGE, "写入外部存储");
         map.put(Manifest.permission.READ_EXTERNAL_STORAGE, "读取外部存储");
@@ -48,183 +54,99 @@ public class PermissionUtil {
         map.put(Manifest.permission.READ_SMS, "读取短信");
     }
 
-    public static void checkPermissionsByDefaultDialog(FragmentActivity fragmentActivity, List<String> requestList, boolean forwardToSetting, PermissionListener listener) {
-        PermissionBuilder permissionBuilder = PermissionX.init(fragmentActivity).permissions(requestList);
-        permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
-            @Override
-            public void onExplainReason(ExplainScope scope, List<String> deniedList) {
-                scope.showRequestReasonDialog(permissionConvert(map, deniedList), "为保证应用正常运行,即将申请以下权限", "接受", "拒绝");
-            }
-        });
-        if (forwardToSetting) {
-            permissionBuilder.onForwardToSettings(new ForwardToSettingsCallback() {
-                @Override
-                public void onForwardToSettings(ForwardScope scope, List<String> deniedList) {
-                    scope.showForwardToSettingsDialog(permissionConvert(map, deniedList), "您需要应用权限设置中手动开启权限!", "好的", "取消");
-                }
-            });
-        }
-        permissionBuilder.request(new RequestCallback() {
-            @Override
-            public void onResult(boolean allGranted, List<String> grantedList, List<String> deniedList) {
-                if (allGranted) {
-                    listener.permissionAllGranted();
-                } else {
-                    listener.permissionSomeDenied(permissionConvert(map, deniedList));
-                }
-            }
-        });
-    }
-
-    public static void checkPermissionsByDefaultDialog(Fragment fragment, List<String> requestList, boolean forwardToSetting, PermissionListener listener) {
-        PermissionBuilder permissionBuilder = PermissionX.init(fragment).permissions(requestList);
-        permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
-            @Override
-            public void onExplainReason(ExplainScope scope, List<String> deniedList) {
-                scope.showRequestReasonDialog(permissionConvert(map, deniedList), "为保证应用正常运行,即将申请以下权限", "接受", "拒绝");
-            }
-        });
-        if (forwardToSetting) {
-            permissionBuilder.onForwardToSettings(new ForwardToSettingsCallback() {
-                @Override
-                public void onForwardToSettings(ForwardScope scope, List<String> deniedList) {
-                    scope.showForwardToSettingsDialog(permissionConvert(map, deniedList), "您需要应用权限设置中手动开启权限!", "好的", "取消");
-                }
-            });
-        }
-        permissionBuilder.request(new RequestCallback() {
-            @Override
-            public void onResult(boolean allGranted, List<String> grantedList, List<String> deniedList) {
-                if (allGranted) {
-                    listener.permissionAllGranted();
-                } else {
-                    listener.permissionSomeDenied(permissionConvert(map, deniedList));
-                }
-            }
-        });
-    }
-
-    public static void checkPermissionsByReasonDialog(Fragment fragment, List<String> permissions, boolean forwardToSetting, ReasonDialog reasonDialogExplain, ReasonDialog reasonDialogForward, PermissionListener listener) {
-        PermissionBuilder permissionBuilder = PermissionX.init(fragment).permissions(permissions);
-        permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
-            @Override
-            public void onExplainReason(ExplainScope scope, List<String> deniedList) {
-                if (reasonDialogExplain == null) {
-                    scope.showRequestReasonDialog(new ReasonDialog.Builder()
-                            .setContext(fragment.getContext())
-                            .setLayoutId(R.layout.default_dialog_request_explain)
-                            .setRightViewId(R.id.default_dialog_request_explain_positive)
-                            .setLeftViewId(R.id.default_dialog_request_explain_negative)
-                            .setReasonsRvId(R.id.default_dialog_request_explain_rv)
-                            .setReasonItemLayoutId(R.layout.default_reason_explain_item)
-                            .setReasonItemTvId(R.id.default_reason_explain_item_tv)
-                            .setDeniedPermissionsChinese(permissionConvert(map, deniedList))
-                            .setDeniedPermissions(deniedList)
-                            .build());
-                } else {
-                    scope.showRequestReasonDialog(reasonDialogExplain);
-                }
-            }
-        });
-        if (forwardToSetting) {
-            permissionBuilder.onForwardToSettings(new ForwardToSettingsCallback() {
-                @Override
-                public void onForwardToSettings(ForwardScope scope, List<String> deniedList) {
-                    if (reasonDialogForward == null) {
-                        scope.showForwardToSettingsDialog(new ReasonDialog.Builder()
-                                .setContext(fragment.getContext())
-                                .setLayoutId(R.layout.default_dialog_request_forward)
-                                .setRightViewId(R.id.default_dialog_request_forward_positive)
-                                .setLeftViewId(R.id.default_dialog_request_forward_negative)
-                                .setReasonsRvId(R.id.default_dialog_request_forward_rv)
-                                .setReasonItemLayoutId(R.layout.default_reason_forward_item)
-                                .setReasonItemTvId(R.id.default_reason_forward_item_tv)
-                                .setDeniedPermissionsChinese(permissionConvert(map, deniedList))
-                                .setDeniedPermissions(deniedList)
-                                .build());
-                    } else {
-                        scope.showForwardToSettingsDialog(reasonDialogForward);
-                    }
-                }
-            });
-        }
-        permissionBuilder.request(new RequestCallback() {
-            @Override
-            public void onResult(boolean allGranted, List<String> grantedList, List<String> deniedList) {
-                if (allGranted) {
-                    listener.permissionAllGranted();
-                } else {
-                    listener.permissionSomeDenied(permissionConvert(map, deniedList));
-                }
-            }
-        });
-    }
-
     /**
-     * @param fragmentActivity
-     * @param permissions         必须的权限
-     * @param forwardToSetting    永久拒绝时是否转到设置页面
-     * @param reasonDialogExplain 申请未同意时解释弹框
-     * @param reasonDialogForward 永久拒绝时手动设置的页面弹框
-     * @param listener
+     * 权限申请
+     * @param fragmentActivity    fragmentActivity
+     * @param fragment            fragment
+     * @param requestPermissions  申请的权限
+     * @param useDefaultDialog    是否使用默认弹框 (false使用reasonDialogExplain,reasonDialogForward)
+     * @param reasonDialogExplain 自定义的权限拒绝弹框
+     * @param reasonDialogForward 自定义的权限永久拒绝弹框
+     * @param listener            监听器
      */
-    public static void checkPermissionsByReasonDialog(FragmentActivity fragmentActivity, List<String> permissions, boolean forwardToSetting, ReasonDialog reasonDialogExplain, ReasonDialog reasonDialogForward, PermissionListener listener) {
-        PermissionBuilder permissionBuilder = PermissionX.init(fragmentActivity).permissions(permissions);
-        permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
-            @Override
-            public void onExplainReason(ExplainScope scope, List<String> deniedList) {
-                if (reasonDialogExplain == null) {
-                    scope.showRequestReasonDialog(new ReasonDialog.Builder()
-                            .setContext(fragmentActivity)
-                            .setLayoutId(R.layout.default_dialog_request_explain)
-                            .setRightViewId(R.id.default_dialog_request_explain_positive)
-                            .setLeftViewId(R.id.default_dialog_request_explain_negative)
-                            .setReasonsRvId(R.id.default_dialog_request_explain_rv)
-                            .setReasonItemLayoutId(R.layout.default_reason_explain_item)
-                            .setReasonItemTvId(R.id.default_reason_explain_item_tv)
-                            .setDeniedPermissionsChinese(permissionConvert(map, deniedList))
-                            .setDeniedPermissions(deniedList)
-                            .build());
+    public static void checkPermissionsByDialog(FragmentActivity fragmentActivity, Fragment fragment, List<String> requestPermissions, boolean useDefaultDialog, ReasonDialog reasonDialogExplain, ReasonDialog reasonDialogForward, PermissionListener listener) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PermissionBuilder permissionBuilder;
+            if (fragmentActivity == null && fragment == null) {
+                throw new NullPointerException("fragmentActivity and fragment must at least one can not be null");
+            } else {
+                if (fragmentActivity != null) {
+                    permissionBuilder = PermissionX.init(fragmentActivity).permissions(requestPermissions);
                 } else {
-                    scope.showRequestReasonDialog(reasonDialogExplain);
+                    permissionBuilder = PermissionX.init(fragment).permissions(requestPermissions);
                 }
             }
-        });
-        if (forwardToSetting) {
-            permissionBuilder.onForwardToSettings(new ForwardToSettingsCallback() {
+            if (useDefaultDialog) {
+                permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
+                    @Override
+                    public void onExplainReason(ExplainScope scope, List<String> deniedList) {
+                        scope.showRequestReasonDialog(deniedList, DEFAULT_EXPLAIN_TITLE, DEFAULT_EXPLAIN_POSITIVE, DEFAULT_EXPLAIN_NEGATIVE);
+                    }
+                });
+                permissionBuilder.onForwardToSettings(new ForwardToSettingsCallback() {
+                    @Override
+                    public void onForwardToSettings(ForwardScope scope, List<String> deniedList) {
+                        scope.showForwardToSettingsDialog(deniedList, DEFAULT_FORWARD_TITLE, DEFAULT_FORWARD_POSITIVE, DEFAULT_FORWARD_NEGATIVE);
+                    }
+                });
+            } else {
+                permissionBuilder.onExplainRequestReason(new ExplainReasonCallback() {
+                    @Override
+                    public void onExplainReason(ExplainScope scope, List<String> deniedList) {
+                        if (reasonDialogExplain == null) {
+                            scope.showRequestReasonDialog(new ReasonDialog.Builder()
+                                    .setContext(fragmentActivity != null ? fragmentActivity : fragment.getContext())
+                                    .setLayoutId(R.layout.default_dialog_request_explain)
+                                    .setRightViewId(R.id.default_dialog_request_explain_positive)
+                                    .setLeftViewId(R.id.default_dialog_request_explain_negative)
+                                    .setReasonsRvId(R.id.default_dialog_request_explain_rv)
+                                    .setReasonItemLayoutId(R.layout.default_reason_explain_item)
+                                    .setReasonItemTvId(R.id.default_reason_explain_item_tv)
+                                    .setDeniedPermissionsChinese(permissionConvert(map, deniedList))
+                                    .setDeniedPermissions(deniedList)
+                                    .build());
+                        } else {
+                            scope.showRequestReasonDialog(reasonDialogExplain);
+                        }
+                    }
+                });
+                permissionBuilder.onForwardToSettings(new ForwardToSettingsCallback() {
+                    @Override
+                    public void onForwardToSettings(ForwardScope scope, List<String> deniedList) {
+                        if (reasonDialogForward == null) {
+                            scope.showForwardToSettingsDialog(new ReasonDialog.Builder()
+                                    .setContext(fragmentActivity != null ? fragmentActivity : fragment.getContext())
+                                    .setLayoutId(R.layout.default_dialog_request_forward)
+                                    .setRightViewId(R.id.default_dialog_request_forward_positive)
+                                    .setLeftViewId(R.id.default_dialog_request_forward_negative)
+                                    .setReasonsRvId(R.id.default_dialog_request_forward_rv)
+                                    .setReasonItemLayoutId(R.layout.default_reason_forward_item)
+                                    .setReasonItemTvId(R.id.default_reason_forward_item_tv)
+                                    .setDeniedPermissionsChinese(permissionConvert(map, deniedList))
+                                    .setDeniedPermissions(deniedList)
+                                    .build());
+                        } else {
+                            scope.showForwardToSettingsDialog(reasonDialogForward);
+                        }
+                    }
+                });
+            }
+            permissionBuilder.request(new RequestCallback() {
                 @Override
-                public void onForwardToSettings(ForwardScope scope, List<String> deniedList) {
-                    if (reasonDialogForward == null) {
-                        scope.showForwardToSettingsDialog(new ReasonDialog.Builder()
-                                .setContext(fragmentActivity)
-                                .setLayoutId(R.layout.default_dialog_request_forward)
-                                .setRightViewId(R.id.default_dialog_request_forward_positive)
-                                .setLeftViewId(R.id.default_dialog_request_forward_negative)
-                                .setReasonsRvId(R.id.default_dialog_request_forward_rv)
-                                .setReasonItemLayoutId(R.layout.default_reason_forward_item)
-                                .setReasonItemTvId(R.id.default_reason_forward_item_tv)
-                                .setDeniedPermissionsChinese(permissionConvert(map, deniedList))
-                                .setDeniedPermissions(deniedList)
-                                .build());
+                public void onResult(boolean allGranted, List<String> grantedList, List<String> deniedList) {
+                    if (allGranted) {
+                        listener.permissionAllGranted();
                     } else {
-                        scope.showForwardToSettingsDialog(reasonDialogForward);
+                        listener.permissionSomeDenied(permissionConvert(map, deniedList));
                     }
                 }
             });
+        } else {
+            listener.permissionAllGranted();
         }
-        permissionBuilder.request(new RequestCallback() {
-            @Override
-            public void onResult(boolean allGranted, List<String> grantedList, List<String> deniedList) {
-                if (allGranted) {
-                    listener.permissionAllGranted();
-                } else {
-                    listener.permissionSomeDenied(permissionConvert(map, deniedList));
-                }
-            }
-        });
     }
 
-    public static List<String> permissionConvert(Map<String, String> dest, List<String> src) {
+    private static List<String> permissionConvert(Map<String, String> dest, List<String> src) {
         List<String> result = new ArrayList<>();
         for (String s : src) {
             String d = dest.get(s);
@@ -371,5 +293,4 @@ public class PermissionUtil {
             }
         }
     }
-
 }

@@ -9,6 +9,6 @@
         android:gravity="center"
         android:layout_centerInParent="true"
         android:textSize="16sp"
-        android:textColor="#ff0000"
+        android:textColor="@color/black"
         android:padding="10dp"/>
 </RelativeLayout>

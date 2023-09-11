@@ -42,6 +42,12 @@ public class SPUtil {
 
     }
 
+    /**
+     * 存储数据
+     * @param key 键
+     * @param value 值
+     * @return 是否成功
+     */
     public static boolean put(String key, Object value) {
         checkNameValid();
         SharedPreferences preferences = mContext.getSharedPreferences(mName, Context.MODE_PRIVATE);
@@ -62,36 +68,72 @@ public class SPUtil {
         return editor.commit();
     }
 
+    /**
+     * 获取string
+     * @param key 键
+     * @param defaultValue 默认值
+     * @return 返回
+     */
     public static String getString(String key, String defaultValue) {
         checkNameValid();
         SharedPreferences preferences = mContext.getSharedPreferences(mName, Context.MODE_PRIVATE);
         return preferences.getString(key, defaultValue);
     }
 
+    /**
+     * 获取int
+     * @param key 键
+     * @param defaultValue 默认值
+     * @return 返回
+     */
     public static int getInt(String key, int defaultValue) {
         checkNameValid();
         SharedPreferences preferences = mContext.getSharedPreferences(mName, Context.MODE_PRIVATE);
         return preferences.getInt(key, defaultValue);
     }
 
+    /**
+     * 获取boolean
+     * @param key
+     * @param defaultValue
+     * @return 返回
+     */
     public static boolean getBoolean(String key, boolean defaultValue) {
         checkNameValid();
         SharedPreferences preferences = mContext.getSharedPreferences(mName, Context.MODE_PRIVATE);
         return preferences.getBoolean(key, defaultValue);
     }
 
+    /**
+     * 获取long
+     * @param key 键
+     * @param defaultValue 默认值
+     * @return 返回
+     */
     public static long getLong(String key, long defaultValue) {
         checkNameValid();
         SharedPreferences preferences = mContext.getSharedPreferences(mName, Context.MODE_PRIVATE);
         return preferences.getLong(key, defaultValue);
     }
 
+    /**
+     * 获取float
+     * @param key 键
+     * @param defaultValue 默认值
+     * @return 返回
+     */
     public static float getFloat(String key, float defaultValue) {
         checkNameValid();
         SharedPreferences preferences = mContext.getSharedPreferences(mName, Context.MODE_PRIVATE);
         return preferences.getFloat(key, defaultValue);
     }
 
+    /**
+     * 获取对象
+     * @param key 键
+     * @param defaultValue 默认值
+     * @return 返回
+     */
     public static Object getObject(String key, Object defaultValue) {
         checkNameValid();
         SharedPreferences preferences = mContext.getSharedPreferences(mName, Context.MODE_PRIVATE);

@@ -122,10 +122,14 @@ public class NetUtil {
         return -1;
     }
 
-    public static boolean isIPv4Address(String input) {
+    private static boolean isIPv4Address(String input) {
         return IPV4_PATTERN.matcher(input).matches();
     }
 
+    /**
+     * 获取本地IP地址
+     * @return
+     */
     public static InetAddress getLocalIPAddress() {
         Enumeration<NetworkInterface> enumeration = null;
         try {
