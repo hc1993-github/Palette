@@ -33,6 +33,11 @@ public class LogUtil {
     public static final int MIN = 60000;
     public static final int HOUR = 3600000;
     public static final int DAY = 86400000;
+    private static final String VERBOSE = "追踪:";
+    private static final String DEBUG = "调试:";
+    private static final String INFO = "信息:";
+    private static final String WARN = "警告:";
+    private static final String ERROR = "异常:";
     private int mSize = 3;
     private static Context mContext;
     private static SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
@@ -137,41 +142,41 @@ public class LogUtil {
 
     public static void logv(String msg) {
         if(mContext==null){
-            Log.v(TAG, getFullDate()+" "+msg);
+            Log.v(TAG, getFullDate()+VERBOSE+msg);
         }else {
-            Log.v(mContext.getPackageName(), getFullDate()+" "+msg);
+            Log.v(mContext.getPackageName(), getFullDate()+VERBOSE+msg);
         }
     }
 
     public static void logd(String msg) {
         if(mContext==null){
-            Log.d(TAG, getFullDate()+" "+msg);
+            Log.d(TAG, getFullDate()+DEBUG+msg);
         }else {
-            Log.d(mContext.getPackageName(), getFullDate()+" "+msg);
+            Log.d(mContext.getPackageName(), getFullDate()+DEBUG+msg);
         }
     }
 
     public static void logi(String msg) {
         if(mContext==null){
-            Log.i(TAG, getFullDate()+" "+msg);
+            Log.i(TAG, getFullDate()+INFO+msg);
         }else {
-            Log.i(mContext.getPackageName(), getFullDate()+" "+msg);
+            Log.i(mContext.getPackageName(), getFullDate()+INFO+msg);
         }
     }
 
     public static void logw(String msg) {
         if(mContext==null){
-            Log.w(TAG, getFullDate()+" "+msg);
+            Log.w(TAG, getFullDate()+WARN+msg);
         }else {
-            Log.w(mContext.getPackageName(), getFullDate()+" "+msg);
+            Log.w(mContext.getPackageName(), getFullDate()+WARN+msg);
         }
     }
 
     public static void loge(String msg) {
         if(mContext==null){
-            Log.e(TAG, getFullDate()+" "+msg);
+            Log.e(TAG, getFullDate()+ERROR+msg);
         }else {
-            Log.e(mContext.getPackageName(), getFullDate()+" "+msg);
+            Log.e(mContext.getPackageName(), getFullDate()+ERROR+msg);
         }
     }
 
