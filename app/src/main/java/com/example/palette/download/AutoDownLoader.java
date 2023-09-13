@@ -67,13 +67,13 @@ public class AutoDownLoader {
                     mListener.finish(mDestFile.getAbsolutePath());
                     break;
                 case 6:
-                    mListener.error(msg.arg1,(String) msg.obj);
+                    mListener.error(msg.arg1, (String) msg.obj);
                     break;
             }
         }
     };
 
-    public static AutoDownLoader getInstance(Context context){
+    public static AutoDownLoader getInstance(Context context) {
         if (mInstance == null) {
             synchronized (AutoDownLoader.class) {
                 if (mInstance == null) {
@@ -90,27 +90,29 @@ public class AutoDownLoader {
 
     /**
      * 下载
-     * @param url 地址
-     * @param listener 监听器
+     *
+     * @param url                  地址
+     * @param listener             监听器
      * @param destFileAbsolutePath 为空则默认/sdcard/applicationId后缀名/
-     * @param isBreakPoint 是否断点下载
+     * @param isBreakPoint         是否断点下载
      */
-    public void download(String url, AutoProgressListener listener, String destFileAbsolutePath, boolean isBreakPoint){
+    public void download(String url, AutoProgressListener listener, String destFileAbsolutePath, boolean isBreakPoint) {
         mIsBreakPoint = isBreakPoint;
-        if(mIsBreakPoint){
+        if (mIsBreakPoint) {
             breakPointDownLoad(url, listener, destFileAbsolutePath);
-        }else {
+        } else {
             commonDownLoad(url, listener, destFileAbsolutePath);
         }
     }
 
     /**
      * 断点下载
-     * @param url 地址
-     * @param listener 监听器
+     *
+     * @param url                  地址
+     * @param listener             监听器
      * @param destFileAbsolutePath 文件绝对路径
      */
-    private void breakPointDownLoad(String url, AutoProgressListener listener, String destFileAbsolutePath){
+    private void breakPointDownLoad(String url, AutoProgressListener listener, String destFileAbsolutePath) {
         try {
             mUrl = url;
             mIsPause = false;
@@ -119,108 +121,109 @@ public class AutoDownLoader {
             mDestFileAbsolutePath = destFileAbsolutePath;
             if (destFileAbsolutePath == null) {
                 String[] split = mContext.getPackageName().split("\\.");
-                File file = new File(Environment.getExternalStorageDirectory(),split[split.length-1]+"");
-                if(!file.exists()){
+                File file = new File(Environment.getExternalStorageDirectory(), split[split.length - 1] + "");
+                if (!file.exists()) {
                     file.mkdirs();
                 }
-                mDestFile = new File(file.getAbsolutePath(),url.substring(url.lastIndexOf("/") + 1));
+                mDestFile = new File(file.getAbsolutePath(), url.substring(url.lastIndexOf("/") + 1));
             } else {
                 mDestFile = new File(destFileAbsolutePath);
             }
             final int currentlength = (int) mDestFile.length();
-            if(currentlength==0){
-                if(!mIsEmptyed){
-                    new Thread(){
+            if (currentlength == 0) {
+                if (!mIsEmptyed) {
+                    new Thread() {
                         @Override
                         public void run() {
                             AutoFileUtil.deleteZipAndApk(mContext);
                             mIsEmptyed = true;
-                            sendMessage(0,-1,null);
+                            sendMessage(0, -1, null);
                         }
                     }.start();
                     return;
                 }
-            }else {
+            } else {
                 mIsEmptyed = false;
             }
             final RandomAccessFile randomAccessFile = new RandomAccessFile(mDestFile, "rwd");
             Request request = new Request.Builder().header("RANGE", "bytes=" + currentlength + "-").url(url).build();
             OkHttpClient.Builder builder = new OkHttpClient.Builder()
                     .connectTimeout(mConnectTimeout, TimeUnit.SECONDS)
-                    .readTimeout(mReadTimeout,TimeUnit.SECONDS)
-                    .writeTimeout(mWriteTimeout,TimeUnit.SECONDS);
+                    .readTimeout(mReadTimeout, TimeUnit.SECONDS)
+                    .writeTimeout(mWriteTimeout, TimeUnit.SECONDS);
             OkHttpClient client = builder.build();
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    sendMessage(6,NET_ERROR_CODE,NET_ERROR_INFO);
+                    sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
                     e.printStackTrace();
                 }
 
                 @Override
-                public void onResponse(Call call, Response response){
+                public void onResponse(Call call, Response response) {
                     InputStream is = null;
                     try {
-                        if(response.isSuccessful()){
+                        if (response.isSuccessful()) {
                             long filetotalsize = response.body().contentLength() + currentlength;
-                            sendMessage(1, (int) filetotalsize,null);
-                            sendMessage(2, (int)(((float)currentlength/filetotalsize)*100),null);
+                            sendMessage(1, (int) filetotalsize, null);
+                            sendMessage(2, (int) (((float) currentlength / filetotalsize) * 100), null);
                             randomAccessFile.seek(currentlength);
                             is = response.body().byteStream();
-                            byte[] buf = new byte[1024*4];
+                            byte[] buf = new byte[1024 * 4];
                             int readlength;
                             int currentreadlength = currentlength;
                             while ((readlength = is.read(buf)) != -1) {
                                 if (mIsCancel) {
-                                    sendMessage(4,(int)(((float)currentreadlength/filetotalsize)*100),null);
+                                    sendMessage(4, (int) (((float) currentreadlength / filetotalsize) * 100), null);
                                     closeResources(randomAccessFile, is, response.body());
                                     deleteFile(mDestFile);
                                     return;
                                 }
                                 if (mIsPause) {
-                                    sendMessage(3, (int)(((float)currentreadlength/filetotalsize)*100),null);
+                                    sendMessage(3, (int) (((float) currentreadlength / filetotalsize) * 100), null);
                                     closeResources(randomAccessFile, is, response.body());
                                     return;
                                 }
                                 randomAccessFile.write(buf, 0, readlength);
                                 currentreadlength += readlength;
-                                sendMessage(2, (int)(((float)currentreadlength/filetotalsize)*100),null);
+                                sendMessage(2, (int) (((float) currentreadlength / filetotalsize) * 100), null);
                                 randomAccessFile.seek(currentreadlength);
                             }
                             closeResources(randomAccessFile, is, response.body());
-                            sendDelayMessage(5,null,1000);
-                        }else {
+                            sendDelayMessage(5, null, 1000);
+                        } else {
                             int code = response.code();
-                            if(code==416){
-                                String fileFullName = mDestFile.getAbsolutePath().substring(mDestFile.getAbsolutePath().lastIndexOf("/")+1);
+                            if (code == 416) {
+                                String fileFullName = mDestFile.getAbsolutePath().substring(mDestFile.getAbsolutePath().lastIndexOf("/") + 1);
                                 String fileSubName = fileFullName.substring(0, fileFullName.lastIndexOf("."));
-                                AutoFileUtil.deleteSimilarFile(mContext,fileSubName);
-                                sendMessage(-1,-1,null);
-                            }else {
-                                sendMessage(6,SERVER_ERROR_CODE,SERVER_ERROR_INFO);
+                                AutoFileUtil.deleteSimilarFile(mContext, fileSubName);
+                                sendMessage(-1, -1, null);
+                            } else {
+                                sendMessage(6, SERVER_ERROR_CODE, SERVER_ERROR_INFO);
                             }
                         }
-                    }catch (Exception e){
-                        sendMessage(6,NET_ERROR_CODE,NET_ERROR_INFO);
+                    } catch (Exception e) {
+                        sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
                         e.printStackTrace();
-                    }finally {
+                    } finally {
                         closeResources(randomAccessFile, is, response.body());
                     }
                 }
             });
         } catch (Exception e) {
-            sendMessage(6,UNKNOWN_ERROR_CODE,UNKNOWN_ERROR_INFO);
+            sendMessage(6, UNKNOWN_ERROR_CODE, UNKNOWN_ERROR_INFO);
             e.printStackTrace();
         }
     }
 
     /**
      * 普通下载
+     *
      * @param url
      * @param listener
      * @param destFileAbsolutePath
      */
-    private void commonDownLoad(String url, AutoProgressListener listener, String destFileAbsolutePath){
+    private void commonDownLoad(String url, AutoProgressListener listener, String destFileAbsolutePath) {
         try {
             mUrl = url;
             mIsPause = false;
@@ -229,46 +232,45 @@ public class AutoDownLoader {
             mDestFileAbsolutePath = destFileAbsolutePath;
             if (destFileAbsolutePath == null) {
                 String[] split = mContext.getPackageName().split("\\.");
-                File file = new File(Environment.getExternalStorageDirectory(),split[split.length-1]+"");
-                if(!file.exists()){
+                File file = new File(Environment.getExternalStorageDirectory(), split[split.length - 1] + "");
+                if (!file.exists()) {
                     file.mkdirs();
                 }
-                mDestFile = new File(file.getAbsolutePath(),url.substring(url.lastIndexOf("/") + 1));
+                mDestFile = new File(file.getAbsolutePath(), url.substring(url.lastIndexOf("/") + 1));
             } else {
                 mDestFile = new File(destFileAbsolutePath);
             }
-            if(!mIsEmptyed){
-                new Thread(){
+            if (!mIsEmptyed) {
+                new Thread() {
                     @Override
                     public void run() {
                         AutoFileUtil.deleteZipAndApk(mContext);
                         mIsEmptyed = true;
-                        sendMessage(0,-1,null);
+                        sendMessage(0, -1, null);
                     }
                 }.start();
                 return;
             }
             OkHttpClient.Builder builder = new OkHttpClient.Builder()
                     .connectTimeout(mConnectTimeout, TimeUnit.SECONDS)
-                    .readTimeout(mReadTimeout,TimeUnit.SECONDS)
-                    .writeTimeout(mWriteTimeout,TimeUnit.SECONDS);
-            builder.addInterceptor(new AutoProgressInterceptor(mListener));
+                    .readTimeout(mReadTimeout, TimeUnit.SECONDS)
+                    .writeTimeout(mWriteTimeout, TimeUnit.SECONDS);
             OkHttpClient client = builder.build();
             Request request = new Request.Builder().url(url).build();
             client.newCall(request).enqueue(new Callback() {
                 @Override
-                public void onFailure(Call call,IOException e) {
-                    sendMessage(6,NET_ERROR_CODE,NET_ERROR_INFO);
+                public void onFailure(Call call, IOException e) {
+                    sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
                 }
 
                 @Override
-                public void onResponse( Call call,Response response) throws IOException {
+                public void onResponse(Call call, Response response) throws IOException {
                     FileOutputStream fileOutputStream = null;
                     InputStream stream = null;
                     try {
-                        if(response.isSuccessful()){
+                        if (response.isSuccessful()) {
                             long contentLength = response.body().contentLength();
-                            sendMessage(1, (int) contentLength,null);
+                            sendMessage(1, (int) contentLength, null);
                             stream = response.body().byteStream();
                             File file = new File(mDestFile.getAbsolutePath());
                             fileOutputStream = new FileOutputStream(file);
@@ -276,28 +278,35 @@ public class AutoDownLoader {
                             int length;
                             int currentLength = 0;
                             while ((length = stream.read(buffer)) != -1) {
-                                if (mIsCancel || mIsPause) {
-                                    sendMessage(4,(int)(((float)currentLength/contentLength)*100),null);
+                                if (mIsPause) {
+                                    sendMessage(3, (int) (((float) currentLength / contentLength) * 100), null);
                                     closeResources(fileOutputStream);
                                     deleteFile(mDestFile);
                                     return;
                                 }
-                                currentLength+=length;
+                                if (mIsCancel) {
+                                    sendMessage(4, (int) (((float) currentLength / contentLength) * 100), null);
+                                    closeResources(fileOutputStream);
+                                    deleteFile(mDestFile);
+                                    return;
+                                }
+                                currentLength += length;
+                                sendMessage(2, (int) (((float) currentLength / contentLength) * 100), null);
                                 fileOutputStream.write(buffer, 0, length);
                                 fileOutputStream.flush();
                             }
                             if (mDestFile.length() == contentLength) {
-                                sendDelayMessage(5,null,1000);
-                            }else {
-                                sendMessage(6,FILE_LENGTH_ERROR_CODE,FILE_LENGTH_ERROR_INFO);
+                                sendDelayMessage(5, null, 1000);
+                            } else {
+                                sendMessage(6, FILE_LENGTH_ERROR_CODE, FILE_LENGTH_ERROR_INFO);
                             }
-                        }else {
-                            sendMessage(6,SERVER_ERROR_CODE,SERVER_ERROR_INFO);
+                        } else {
+                            sendMessage(6, SERVER_ERROR_CODE, SERVER_ERROR_INFO);
                         }
-                    }catch (Exception e){
-                        sendMessage(6,NET_ERROR_CODE,NET_ERROR_INFO);
+                    } catch (Exception e) {
+                        sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
                         e.printStackTrace();
-                    }finally {
+                    } finally {
                         try {
                             if (fileOutputStream != null) {
                                 fileOutputStream.close();
@@ -311,8 +320,8 @@ public class AutoDownLoader {
                     }
                 }
             });
-        }catch (Exception e){
-            sendMessage(6,UNKNOWN_ERROR_CODE,UNKNOWN_ERROR_INFO);
+        } catch (Exception e) {
+            sendMessage(6, UNKNOWN_ERROR_CODE, UNKNOWN_ERROR_INFO);
             e.printStackTrace();
         }
     }
@@ -367,8 +376,8 @@ public class AutoDownLoader {
      * 恢复下载
      */
     public void resume() {
-        if(!TextUtils.isEmpty(mUrl)){
-            download(mUrl,mListener,mDestFileAbsolutePath,mIsBreakPoint);
+        if (!TextUtils.isEmpty(mUrl)) {
+            download(mUrl, mListener, mDestFileAbsolutePath, mIsBreakPoint);
         }
     }
 
@@ -391,14 +400,15 @@ public class AutoDownLoader {
 
     /**
      * 往handler中发消息
+     *
      * @param type
      * @param arg1
      */
-    private void sendMessage(int type,int arg1,String info) {
+    private void sendMessage(int type, int arg1, String info) {
         Message message = Message.obtain();
         message.what = type;
         message.arg1 = arg1;
-        if(info != null){
+        if (info != null) {
             message.obj = info;
         }
         mHandler.sendMessage(message);
@@ -406,16 +416,17 @@ public class AutoDownLoader {
 
     /**
      * 往handler中发延迟消息
+     *
      * @param type
      * @param str
      * @param delayTime
      */
-    private void sendDelayMessage(int type, String str,long delayTime) {
+    private void sendDelayMessage(int type, String str, long delayTime) {
         Message message = Message.obtain();
         message.what = type;
-        if(str != null){
+        if (str != null) {
             message.obj = str;
         }
-        mHandler.sendMessageDelayed(message,delayTime);
+        mHandler.sendMessageDelayed(message, delayTime);
     }
 }

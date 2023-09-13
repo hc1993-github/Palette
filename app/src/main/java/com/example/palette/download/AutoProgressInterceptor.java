@@ -19,7 +19,6 @@ public class AutoProgressInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
         Response response = chain.proceed(request);
-        String url = request.url().toString();
         ResponseBody body = response.body();
         Response newresponse = response.newBuilder().body(new AutoProgressResponseBody(body, listener)).build();
         return newresponse;
