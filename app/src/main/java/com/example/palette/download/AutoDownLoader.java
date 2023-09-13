@@ -264,7 +264,7 @@ public class AutoDownLoader {
                 }
 
                 @Override
-                public void onResponse(Call call, Response response) throws IOException {
+                public void onResponse(Call call, Response response){
                     FileOutputStream fileOutputStream = null;
                     InputStream stream = null;
                     try {
