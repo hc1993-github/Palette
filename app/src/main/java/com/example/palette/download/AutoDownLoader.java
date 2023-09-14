@@ -32,6 +32,13 @@ public class AutoDownLoader {
     private static final int FILE_LENGTH_ERROR_CODE = -3;
     private static final int FILE_NOT_FOUND = -4;
     private static final int UNKNOWN_ERROR_CODE = -5;
+    private static final int RESUME = 0;
+    private static final int START = 1;
+    private static final int PROGRESS = 2;
+    private static final int PAUSE = 3;
+    private static final int CANCEL = 4;
+    private static final int FINISH = 5;
+    private static final int ERROR = 6;
     private static final String NET_ERROR_INFO = "网络连接异常,下载失败";
     private static final String SERVER_ERROR_INFO = "服务器响应异常,下载失败";
     private static final String UNKNOWN_ERROR_INFO = "未知错误,下载失败";
@@ -50,26 +57,25 @@ public class AutoDownLoader {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case -1:
-                case 0:
+                case RESUME:
                     resume();
                     break;
-                case 1:
+                case START:
                     mListener.start(msg.arg1);
                     break;
-                case 2:
+                case PROGRESS:
                     mListener.progress(msg.arg1);
                     break;
-                case 3:
+                case PAUSE:
                     mListener.pause(msg.arg1);
                     break;
-                case 4:
+                case CANCEL:
                     mListener.cancel(msg.arg1);
                     break;
-                case 5:
+                case FINISH:
                     mListener.finish(mDestFile.getAbsolutePath());
                     break;
-                case 6:
+                case ERROR:
                     mListener.error(msg.arg1, (String) msg.obj);
                     break;
             }
@@ -140,7 +146,7 @@ public class AutoDownLoader {
                         public void run() {
                             AutoFileUtil.deleteZipAndApk(mContext);
                             mIsEmptyed = true;
-                            sendMessage(0, -1, null);
+                            sendMessage(RESUME, RESUME, null);
                         }
                     }.start();
                     return;
@@ -158,7 +164,7 @@ public class AutoDownLoader {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
+                    sendMessage(ERROR, NET_ERROR_CODE, NET_ERROR_INFO);
                     e.printStackTrace();
                 }
 
@@ -168,8 +174,8 @@ public class AutoDownLoader {
                     try {
                         if (response.isSuccessful()) {
                             long filetotalsize = response.body().contentLength() + currentlength;
-                            sendMessage(1, (int) filetotalsize, null);
-                            sendMessage(2, (int) (((float) currentlength / filetotalsize) * 100), null);
+                            sendMessage(START, (int) filetotalsize, null);
+                            sendMessage(PROGRESS, (int) (((float) currentlength / filetotalsize) * 100), null);
                             randomAccessFile.seek(currentlength);
                             is = response.body().byteStream();
                             byte[] buf = new byte[1024 * 10];
@@ -177,36 +183,36 @@ public class AutoDownLoader {
                             int currentreadlength = currentlength;
                             while ((readlength = is.read(buf)) != -1) {
                                 if (mIsCancel) {
-                                    sendMessage(4, (int) (((float) currentreadlength / filetotalsize) * 100), null);
+                                    sendMessage(CANCEL, (int) (((float) currentreadlength / filetotalsize) * 100), null);
                                     closeResources(randomAccessFile, is, response.body());
                                     deleteFile(mDestFile);
                                     return;
                                 }
                                 if (mIsPause) {
-                                    sendMessage(3, (int) (((float) currentreadlength / filetotalsize) * 100), null);
+                                    sendMessage(PAUSE, (int) (((float) currentreadlength / filetotalsize) * 100), null);
                                     closeResources(randomAccessFile, is, response.body());
                                     return;
                                 }
                                 randomAccessFile.write(buf, 0, readlength);
                                 currentreadlength += readlength;
-                                sendMessage(2, (int) (((float) currentreadlength / filetotalsize) * 100), null);
+                                sendMessage(PROGRESS, (int) (((float) currentreadlength / filetotalsize) * 100), null);
                                 randomAccessFile.seek(currentreadlength);
                             }
                             closeResources(randomAccessFile, is, response.body());
-                            sendDelayMessage(5, null, 1000);
+                            sendDelayMessage(FINISH, 1000);
                         } else {
                             int code = response.code();
                             if (code == 416) {
                                 String fileFullName = mDestFile.getAbsolutePath().substring(mDestFile.getAbsolutePath().lastIndexOf("/") + 1);
                                 String fileSubName = fileFullName.substring(0, fileFullName.lastIndexOf("."));
                                 AutoFileUtil.deleteSimilarFile(mContext, fileSubName);
-                                sendMessage(-1, -1, null);
+                                sendMessage(RESUME, RESUME, null);
                             } else {
-                                sendMessage(6, SERVER_ERROR_CODE, SERVER_ERROR_INFO);
+                                sendMessage(ERROR, SERVER_ERROR_CODE, SERVER_ERROR_INFO);
                             }
                         }
                     } catch (Exception e) {
-                        sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
+                        sendMessage(ERROR, NET_ERROR_CODE, NET_ERROR_INFO);
                         e.printStackTrace();
                     } finally {
                         closeResources(randomAccessFile, is, response.body());
@@ -214,10 +220,10 @@ public class AutoDownLoader {
                 }
             });
         } catch (FileNotFoundException e){
-            sendMessage(6, FILE_NOT_FOUND, FILE_NOT_FOUND_INFO);
+            sendMessage(ERROR, FILE_NOT_FOUND, FILE_NOT_FOUND_INFO);
             e.printStackTrace();
         } catch (Exception e) {
-            sendMessage(6, UNKNOWN_ERROR_CODE, UNKNOWN_ERROR_INFO);
+            sendMessage(ERROR, UNKNOWN_ERROR_CODE, UNKNOWN_ERROR_INFO);
             e.printStackTrace();
         }
     }
@@ -252,7 +258,7 @@ public class AutoDownLoader {
                     public void run() {
                         AutoFileUtil.deleteZipAndApk(mContext);
                         mIsEmptyed = true;
-                        sendMessage(0, -1, null);
+                        sendMessage(RESUME, RESUME, null);
                     }
                 }.start();
                 return;
@@ -266,7 +272,7 @@ public class AutoDownLoader {
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
+                    sendMessage(ERROR, NET_ERROR_CODE, NET_ERROR_INFO);
                 }
 
                 @Override
@@ -276,7 +282,7 @@ public class AutoDownLoader {
                     try {
                         if (response.isSuccessful()) {
                             long contentLength = response.body().contentLength();
-                            sendMessage(1, (int) contentLength, null);
+                            sendMessage(START, (int) contentLength, null);
                             stream = response.body().byteStream();
                             File file = new File(mDestFile.getAbsolutePath());
                             fileOutputStream = new FileOutputStream(file);
@@ -285,37 +291,37 @@ public class AutoDownLoader {
                             int currentLength = 0;
                             while ((length = stream.read(buffer)) != -1) {
                                 if (mIsPause) {
-                                    sendMessage(3, (int) (((float) currentLength / contentLength) * 100), null);
+                                    sendMessage(PAUSE, (int) (((float) currentLength / contentLength) * 100), null);
                                     closeResources(fileOutputStream);
                                     deleteFile(mDestFile);
                                     return;
                                 }
                                 if (mIsCancel) {
-                                    sendMessage(4, (int) (((float) currentLength / contentLength) * 100), null);
+                                    sendMessage(CANCEL, (int) (((float) currentLength / contentLength) * 100), null);
                                     closeResources(fileOutputStream);
                                     deleteFile(mDestFile);
                                     return;
                                 }
                                 currentLength += length;
-                                sendMessage(2, (int) (((float) currentLength / contentLength) * 100), null);
+                                sendMessage(PROGRESS, (int) (((float) currentLength / contentLength) * 100), null);
                                 fileOutputStream.write(buffer, 0, length);
                                 fileOutputStream.flush();
                             }
                             if (mDestFile.length() == contentLength) {
-                                sendDelayMessage(5, null, 1000);
+                                sendDelayMessage(FINISH, 1000);
                             } else {
-                                sendMessage(6, FILE_LENGTH_ERROR_CODE, FILE_LENGTH_ERROR_INFO);
+                                sendMessage(ERROR, FILE_LENGTH_ERROR_CODE, FILE_LENGTH_ERROR_INFO);
                             }
                         } else {
-                            sendMessage(6, SERVER_ERROR_CODE, SERVER_ERROR_INFO);
+                            sendMessage(ERROR, SERVER_ERROR_CODE, SERVER_ERROR_INFO);
                         }
                     } catch (FileNotFoundException e){
-                        sendMessage(6, FILE_NOT_FOUND, FILE_NOT_FOUND_INFO);
+                        sendMessage(ERROR, FILE_NOT_FOUND, FILE_NOT_FOUND_INFO);
                         e.printStackTrace();
                     } catch (Exception e) {
                         closeResources(fileOutputStream);
                         deleteFile(mDestFile);
-                        sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
+                        sendMessage(ERROR, NET_ERROR_CODE, NET_ERROR_INFO);
                         e.printStackTrace();
                     }  finally {
                         try {
@@ -332,7 +338,7 @@ public class AutoDownLoader {
                 }
             });
         } catch (Exception e) {
-            sendMessage(6, UNKNOWN_ERROR_CODE, UNKNOWN_ERROR_INFO);
+            sendMessage(ERROR, UNKNOWN_ERROR_CODE, UNKNOWN_ERROR_INFO);
             e.printStackTrace();
         }
     }
@@ -348,7 +354,7 @@ public class AutoDownLoader {
             for (int i = 0; i < length; i++) {
                 closeables[i].close();
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -429,15 +435,11 @@ public class AutoDownLoader {
      * 往handler中发延迟消息
      *
      * @param type
-     * @param str
      * @param delayTime
      */
-    private void sendDelayMessage(int type, String str, long delayTime) {
+    private void sendDelayMessage(int type, long delayTime) {
         Message message = Message.obtain();
         message.what = type;
-        if (str != null) {
-            message.obj = str;
-        }
         mHandler.sendMessageDelayed(message, delayTime);
     }
 }
