@@ -254,7 +254,7 @@ public class AutoUpdater {
 
     private void download() {
         String apkFilePath = AutoFileUtil.createDefaultDir(mContext, mDefaultDir) + File.separator + mUrl.substring(mUrl.lastIndexOf("/") + 1).trim();
-        AutoDownLoader.getInstance(mContext).download(mUrl, new AutoProgressListener() {
+        AutoDownLoader.getInstance(mContext).download(mUrl ,apkFilePath,true,new AutoProgressListener() {
             @Override
             public void start(int totalSize) {
                 tv_title.setText("下载新版本中,请稍等");
@@ -315,7 +315,7 @@ public class AutoUpdater {
             public void error(int code, String info) {
                 mUpdateDialog.dismiss();
             }
-        },apkFilePath,true);
+        });
     }
 
     private void sendMessage(int type,int arg1,String info){

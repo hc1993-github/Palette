@@ -48,21 +48,23 @@ public class AutoFileUtil {
     public static final String APP_EXISTED_INFO = "已安装最新版本,请先卸载后重新下载";
     public static final int UNKNOWN_ERROR = 10006;
     public static final String UNKNOWN_ERROR_INFO = "未知错误";
+
     /**
      * 是否有root权限
+     *
      * @return
      */
-    public static boolean isRoot(){
-        String[] rootDirs = new String[]{"/su","/su/bin/su","/sbin/su",
-                "/data/local/xbin/su","/data/local/bin/su","/data/local/su",
-                "/system/xbin/su","/system/bin/su","/system/sd/xbin/su",
-                "/system/bin/failsafe/su","/system/bin/cufsdosck","/system/xbin/cufsdosck",
-                "/system/bin/cufsmgr","/system/xbin/cufsmgr","/system/bin/cufaevdd",
-                "/system/xbin/cufaevdd","/system/bin/conbb","/system/xbin/conbb"};
+    public static boolean isRoot() {
+        String[] rootDirs = new String[]{"/su", "/su/bin/su", "/sbin/su",
+                "/data/local/xbin/su", "/data/local/bin/su", "/data/local/su",
+                "/system/xbin/su", "/system/bin/su", "/system/sd/xbin/su",
+                "/system/bin/failsafe/su", "/system/bin/cufsdosck", "/system/xbin/cufsdosck",
+                "/system/bin/cufsmgr", "/system/xbin/cufsmgr", "/system/bin/cufaevdd",
+                "/system/xbin/cufaevdd", "/system/bin/conbb", "/system/xbin/conbb"};
         boolean isRoot = false;
         for (int i = 0; i < rootDirs.length; i++) {
             String dir = rootDirs[i];
-            if(new File(dir).exists()){
+            if (new File(dir).exists()) {
                 isRoot = true;
                 break;
             }
@@ -75,6 +77,7 @@ public class AutoFileUtil {
      * 创建下载目录
      * 不创建则使用/sdcard/applicationId后缀名
      * 创建则使用/sdcard/applicationId后缀名/目录名
+     *
      * @param context
      * @param dirName 目录名
      * @return
@@ -83,9 +86,9 @@ public class AutoFileUtil {
         mDirName = dirName;
         String[] split = context.getApplicationContext().getPackageName().split("\\.");
         String dir;
-        if(TextUtils.isEmpty(dirName)){
+        if (TextUtils.isEmpty(dirName)) {
             dir = split[split.length - 1];
-        }else {
+        } else {
             dir = split[split.length - 1] + File.separator + dirName;
         }
         File file = new File(Environment.getExternalStorageDirectory(), dir);
@@ -96,76 +99,93 @@ public class AutoFileUtil {
     }
 
     /**
+     * 创建目标文件
+     *
+     * @param context
+     * @param dirName  目录名
+     * @param fileName 文件名
+     * @return
+     */
+    public static String createDestFile(Context context, String dirName, String fileName) {
+        if (TextUtils.isEmpty(fileName)) {
+            throw new NullPointerException(FILE_NOT_EXIST_INFO);
+        }
+        return createDefaultDir(context, dirName) + File.separator + fileName;
+    }
+
+    /**
      * 校验文件MD5值并检查是否需要解压
+     *
      * @param context
      * @param apkAbsolutePath 文件绝对路径
-     * @param remoteMD5 待比较MD5值
-     * @param unzipPwd 解压密码
+     * @param remoteMD5       待比较MD5值
+     * @param unzipPwd        解压密码
      * @param listener
      */
     public static void checkIsNeedUnzip(Activity context, String apkAbsolutePath, String remoteMD5, String unzipPwd, InstallListener listener) {
         File file = new File(apkAbsolutePath);
         if (!file.exists()) {
-            listener.onCheckedFail(FILE_NOT_EXIST,FILE_NOT_EXIST_INFO);
+            listener.onCheckedFail(FILE_NOT_EXIST, FILE_NOT_EXIST_INFO);
             return;
         }
         Context applicationContext = context.getApplicationContext();
         File realDir = new File(createDefaultDir(applicationContext, mDirName));
         File cacheDir = new File(createDefaultDir(applicationContext, mDirName));
-        if (AutoMD5Util.compareMD5IgnoreCase(remoteMD5,file)) {
+        if (AutoMD5Util.compareMD5IgnoreCase(remoteMD5, file)) {
             File realApk;
             String[] split = file.getAbsolutePath().split(File.separator);
             String apkFullName = split[split.length - 1];
             mCurrentInstallApkName = apkFullName.substring(0, apkFullName.lastIndexOf("."));
             if (file.getPath().contains("zip")) {
-                new Thread(){
+                new Thread() {
                     @Override
                     public void run() {
-                        context.runOnUiThread(() -> listener.onUnzipIng(FILE_UNZIP_ING,FILE_UNZIP_ING_INFO));
+                        context.runOnUiThread(() -> listener.onUnzipIng(FILE_UNZIP_ING, FILE_UNZIP_ING_INFO));
                         int success = unzip(file.getPath(), realDir.getPath(), unzipPwd);
                         if (success != 0) {
                             file.delete();
-                            context.runOnUiThread(() -> listener.onUnzipFail(FILE_UNZIP_FAILED,FILE_UNZIP_FAILED_INFO));
+                            context.runOnUiThread(() -> listener.onUnzipFail(FILE_UNZIP_FAILED, FILE_UNZIP_FAILED_INFO));
                             return;
                         }
-                        context.runOnUiThread(() -> listener.onUnzipSuccess(context,findApkFile(realDir, apkFullName),listener));
+                        context.runOnUiThread(() -> listener.onUnzipSuccess(context, findApkFile(realDir, apkFullName), listener));
                     }
                 }.start();
             } else {
                 realApk = findApkFile(cacheDir, apkFullName);
-                realInstall(context,realApk,listener);
+                realInstall(context, realApk, listener);
             }
         } else {
             file.delete();
-            listener.onCheckedFail(FILE_MD5_NOT_EQUALS,FILE_MD5_NOT_EQUALS_INFO);
+            listener.onCheckedFail(FILE_MD5_NOT_EQUALS, FILE_MD5_NOT_EQUALS_INFO);
         }
     }
 
     /**
      * 安装
+     *
      * @param context
      * @param file
      * @param listener
      */
-    public static void realInstall(Activity context, File file, InstallListener listener){
+    public static void realInstall(Activity context, File file, InstallListener listener) {
         try {
-            if(context != null){
+            if (context != null) {
                 if (checkIsInstalled(context, file)) {
                     deleteSimilarFile(context, mCurrentInstallApkName);
-                    if(listener != null){
-                        listener.onInstallFail(APP_EXISTED,APP_EXISTED_INFO);
+                    if (listener != null) {
+                        listener.onInstallFail(APP_EXISTED, APP_EXISTED_INFO);
                     }
                 } else {
-                    if(isRoot()){
-                        realInstallSlience(context,file,listener);
-                    }else {
-                        realInstallCommon(context,file,listener);
+                    if (isRoot()) {
+                        realInstallSlience(context, file, listener);
+                    } else {
+                        realInstallCommon(context, file, listener);
                     }
                 }
             }
-        }catch (Exception e){
-            if(listener != null){
-                listener.onInstallFail(UNKNOWN_ERROR,UNKNOWN_ERROR_INFO);
+        } catch (Exception e) {
+            if (listener != null) {
+                listener.onInstallFail(UNKNOWN_ERROR, UNKNOWN_ERROR_INFO);
             }
             e.printStackTrace();
         }
@@ -173,11 +193,12 @@ public class AutoFileUtil {
 
     /**
      * 普通安装
+     *
      * @param context
      * @param file
      */
-    private static void realInstallCommon(Activity context,File file,InstallListener listener){
-        if(listener != null){
+    private static void realInstallCommon(Activity context, File file, InstallListener listener) {
+        if (listener != null) {
             context.runOnUiThread(() -> listener.onExecuteInstall());
         }
         Intent intent = new Intent();
@@ -191,7 +212,7 @@ public class AutoFileUtil {
             uri = Uri.fromFile(file);
         }
         intent.setDataAndType(uri, "application/vnd.android.package-archive");
-        context.startActivityForResult(intent,APP_COMMON_INSTALLING);
+        context.startActivityForResult(intent, APP_COMMON_INSTALLING);
 //          activity回调接收
 //            @Override
 //            protected void onActivityResult(int requestCode, int resultCode,Intent data) {
@@ -204,15 +225,16 @@ public class AutoFileUtil {
 
     /**
      * 静默安装 需要root权限
+     *
      * @param file
      */
-    private static void realInstallSlience(Activity context,File file,InstallListener listener){
+    private static void realInstallSlience(Activity context, File file, InstallListener listener) {
         //此静默安装方法只能将apk放在如sdcard/updateapp/xxxx.apk下 再多目录就抛异常
         boolean result = false;
         BufferedReader es = null;
         DataOutputStream os = null;
         StringBuilder esbuilder = new StringBuilder();
-        if(listener != null){
+        if (listener != null) {
             context.runOnUiThread(() -> listener.onExecuteInstall());
         }
         try {
@@ -229,7 +251,7 @@ public class AutoFileUtil {
             while ((line = es.readLine()) != null) {
                 esbuilder.append(line);
             }
-            if(!esbuilder.toString().contains("Failure") && !esbuilder.toString().contains("failure")){
+            if (!esbuilder.toString().contains("Failure") && !esbuilder.toString().contains("failure")) {
                 result = true;
             }
         } catch (Exception e) {
@@ -251,6 +273,7 @@ public class AutoFileUtil {
 
     /**
      * 校验设备是否已经安装同版本或更高版本的APP
+     *
      * @param context
      * @param file
      * @return
@@ -273,7 +296,7 @@ public class AutoFileUtil {
                     }
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -282,11 +305,12 @@ public class AutoFileUtil {
 
     /**
      * 获取APP启动activity名
+     *
      * @param context
      * @param applicationId
      * @return
      */
-    public static String getLauncherActivityName(Context context,String applicationId){
+    public static String getLauncherActivityName(Context context, String applicationId) {
         String className = null;
         Intent intent = new Intent();
         intent.setAction("android.intent.action.MAIN");
@@ -294,7 +318,7 @@ public class AutoFileUtil {
         intent.setPackage(applicationId);
         List<ResolveInfo> resolveInfos = context.getPackageManager().queryIntentActivities(intent, PackageManager.MATCH_ALL);
         ResolveInfo resolveInfo = resolveInfos.iterator().next();
-        if(resolveInfo!=null){
+        if (resolveInfo != null) {
             className = resolveInfo.activityInfo.name;
         }
         return className;
@@ -302,6 +326,7 @@ public class AutoFileUtil {
 
     /**
      * zip解压
+     *
      * @param apkAbsolutePath
      * @param parentDir
      * @param unzipPwd
@@ -329,6 +354,7 @@ public class AutoFileUtil {
 
     /**
      * 解压前先删除存在的apk
+     *
      * @param dirPath
      * @param fileName
      */
@@ -347,6 +373,7 @@ public class AutoFileUtil {
 
     /**
      * 删除同名zip和apk
+     *
      * @param context
      * @param name
      */
@@ -365,12 +392,13 @@ public class AutoFileUtil {
 
     /**
      * 清空下载目录下所有zip和apk
+     *
      * @param context
      */
-    public static void deleteZipAndApk(Context context){
+    public static void deleteZipAndApk(Context context) {
         String path = createDefaultDir(context, mDirName);
         File[] cachefiles = new File(path).listFiles();
-        if(cachefiles != null){
+        if (cachefiles != null) {
             for (int i = 0; i < cachefiles.length; i++) {
                 if (cachefiles[i].getName().endsWith(".zip") || cachefiles[i].getName().endsWith(".apk")) {
                     cachefiles[i].delete();
@@ -381,6 +409,7 @@ public class AutoFileUtil {
 
     /**
      * 查找apk
+     *
      * @param dir
      * @param apkFullName
      * @return
@@ -398,10 +427,11 @@ public class AutoFileUtil {
 
     /**
      * 写出到文件
+     *
      * @param absolutePath
      * @param stream
      */
-    public static void writeToFile(String absolutePath,InputStream stream) {
+    public static void writeToFile(String absolutePath, InputStream stream) {
         File file = new File(absolutePath);
         FileOutputStream fileOutputStream = null;
         try {
@@ -430,6 +460,7 @@ public class AutoFileUtil {
 
     /**
      * 写出到文件重载
+     *
      * @param absolutePath
      * @param data
      */
@@ -455,6 +486,7 @@ public class AutoFileUtil {
 
     /**
      * 写出到文件重载
+     *
      * @param absolutePath
      * @param bitmap
      */
@@ -480,6 +512,7 @@ public class AutoFileUtil {
 
     /**
      * 写出到文件重载
+     *
      * @param absolutePath
      * @param string
      */
@@ -504,46 +537,52 @@ public class AutoFileUtil {
     }
 
     public interface InstallListener {
-        void onCheckedFail(int code,String message);
-        void onUnzipFail(int code,String message);
+        void onCheckedFail(int code, String message);
+
+        void onUnzipFail(int code, String message);
+
         void onUnzipSuccess(Activity context, File file, InstallListener listener);
-        void onUnzipIng(int code,String message);
-        void onInstallFail(int code,String message);
+
+        void onUnzipIng(int code, String message);
+
+        void onInstallFail(int code, String message);
+
         void onExecuteInstall();
     }
 
     /**
      * zip压缩
-     * @param src 原文件路径
+     *
+     * @param src  原文件路径
      * @param dest 目标文件路径
      */
-    public static void zipFile(Activity context,String src,String dest,ZipFileListener listener){
-        new Thread(){
+    public static void zipFile(Activity context, String src, String dest, ZipFileListener listener) {
+        new Thread() {
             @Override
             public void run() {
                 File srcFile = new File(src);
-                String substring = src.substring(src.lastIndexOf("/")+1,src.lastIndexOf("."));
-                File destFile = new File(dest,substring+".zip");
+                String substring = src.substring(src.lastIndexOf("/") + 1, src.lastIndexOf("."));
+                File destFile = new File(dest, substring + ".zip");
                 try {
                     ZipParameters parameters = new ZipParameters();
                     parameters.setCompressionMethod(CompressionMethod.DEFLATE);
                     parameters.setCompressionLevel(CompressionLevel.NORMAL);
                     ZipFile zipFile = new ZipFile(destFile);
-                    zipFile.addFile(srcFile,parameters);
-                    if(context != null){
-                        context.runOnUiThread(() -> listener.onZipFinish(true,destFile));
-                    }else {
-                        listener.onZipFinish(true,destFile);
+                    zipFile.addFile(srcFile, parameters);
+                    if (context != null) {
+                        context.runOnUiThread(() -> listener.onZipFinish(true, destFile));
+                    } else {
+                        listener.onZipFinish(true, destFile);
                     }
-                }catch (Exception e){
-                    if(context != null){
-                        context.runOnUiThread(() -> listener.onZipFinish(false,null));
-                    }else {
-                        listener.onZipFinish(false,null);
+                } catch (Exception e) {
+                    if (context != null) {
+                        context.runOnUiThread(() -> listener.onZipFinish(false, null));
+                    } else {
+                        listener.onZipFinish(false, null);
                     }
                     e.printStackTrace();
-                }finally {
-                    if(destFile.exists()){
+                } finally {
+                    if (destFile.exists()) {
                         destFile.delete();
                     }
                 }
@@ -553,6 +592,7 @@ public class AutoFileUtil {
 
     /**
      * 删除某个文件或某个目录及子文件
+     *
      * @param file
      */
     public static void deleteFile(File file) {
@@ -568,7 +608,7 @@ public class AutoFileUtil {
         }
     }
 
-    public interface ZipFileListener{
-        void onZipFinish(boolean isSuccess,File destZipFile);
+    public interface ZipFileListener {
+        void onZipFinish(boolean isSuccess, File destZipFile);
     }
 }

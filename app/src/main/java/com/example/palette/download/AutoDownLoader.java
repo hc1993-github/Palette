@@ -9,6 +9,7 @@ import android.text.TextUtils;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,11 +30,13 @@ public class AutoDownLoader {
     private static final int NET_ERROR_CODE = -1;
     private static final int SERVER_ERROR_CODE = -2;
     private static final int FILE_LENGTH_ERROR_CODE = -3;
-    private static final int UNKNOWN_ERROR_CODE = -4;
+    private static final int FILE_NOT_FOUND = -4;
+    private static final int UNKNOWN_ERROR_CODE = -5;
     private static final String NET_ERROR_INFO = "网络连接异常,下载失败";
     private static final String SERVER_ERROR_INFO = "服务器响应异常,下载失败";
     private static final String UNKNOWN_ERROR_INFO = "未知错误,下载失败";
     private static final String FILE_LENGTH_ERROR_INFO = "文件大小异常,下载失败";
+    private static final String FILE_NOT_FOUND_INFO = "本地文件不存在,下载失败";
     private volatile boolean mIsPause = true;
     private volatile boolean mIsCancel = false;
     private volatile boolean mIsEmptyed = false;
@@ -92,16 +95,16 @@ public class AutoDownLoader {
      * 下载
      *
      * @param url                  地址
-     * @param listener             监听器
      * @param destFileAbsolutePath 为空则默认/sdcard/applicationId后缀名/
      * @param isBreakPoint         是否断点下载
+     * @param listener             监听器
      */
-    public void download(String url, AutoProgressListener listener, String destFileAbsolutePath, boolean isBreakPoint) {
+    public void download(String url, String destFileAbsolutePath, boolean isBreakPoint, AutoProgressListener listener) {
         mIsBreakPoint = isBreakPoint;
         if (mIsBreakPoint) {
-            breakPointDownLoad(url, listener, destFileAbsolutePath);
+            breakPointDownLoad(url, destFileAbsolutePath, listener);
         } else {
-            commonDownLoad(url, listener, destFileAbsolutePath);
+            commonDownLoad(url, destFileAbsolutePath, listener);
         }
     }
 
@@ -109,10 +112,10 @@ public class AutoDownLoader {
      * 断点下载
      *
      * @param url                  地址
-     * @param listener             监听器
      * @param destFileAbsolutePath 文件绝对路径
+     * @param listener             监听器
      */
-    private void breakPointDownLoad(String url, AutoProgressListener listener, String destFileAbsolutePath) {
+    private void breakPointDownLoad(String url, String destFileAbsolutePath, AutoProgressListener listener) {
         try {
             mUrl = url;
             mIsPause = false;
@@ -169,7 +172,7 @@ public class AutoDownLoader {
                             sendMessage(2, (int) (((float) currentlength / filetotalsize) * 100), null);
                             randomAccessFile.seek(currentlength);
                             is = response.body().byteStream();
-                            byte[] buf = new byte[1024 * 4];
+                            byte[] buf = new byte[1024 * 10];
                             int readlength;
                             int currentreadlength = currentlength;
                             while ((readlength = is.read(buf)) != -1) {
@@ -210,6 +213,9 @@ public class AutoDownLoader {
                     }
                 }
             });
+        } catch (FileNotFoundException e){
+            sendMessage(6, FILE_NOT_FOUND, FILE_NOT_FOUND_INFO);
+            e.printStackTrace();
         } catch (Exception e) {
             sendMessage(6, UNKNOWN_ERROR_CODE, UNKNOWN_ERROR_INFO);
             e.printStackTrace();
@@ -220,10 +226,10 @@ public class AutoDownLoader {
      * 普通下载
      *
      * @param url
-     * @param listener
      * @param destFileAbsolutePath
+     * @param listener
      */
-    private void commonDownLoad(String url, AutoProgressListener listener, String destFileAbsolutePath) {
+    private void commonDownLoad(String url, String destFileAbsolutePath, AutoProgressListener listener) {
         try {
             mUrl = url;
             mIsPause = false;
@@ -264,7 +270,7 @@ public class AutoDownLoader {
                 }
 
                 @Override
-                public void onResponse(Call call, Response response){
+                public void onResponse(Call call, Response response) {
                     FileOutputStream fileOutputStream = null;
                     InputStream stream = null;
                     try {
@@ -274,7 +280,7 @@ public class AutoDownLoader {
                             stream = response.body().byteStream();
                             File file = new File(mDestFile.getAbsolutePath());
                             fileOutputStream = new FileOutputStream(file);
-                            byte[] buffer = new byte[1024 * 8];
+                            byte[] buffer = new byte[1024 * 10];
                             int length;
                             int currentLength = 0;
                             while ((length = stream.read(buffer)) != -1) {
@@ -303,10 +309,13 @@ public class AutoDownLoader {
                         } else {
                             sendMessage(6, SERVER_ERROR_CODE, SERVER_ERROR_INFO);
                         }
+                    } catch (FileNotFoundException e){
+                        sendMessage(6, FILE_NOT_FOUND, FILE_NOT_FOUND_INFO);
+                        e.printStackTrace();
                     } catch (Exception e) {
                         sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
                         e.printStackTrace();
-                    } finally {
+                    }  finally {
                         try {
                             if (fileOutputStream != null) {
                                 fileOutputStream.close();
@@ -377,7 +386,7 @@ public class AutoDownLoader {
      */
     public void resume() {
         if (!TextUtils.isEmpty(mUrl)) {
-            download(mUrl, mListener, mDestFileAbsolutePath, mIsBreakPoint);
+            download(mUrl, mDestFileAbsolutePath, mIsBreakPoint, mListener);
         }
     }
 
