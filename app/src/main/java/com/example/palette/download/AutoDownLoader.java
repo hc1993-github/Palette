@@ -313,6 +313,8 @@ public class AutoDownLoader {
                         sendMessage(6, FILE_NOT_FOUND, FILE_NOT_FOUND_INFO);
                         e.printStackTrace();
                     } catch (Exception e) {
+                        closeResources(fileOutputStream);
+                        deleteFile(mDestFile);
                         sendMessage(6, NET_ERROR_CODE, NET_ERROR_INFO);
                         e.printStackTrace();
                     }  finally {
