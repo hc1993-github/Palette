@@ -195,7 +195,7 @@ public class TaskUtil {
     }
 
     public interface ThreadLoopTasker {
-        void taskInThreadLoop();
+        void taskInThreadLoop(int loopNumber);
     }
 
     private static class ThreadTask extends Thread {
@@ -253,7 +253,7 @@ public class TaskUtil {
     private static class ThreadLoopThread extends Thread {
         private ThreadLoopTasker mThreadLoopTasker;
         private long mDelay;
-
+        private int mNumber;
         public ThreadLoopThread(long delay, ThreadLoopTasker threadLoopTasker) {
             mDelay = delay;
             mThreadLoopTasker = threadLoopTasker;
@@ -263,7 +263,8 @@ public class TaskUtil {
         public void run() {
             try {
                 while (!isInterrupted()) {
-                    mThreadLoopTasker.taskInThreadLoop();
+                    mNumber++;
+                    mThreadLoopTasker.taskInThreadLoop(mNumber);
                     sleep(mDelay);
                 }
             } catch (Throwable e) {
