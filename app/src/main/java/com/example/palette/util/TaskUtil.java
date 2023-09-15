@@ -7,6 +7,8 @@ import android.os.Message;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TaskUtil {
     private volatile static TaskUtil mInstance;
@@ -16,6 +18,7 @@ public class TaskUtil {
     private static final int DEFAULT_THREAD_TO_MAIN_FAIL = -1;
     private List<ThreadTask> mThreadTaskList = new ArrayList<>();
     private List<ThreadMainTask> mThreadMainTaskList = new ArrayList<>();
+    private Map<String, ThreadLoopThread> mThreadLoopThreadMap = new ConcurrentHashMap<>();
 
     public static TaskUtil getInstance() {
         if (mInstance == null) {
@@ -56,7 +59,7 @@ public class TaskUtil {
     }
 
     /**
-     * 子线程执行
+     * 子线程执行一次
      */
     public void doInThread(ThreadTasker threadTasker) {
         if (threadTasker != null) {
@@ -67,14 +70,14 @@ public class TaskUtil {
     }
 
     /**
-     * 主线程执行
+     * 主线程执行一次
      */
     public void doInMain(MainTasker mainTasker) {
         doInMainDelay(0, mainTasker);
     }
 
     /**
-     * 主线程延时时间后执行
+     * 主线程延时时间后执行一次
      */
     public void doInMainDelay(long delay, MainTasker mainTasker) {
         if (mainTasker != null && mMainHandler != null) {
@@ -88,20 +91,66 @@ public class TaskUtil {
     }
 
     /**
-     * 先在子线程执行再在主线程执行
+     * 先在子线程执行一次再在主线程执行一次
      */
     public void doInThreadInMain(ThreadMainTasker threadMainListener) {
         doInThreadDelayInMain(0, threadMainListener);
     }
 
     /**
-     * 先在子线程执行,延时时间后,再在主线程执行
+     * 先在子线程执行一次,延时时间后,再在主线程执行一次
      */
     public void doInThreadDelayInMain(long delay, ThreadMainTasker threadMainTasker) {
         if (threadMainTasker != null && mMainHandler != null) {
             ThreadMainTask threadMainTask = new ThreadMainTask(delay, threadMainTasker);
             mThreadMainTaskList.add(threadMainTask);
             threadMainTask.start();
+        }
+    }
+
+    /**
+     * 子线程循环任务
+     */
+    public void doLoopInThread(String name, long delay, ThreadLoopTasker threadLoopTasker) {
+        if (threadLoopTasker != null) {
+            ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
+            if (threadLoopThread == null) {
+                threadLoopThread = new ThreadLoopThread(delay, threadLoopTasker);
+                mThreadLoopThreadMap.put(name, threadLoopThread);
+            }
+            threadLoopThread.start();
+        }
+    }
+
+    /**
+     * 取消循环任务
+     */
+    public void cancelLoopInThread(String name) {
+        try {
+            ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
+            if (threadLoopThread != null) {
+                threadLoopThread.interrupt();
+                mThreadLoopThreadMap.remove(name);
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 销毁(Activity或APP退出时调用)
+     */
+    public void cancelAllLoopInThread() {
+        try {
+            Iterator<Map.Entry<String, ThreadLoopThread>> iterator = mThreadLoopThreadMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, ThreadLoopThread> next = iterator.next();
+                ThreadLoopThread threadLoopThread = next.getValue();
+                threadLoopThread.interrupt();
+                iterator.remove();
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
         }
     }
 
@@ -143,6 +192,10 @@ public class TaskUtil {
         Object taskInThread();
 
         void taskInMain(boolean threadNoException, Object object);
+    }
+
+    public interface ThreadLoopTasker {
+        void taskInThreadLoop();
     }
 
     private static class ThreadTask extends Thread {
@@ -193,6 +246,28 @@ public class TaskUtil {
                 e.printStackTrace();
             } finally {
                 mThreadMainTasker = null;
+            }
+        }
+    }
+
+    private static class ThreadLoopThread extends Thread {
+        private ThreadLoopTasker mThreadLoopTasker;
+        private long mDelay;
+
+        public ThreadLoopThread(long delay, ThreadLoopTasker threadLoopTasker) {
+            mDelay = delay;
+            mThreadLoopTasker = threadLoopTasker;
+        }
+
+        @Override
+        public void run() {
+            try {
+                while (!isInterrupted()) {
+                    mThreadLoopTasker.taskInThreadLoop();
+                    sleep(mDelay);
+                }
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         }
     }
