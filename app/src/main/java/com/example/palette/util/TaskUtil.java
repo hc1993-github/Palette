@@ -157,7 +157,7 @@ public class TaskUtil {
     /**
      * 销毁(Activity或APP退出时调用)
      */
-    public void destroy() {
+    public void cancelAllOnceInThread() {
         if (mMainHandler != null) {
             mMainHandler.removeCallbacksAndMessages(null);
             mMainHandler = null;
