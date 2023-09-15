@@ -61,7 +61,7 @@ public class TaskUtil {
     /**
      * 子线程执行一次
      */
-    public void doInThread(ThreadTasker threadTasker) {
+    public void doOnceInThread(ThreadTasker threadTasker) {
         if (threadTasker != null) {
             ThreadTask threadTask = new ThreadTask(threadTasker);
             mThreadTaskList.add(threadTask);
@@ -72,14 +72,14 @@ public class TaskUtil {
     /**
      * 主线程执行一次
      */
-    public void doInMain(MainTasker mainTasker) {
-        doInMainDelay(0, mainTasker);
+    public void doOnceInMain(MainTasker mainTasker) {
+        doOnceInMainDelay(0, mainTasker);
     }
 
     /**
      * 主线程延时时间后执行一次
      */
-    public void doInMainDelay(long delay, MainTasker mainTasker) {
+    public void doOnceInMainDelay(long delay, MainTasker mainTasker) {
         if (mainTasker != null && mMainHandler != null) {
             Message message = Message.obtain();
             message.what = MAIN;
@@ -93,14 +93,14 @@ public class TaskUtil {
     /**
      * 先在子线程执行一次再在主线程执行一次
      */
-    public void doInThreadInMain(ThreadMainTasker threadMainListener) {
-        doInThreadDelayInMain(0, threadMainListener);
+    public void doOnceInThreadInMain(ThreadMainTasker threadMainListener) {
+        doOnceInThreadDelayOnceInMain(0, threadMainListener);
     }
 
     /**
      * 先在子线程执行一次,延时时间后,再在主线程执行一次
      */
-    public void doInThreadDelayInMain(long delay, ThreadMainTasker threadMainTasker) {
+    public void doOnceInThreadDelayOnceInMain(long delay, ThreadMainTasker threadMainTasker) {
         if (threadMainTasker != null && mMainHandler != null) {
             ThreadMainTask threadMainTask = new ThreadMainTask(delay, threadMainTasker);
             mThreadMainTaskList.add(threadMainTask);
@@ -125,7 +125,7 @@ public class TaskUtil {
     /**
      * 取消循环任务
      */
-    public void cancelLoopInThread(String name) {
+    public void cancelWhichLoopInThread(String name) {
         try {
             ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
             if (threadLoopThread != null) {
