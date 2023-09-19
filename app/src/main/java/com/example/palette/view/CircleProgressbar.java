@@ -16,6 +16,9 @@ import com.example.palette.R;
 
 import java.text.DecimalFormat;
 
+/**
+ * 环形进度条
+ */
 public class CircleProgressbar extends View {
     int defaultSize;
     int defaultMax;

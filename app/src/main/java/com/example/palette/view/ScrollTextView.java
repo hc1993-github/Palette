@@ -16,7 +16,9 @@ import com.example.palette.bean.TextJson;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * 内容滚动TextView
+ */
 @SuppressLint("AppCompatCustomView")
 public class ScrollTextView extends TextView {
     private static final int scroll_slow = 0;

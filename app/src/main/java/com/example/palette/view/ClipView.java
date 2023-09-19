@@ -7,6 +7,9 @@ import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+/**
+ * 裁剪
+ */
 public class ClipView extends RelativeLayout {
     ScaleOrMoveView scaleOrMoveView;
     public static final int ROUND = 1;
@@ -21,6 +24,7 @@ public class ClipView extends RelativeLayout {
 
     public void setImageBitmap(Bitmap bitmap) {
         scaleOrMoveView.setImageBitmap(bitmap);
+        setClip(ROUND);
     }
 
     public Bitmap clip(){

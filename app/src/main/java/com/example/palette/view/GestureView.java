@@ -21,6 +21,9 @@ import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * 手指轨迹跟踪
+ */
 public class GestureView extends View {
     Path path;
     Paint paint;

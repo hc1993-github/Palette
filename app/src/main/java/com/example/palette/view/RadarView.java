@@ -16,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
+/**
+ * 雷达
+ */
 public class RadarView extends View {
     private Paint circlePaint;
     private Paint gradientPaint;

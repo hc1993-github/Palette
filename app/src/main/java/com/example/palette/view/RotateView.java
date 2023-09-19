@@ -8,6 +8,9 @@ import android.widget.RelativeLayout;
 
 import com.example.palette.util.ScreenUtil;
 
+/**
+ * XY旋转
+ */
 public class RotateView extends RelativeLayout {
     private float mMaxRadius = 300;
     private float mMaxCameraRotate = 30;

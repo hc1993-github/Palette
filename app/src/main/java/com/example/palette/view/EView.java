@@ -9,6 +9,9 @@ import android.view.View;
 
 import androidx.annotation.Nullable;
 
+/**
+ * E字
+ */
 public class EView extends View {
     Paint paint;
     public static final int UP = 1;

@@ -16,6 +16,9 @@ import android.view.View;
 
 import com.example.palette.R;
 
+/**
+ * 缩放移动
+ */
 public class ScaleOrMoveView extends View {
     public static final int STATUS_INIT = 1;
     public static final int STATUS_BIGGER = 2;

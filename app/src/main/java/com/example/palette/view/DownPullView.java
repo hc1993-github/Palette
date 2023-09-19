@@ -23,6 +23,9 @@ import com.example.palette.util.ScreenUtil;
 
 import java.util.List;
 
+/**
+ * 下拉选择
+ */
 public class DownPullView extends LinearLayout {
     private int itemLimit;
     private int selfLayout;

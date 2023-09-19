@@ -19,6 +19,9 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 可拖动的数字选择
+ */
 public class SliderView extends View {
     int mDefaultWidth = 200;
     int mDefaultHeight = 100;

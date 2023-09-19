@@ -16,6 +16,9 @@ import android.view.View;
 import com.example.palette.R;
 import com.example.palette.util.ScreenUtil;
 
+/**
+ * 开关
+ */
 public class SwitchView extends View {
     int defaultWidthSize = 200;
     int defaultHeightSize = 100;
@@ -49,8 +52,8 @@ public class SwitchView extends View {
         bgPaintCloseColor = typedArray.getColor(R.styleable.SwitchView_bgPaintCloseColor,Color.GRAY);
         centerPaintColor = typedArray.getColor(R.styleable.SwitchView_centerPaintColor,Color.WHITE);
         textPaintColor = typedArray.getColor(R.styleable.SwitchView_textPaintColor,Color.BLACK);
-        start = typedArray.getString(R.styleable.SwitchView_openText)==null?" ":typedArray.getString(R.styleable.SwitchView_openText);
-        end = typedArray.getString(R.styleable.SwitchView_closeText)==null?" ":typedArray.getString(R.styleable.SwitchView_closeText);
+        start = typedArray.getString(R.styleable.SwitchView_openText)==null?"开":typedArray.getString(R.styleable.SwitchView_openText);
+        end = typedArray.getString(R.styleable.SwitchView_closeText)==null?"关":typedArray.getString(R.styleable.SwitchView_closeText);
         typedArray.recycle();
         init();
     }

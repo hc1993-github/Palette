@@ -17,6 +17,9 @@ import androidx.appcompat.widget.AppCompatEditText;
 
 import com.example.palette.R;
 
+/**
+ * 密码输入框
+ */
 public class KeyWordView extends AppCompatEditText implements TextWatcher {
     private int mDefaultBgColor = Color.parseColor("#666666");
     private int mDefaultBgWith = 5;

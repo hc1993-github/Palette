@@ -19,7 +19,11 @@ import com.example.palette.util.ScreenUtil;
 
 import java.text.DecimalFormat;
 
-public class CustomProgressbar extends ProgressBar {
+/**
+ * 水平进度条
+ * style="?android:attr/progressBarStyleHorizontal"
+ */
+public class HorizontalProgressbar extends ProgressBar {
     private int mProgress;
     private DecimalFormat decimalFormat;
     private Rect rect;
@@ -32,7 +36,7 @@ public class CustomProgressbar extends ProgressBar {
     private RectF rectF;
     private int color;
     private Canvas bufferCanvas;
-    public CustomProgressbar(Context context, AttributeSet attrs) {
+    public HorizontalProgressbar(Context context, AttributeSet attrs) {
         super(context, attrs);
         decimalFormat = new DecimalFormat("#0");
         rect = new Rect();

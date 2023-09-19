@@ -15,7 +15,9 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-
+/**
+ * 刮刮卡
+ */
 public class GuaGuaKaView extends View {
     Bitmap mPic;
     Bitmap mBitmap;

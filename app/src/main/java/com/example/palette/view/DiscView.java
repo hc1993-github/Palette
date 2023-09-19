@@ -16,7 +16,9 @@ import android.widget.TextView;
 import com.example.palette.R;
 import com.example.palette.util.ScreenUtil;
 
-
+/**
+ * 圆形滚动
+ */
 public class DiscView extends ViewGroup {
     private int defaultRadius;
     private int mRadius;

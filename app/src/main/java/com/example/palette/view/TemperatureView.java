@@ -19,6 +19,9 @@ import com.example.palette.util.ScreenUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 温度
+ */
 public class TemperatureView extends View {
     int defaultSize;
     int defaultPaintStrokeWidth;
