@@ -3,6 +3,7 @@ package com.example.palette.util;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.text.TextUtils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -80,6 +81,9 @@ public class TaskUtil {
      * 主线程延时时间后执行一次
      */
     public void doOnceInMainDelay(long delay, MainTasker mainTasker) {
+        if (delay < 0) {
+            throw new NullPointerException("delay must be bigger than zero");
+        }
         if (mainTasker != null && mMainHandler != null) {
             Message message = Message.obtain();
             message.what = MAIN;
@@ -101,6 +105,9 @@ public class TaskUtil {
      * 先在子线程执行一次,延时时间后,再在主线程执行一次
      */
     public void doOnceInThreadDelayOnceInMain(long delay, ThreadMainTasker threadMainTasker) {
+        if (delay < 0) {
+            throw new NullPointerException("delay must be bigger than zero");
+        }
         if (threadMainTasker != null && mMainHandler != null) {
             ThreadMainTask threadMainTask = new ThreadMainTask(delay, threadMainTasker);
             mThreadMainTaskList.add(threadMainTask);
@@ -112,6 +119,12 @@ public class TaskUtil {
      * 子线程循环任务
      */
     public void doLoopInThread(String name, long delay, ThreadLoopTasker threadLoopTasker) {
+        if (delay < 0) {
+            throw new NullPointerException("delay must be bigger than zero");
+        }
+        if (TextUtils.isEmpty(name)) {
+            throw new NullPointerException("name must be not empty");
+        }
         if (threadLoopTasker != null) {
             ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
             if (threadLoopThread == null) {
@@ -126,6 +139,9 @@ public class TaskUtil {
      * 取消循环任务
      */
     public void cancelWhichLoopInThread(String name) {
+        if (TextUtils.isEmpty(name)) {
+            throw new NullPointerException("name must be not empty");
+        }
         try {
             ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
             if (threadLoopThread != null) {
@@ -254,6 +270,7 @@ public class TaskUtil {
         private ThreadLoopTasker mThreadLoopTasker;
         private long mDelay;
         private int mNumber;
+
         public ThreadLoopThread(long delay, ThreadLoopTasker threadLoopTasker) {
             mDelay = delay;
             mThreadLoopTasker = threadLoopTasker;
