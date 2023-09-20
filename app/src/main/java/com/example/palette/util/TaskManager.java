@@ -43,14 +43,26 @@ public class TaskManager {
                     case MAIN:
                         if (mMainHandler != null) {
                             MainTasker mainTasker = (MainTasker) msg.obj;
-                            mainTasker.taskInMain();
+                            try {
+                                mainTasker.taskInMain();
+                                mainTasker.taskInMainFinish(false);
+                            } catch (Throwable e) {
+                                mainTasker.taskInMainFinish(true);
+                                e.printStackTrace();
+                            }
                         }
                         break;
                     case THREAD_TO_MAIN:
                         if (mMainHandler != null) {
-                            Data data = (Data) msg.obj;
+                            ThreadMainTaskerData data = (ThreadMainTaskerData) msg.obj;
                             ThreadMainTasker threadMainTasker = data.getListener();
-                            threadMainTasker.taskInMain(data.getSuccess(), data.getObject());
+                            try {
+                                threadMainTasker.taskInMain(data.getObject());
+                                threadMainTasker.taskInMainFinish(false);
+                            } catch (Throwable e) {
+                                threadMainTasker.taskInMainFinish(true);
+                                e.printStackTrace();
+                            }
                             data.clear();
                         }
                         break;
@@ -197,21 +209,74 @@ public class TaskManager {
     }
 
     public interface ThreadTasker {
+        /**
+         * 子线程执行
+         */
         void taskInThread();
+
+        /**
+         * 是否执行发生异常(回调在子线程)
+         *
+         * @param isHappenException true 是 false 否
+         */
+        void taskInThreadFinish(boolean isHappenException);
     }
 
     public interface MainTasker {
+        /**
+         * 主线程执行
+         */
         void taskInMain();
+
+        /**
+         * 是否执行发生异常(回调在主线程)
+         *
+         * @param isHappenException true 是 false 否
+         */
+        void taskInMainFinish(boolean isHappenException);
     }
 
     public interface ThreadMainTasker {
+        /**
+         * 子线程执行
+         *
+         * @return 传给主线程的结果
+         */
         Object taskInThread();
 
-        void taskInMain(boolean threadNoException, Object object);
+        /**
+         * 是否执行发生异常(回调在子线程)
+         *
+         * @param isHappenException true 是 false 否
+         */
+        void taskInThreadFinish(boolean isHappenException);
+
+        /**
+         * 主线程执行
+         *
+         * @param object 接收子线程的结果
+         */
+        void taskInMain(Object object);
+
+        /**
+         * 是否执行发生异常(回调在主线程)
+         *
+         * @param isHappenException true 是 false 否
+         */
+        void taskInMainFinish(boolean isHappenException);
     }
 
     public interface ThreadLoopTasker {
+        /**
+         * 子线程循环执行
+         * @param loopNumber 循环到第几次
+         */
         void taskInThreadLoop(int loopNumber);
+
+        /**
+         * 子线程循环发生异常(回调在子线程)
+         */
+        void taskInThreadLoopHappenException();
     }
 
     private static class ThreadTask extends Thread {
@@ -225,7 +290,9 @@ public class TaskManager {
         public void run() {
             try {
                 mThreadTasker.taskInThread();
+                mThreadTasker.taskInThreadFinish(false);
             } catch (Throwable e) {
+                mThreadTasker.taskInThreadFinish(true);
                 e.printStackTrace();
             } finally {
                 mThreadTasker = null;
@@ -246,16 +313,18 @@ public class TaskManager {
         public void run() {
             try {
                 Object o = mThreadMainTasker.taskInThread();
+                mThreadMainTasker.taskInThreadFinish(false);
                 Message message = Message.obtain();
                 message.what = THREAD_TO_MAIN;
-                message.obj = new Data(mThreadMainTasker, true, o);
+                message.obj = new ThreadMainTaskerData(mThreadMainTasker, o);
                 if (mMainHandler != null) {
                     mMainHandler.sendMessageDelayed(message, mDelay);
                 }
             } catch (Throwable e) {
+                mThreadMainTasker.taskInThreadFinish(true);
                 Message message = Message.obtain();
                 message.what = THREAD_TO_MAIN;
-                message.obj = new Data(mThreadMainTasker, false, DEFAULT_THREAD_TO_MAIN_FAIL);
+                message.obj = new ThreadMainTaskerData(mThreadMainTasker, DEFAULT_THREAD_TO_MAIN_FAIL);
                 if (mMainHandler != null) {
                     mMainHandler.sendMessageDelayed(message, mDelay);
                 }
@@ -285,28 +354,23 @@ public class TaskManager {
                     sleep(mDelay);
                 }
             } catch (Throwable e) {
+                mThreadLoopTasker.taskInThreadLoopHappenException();
                 e.printStackTrace();
             }
         }
     }
 
-    private static class Data {
+    private static class ThreadMainTaskerData {
         private ThreadMainTasker mThreadMainTasker;
-        private boolean mThreadNoException;
         private Object mObject;
 
-        public Data(ThreadMainTasker threadMainTasker, boolean threadNoException, Object object) {
+        public ThreadMainTaskerData(ThreadMainTasker threadMainTasker, Object object) {
             mThreadMainTasker = threadMainTasker;
-            mThreadNoException = threadNoException;
             mObject = object;
         }
 
         public ThreadMainTasker getListener() {
             return mThreadMainTasker;
-        }
-
-        public boolean getSuccess() {
-            return mThreadNoException;
         }
 
         public Object getObject() {
