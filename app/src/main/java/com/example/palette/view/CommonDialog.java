@@ -45,7 +45,7 @@ public class CommonDialog extends Dialog {
 //        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
         super.show();
         if (builder.isFullScreen){
-            ScreenUtil.barHide(null,this);
+            ScreenUtil.hideStatusAndNavigationBar(null,this);
         }
         //fullScreenImmersive(getWindow().getDecorView());
         //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);

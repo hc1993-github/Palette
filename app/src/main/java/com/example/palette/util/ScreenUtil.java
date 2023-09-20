@@ -139,7 +139,7 @@ public class ScreenUtil {
      * 状态栏全透明
      * @param activity
      */
-    public static void statusBarFullTransparent(Activity activity){
+    public static void transparentAllStatusBar(Activity activity){
         Window window = activity.getWindow();
         if (Build.VERSION.SDK_INT >= 21) {
             window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
@@ -155,7 +155,7 @@ public class ScreenUtil {
      * 状态栏半透明
      * @param activity
      */
-//    public static void statusBarHalfTransparent(Activity activity){
+//    public static void transparentHalfStatusBar(Activity activity){
 //        Window window = activity.getWindow();
 //        if (Build.VERSION.SDK_INT >= 21) {
 //            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
@@ -165,14 +165,15 @@ public class ScreenUtil {
 
     /**
      * 导航栏和状态栏隐藏
-     * @param activity
      */
-    public static void barHide(Activity activity, Dialog dialog){
-        View view = null;
+    public static void hideStatusAndNavigationBar(Activity activity, Dialog dialog){
+        View view;
         if(activity!=null && dialog==null){
             view = activity.getWindow().getDecorView();
         }else if(activity==null && dialog!=null){
             view = dialog.getWindow().getDecorView();
+        }else {
+            throw new RuntimeException("activity或dialog其中一个不能为空");
         }
         int option = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -185,25 +186,38 @@ public class ScreenUtil {
 
     /**
      * 状态栏隐藏
-     * @param activity
      */
-    public static void statusBarHide(Activity activity){
-        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    public static void hideStatusBar(Activity activity,Dialog dialog){
+        View view;
+        if(activity!=null && dialog==null){
+            view = activity.getWindow().getDecorView();
+        }else if(activity==null && dialog!=null){
+            view = dialog.getWindow().getDecorView();
+        }else {
+            throw new RuntimeException("activity或dialog其中一个不能为空");
+        }
+        view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     /**
      * 导航栏隐藏
-     * @param activity
      */
-    public static void navBarHide(Activity activity){
-        activity.getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    public static void hideNavigationBar(Activity activity,Dialog dialog){
+        View view;
+        if(activity!=null && dialog==null){
+            view = activity.getWindow().getDecorView();
+        }else if(activity==null && dialog!=null){
+            view = dialog.getWindow().getDecorView();
+        }else {
+            throw new RuntimeException("activity或dialog其中一个不能为空");
+        }
+        view.setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
     /**
      * 控件适配 防止覆盖状态栏
-     * @param autoFitViews
      */
-    public static void viewImmersiveAdapter(View...autoFitViews){
+    public static void viewAdapterStatusBar(View...autoFitViews){
         if(autoFitViews!=null && autoFitViews.length>0){
             for(View v:autoFitViews){
                 ViewCompat.setOnApplyWindowInsetsListener(v, new OnApplyWindowInsetsListener() {
@@ -224,14 +238,8 @@ public class ScreenUtil {
      * @param view
      */
     public static void showSoftInput(final Context context, final View view) {
-
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-            public void run() {
-                InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.showSoftInput(view, WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-            }
-        }, 998);
+        InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.showSoftInput(view, WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
     }
 
     /**
@@ -249,7 +257,7 @@ public class ScreenUtil {
      * @param context
      * @return
      */
-    public static boolean isShowSoftInput(Context context,View view) {
+    public static boolean isShowSoftInputShow(Context context,View view) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         //获取状态信息
         return imm.isActive(view);//true 打开
