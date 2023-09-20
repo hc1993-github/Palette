@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TaskUtil {
-    private volatile static TaskUtil mInstance;
+public class TaskManager {
+    private volatile static TaskManager mInstance;
     private static Handler mMainHandler;
     private static final int MAIN = 10000;
     private static final int THREAD_TO_MAIN = 10001;
@@ -21,11 +21,11 @@ public class TaskUtil {
     private List<ThreadMainTask> mThreadMainTaskList = new ArrayList<>();
     private Map<String, ThreadLoopThread> mThreadLoopThreadMap = new ConcurrentHashMap<>();
 
-    public static TaskUtil getInstance() {
+    public static TaskManager getInstance() {
         if (mInstance == null) {
-            synchronized (TaskUtil.class) {
+            synchronized (TaskManager.class) {
                 if (mInstance == null) {
-                    mInstance = new TaskUtil();
+                    mInstance = new TaskManager();
                 }
             }
         }
