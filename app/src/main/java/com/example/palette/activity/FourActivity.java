@@ -18,6 +18,9 @@ import javax.inject.Inject;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
+/**
+ * 串口调用等样例
+ */
 @AndroidEntryPoint
 public class FourActivity extends AppCompatActivity implements SerialPortHelper.SerialPortListener {
 

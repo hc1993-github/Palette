@@ -24,6 +24,9 @@ import com.example.palette.view.GestureView;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * java远程控制鼠标样例
+ */
 public class SixActivity extends AppCompatActivity implements GestureView.TouchListener, View.OnClickListener,MouseClient.ClientListener{
     GestureView gestureView;
     EditText editText;

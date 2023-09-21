@@ -1,31 +1,13 @@
 package com.hc.other;
 
-import java.awt.BorderLayout;
-import java.awt.HeadlessException;
 import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.security.MessageDigest;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Random;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandler;
@@ -45,60 +27,15 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
 
 public class MyClass {
-    /**
-     * **                  **     **
-     * ********     ********        ******    **     *********
-     * **     **    **            **     **     **     **
-     * ** **        **                 *     **     **   * **
-     * **        ***                 **    ** *   **     **
-     * ** **     **  **              ****   *     *
-     * **   **   **    **          ****   ********************
-     * **      **
-     */
+
     public static void main(String[] args) {
         try {
 //            MouseServer mouseServer = new MouseServer(9999);
 //            mouseServer.start();
-//            System.out.print((getMd5ByFile(new File("D:\\HealthQianHeAPP_chsV2.1_3_debug.apk"))));
-            createFile(40, 500, 0.47f);
+            createDimensFile(40, 500, 0.47f);
             System.out.print(pwdCheck("12a"));
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-
-    public static String readFromFile(String srcAbsolutePath) {
-        InputStream inputStream = null;
-        InputStreamReader inputStreamReader = null;
-        try {
-            File file = new File(srcAbsolutePath);
-            if (file.exists() && !file.isDirectory() && file.canRead()) {
-                StringBuilder stringBuilder = new StringBuilder();
-                inputStream = new FileInputStream(file);
-                inputStreamReader = new InputStreamReader(inputStream, "utf-8");
-                int length;
-                char[] buffer = new char[1024 * 4];
-                while ((length = inputStreamReader.read(buffer)) != -1) {
-                    stringBuilder.append(buffer, 0, length);
-                }
-                return stringBuilder.toString();
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-                if (inputStreamReader != null) {
-                    inputStreamReader.close();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -125,29 +62,7 @@ public class MyClass {
         }
     }
 
-    public static String getRandomString(int length) {
-        String str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        Random random = new Random();
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            int nextInt = random.nextInt(62);
-            builder.append(str.charAt(nextInt));
-        }
-        return builder.toString();
-    }
-
-    public static boolean isMobliePhone(String mobilePhone) {
-        Pattern pattern = Pattern.compile("^[1][3,4,5,6,7,8,9][0-9]{9}");
-        Matcher m = pattern.matcher(mobilePhone);
-        return m.matches();
-    }
-
-    public static boolean isEmail(String email) {
-        String regex = "\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*";
-        return email.matches(regex);
-    }
-
-    public static void createFile(int spline, int dpline, float scale) {
+    public static void createDimensFile(int spline, int dpline, float scale) {
         //1080/(480/160)  宽度/屏幕像素密度/160  --->sw-360dp
         //dp=px/density  density=dpi/160
         //设基准为380dp 则scale=360/380
@@ -206,61 +121,6 @@ public class MyClass {
 
     }
 
-    public static String getMd5ByFile(File file) {
-        FileInputStream in = null;
-        StringBuffer sb = new StringBuffer();
-        try {
-            in = new FileInputStream(file);
-            FileChannel channel = in.getChannel();
-            long position = 0;
-            long total = file.length();
-            long page = 1024 * 1024 * 500;
-            MessageDigest md5 = MessageDigest.getInstance("MD5");
-            while (position < total) {
-                long size = page <= total - position ? page : total - position;
-                MappedByteBuffer byteBuffer = channel.map(FileChannel.MapMode.READ_ONLY, position, size);
-                position += size;
-                md5.update(byteBuffer);
-            }
-            byte[] b = md5.digest();
-
-            for (int i = 0; i < b.length; i++) {
-                sb.append(byteToChars(b[i]));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return sb.toString().toLowerCase();
-    }
-
-    private static char[] byteToChars(byte b) {
-        int h = ((b & 0xf0) >> 4);
-        int l = (b & 0x0f);
-        char[] r = new char[2];
-        r[0] = intToChart(h);
-        r[1] = intToChart(l);
-
-        return r;
-    }
-
-    private static char intToChart(int i) {
-        if (i < 0 || i > 15) {
-            return ' ';
-        }
-        if (i < 10) {
-            return (char) (i + 48);
-        } else {
-            return (char) (i + 55);
-        }
-    }
-
     public static boolean pwdCheck(String value) {
         boolean isPass;
         String letter_regex = "^.*[a-zA-Z]+.*$";
@@ -275,7 +135,7 @@ public class MyClass {
         return isPass;
     }
 
-    public static boolean simpleLetterAndNumCheck(String value, int length) {
+    private static boolean simpleLetterAndNumCheck(String value, int length) {
         //是否合法
         boolean isValidate = true;
         //
@@ -310,42 +170,8 @@ public class MyClass {
         return isValidate;
     }
 
-    public static boolean rangeInDefined(int current, int min, int max) {
-        //
+    private static boolean rangeInDefined(int current, int min, int max) {
         return Math.max(min, current) == Math.min(current, max);
-    }
-
-    public static class KeyEvent_example extends JFrame {
-        public KeyEvent_example() throws HeadlessException {
-            super();
-            setBounds(100, 100, 500, 375);
-            setTitle("键盘事件实例");
-            setDefaultCloseOperation(EXIT_ON_CLOSE);
-            JLabel label = new JLabel();
-            label.setText("备注");
-            getContentPane().add(label, BorderLayout.WEST);
-            JScrollPane scrollPane = new JScrollPane();
-            getContentPane().add(scrollPane, BorderLayout.CENTER);
-            JTextArea textArea = new JTextArea();
-            textArea.addKeyListener(new KeyListener() {
-                @Override
-                public void keyTyped(KeyEvent keyEvent) {
-
-                }
-
-                @Override
-                public void keyPressed(KeyEvent keyEvent) {
-                    String text = KeyEvent.getKeyText(keyEvent.getKeyCode());
-                    System.out.println(keyEvent.getKeyCode());
-                }
-
-                @Override
-                public void keyReleased(KeyEvent keyEvent) {
-
-                }
-            });
-            scrollPane.setViewportView(textArea);
-        }
     }
 
     @ChannelHandler.Sharable

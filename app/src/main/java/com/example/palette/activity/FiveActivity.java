@@ -16,6 +16,9 @@ import android.widget.Toast;
 
 import com.example.palette.R;
 
+/**
+ * js互调样例
+ */
 public class FiveActivity extends AppCompatActivity {
     int progress;
     @Override

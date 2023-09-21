@@ -21,6 +21,9 @@ import com.example.palette.R;
 
 import java.util.List;
 
+/**
+ * 图片颜色分析样例
+ */
 public class MainActivity extends AppCompatActivity {
     ImageView imageView;
     Button button;

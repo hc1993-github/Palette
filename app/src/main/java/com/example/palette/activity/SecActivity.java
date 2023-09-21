@@ -14,6 +14,9 @@ import android.webkit.WebViewClient;
 
 import com.example.palette.R;
 
+/**
+ * webView使用样例
+ */
 public class SecActivity extends AppCompatActivity {
 
     private static final String TAG = "SecActivity";

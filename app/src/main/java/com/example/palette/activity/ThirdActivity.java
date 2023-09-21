@@ -24,6 +24,9 @@ import java.util.List;
 
 import static android.util.Base64.NO_WRAP;
 
+/**
+ * soapService调用样例
+ */
 public class ThirdActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
