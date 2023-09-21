@@ -2,39 +2,64 @@ package com.example.palette.util;
 
 import android.text.TextUtils;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtil {
     public static final String TYPE_ONE = "yyyy-MM-dd HH:mm:ss";
+    public static final String TYPE_TWO = "yyyy-MM-dd";
 
     /**
-     * 获取当前时间
-     * @param format
+     * 获取当前时间yyyy-MM-dd HH:mm:ss
+     *
      * @return
      */
-    public static String getNowTime(String format){
+    public static String getFullNowTime() {
         Date date = new Date();
-        if(TextUtils.isEmpty(format)){
-            format = TYPE_ONE;
-        }
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
+        SimpleDateFormat sdf = new SimpleDateFormat(TYPE_ONE);
         return sdf.format(date);
     }
 
     /**
+     * 获取当前时间yyyy-MM-dd
+     *
+     * @return
+     */
+    public static String getSimpleNowTime() {
+        Date date = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat(TYPE_TWO);
+        return sdf.format(date);
+    }
+
+    /**
+     * 获取自定义格式时间
+     *
+     * @param format
+     * @return
+     */
+    public static String getCustomNowTime(String format) {
+        if (TextUtils.isEmpty(format)) {
+            return null;
+        } else {
+            Date date = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            return sdf.format(date);
+        }
+    }
+
+    /**
      * 将字符串日期转Date
+     *
      * @param dateString
      * @param format
      * @return
      */
-    public static Date stringToDate(String dateString,String format){
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
+    public static Date getDataFromString(String dateString, String format) {
         try {
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
             return sdf.parse(dateString);
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -42,61 +67,78 @@ public class DateUtil {
 
     /**
      * 将Date转字符串日期
+     *
      * @param date
      * @param format
      * @return
      */
-    public static String dateToString(Date date,String format){
-        if(TextUtils.isEmpty(format)){
-            format = TYPE_ONE;
+    public static String getStringFromDate(Date date, String format) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat(format);
+            return sdf.format(date);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        SimpleDateFormat sdf = new SimpleDateFormat(format);
-        return sdf.format(date);
+        return null;
     }
 
     /**
      * 获取指定日期对应星期
+     *
      * @param date
-     * @return
+     * @return 1-7
      */
-    public static String getWeekByDate(Date date){
-        String[] weeks = {"周日","周一","周二","周三","周四","周五","周六"};
+    public static int getWeekByDate(Date date) {
+        int[] weeks = {7, 1, 2, 3, 4, 5, 6};
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
-        int week = calendar.get(Calendar.DAY_OF_WEEK)-1;
-        if(week<0){
-            week=0;
+        int week = calendar.get(Calendar.DAY_OF_WEEK) - 1;
+        if (week < 0) {
+            week = 0;
         }
         return weeks[week];
     }
 
     /**
      * 获取某月第一天
+     *
      * @param year
      * @param month
      * @return
      */
-    public static Date getFisrtDayOfMonth(int year,int month){
+    public static Date getFirstDayOfMonth(int year, int month) {
         Calendar cal = Calendar.getInstance();
-        //设置年份
-        cal.set(Calendar.YEAR,year);
-        //设置月份
-        cal.set(Calendar.MONTH, month-1);
-        //获取某月最小天数
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, month - 1);
         int firstDay = cal.getActualMinimum(Calendar.DAY_OF_MONTH);
-        //设置日历中月份的最小天数
         cal.set(Calendar.DAY_OF_MONTH, firstDay);
         return cal.getTime();
     }
 
     /**
-     * 获取某月的天数
+     * 获取某月最后一天
      * @param year
      * @param month
      * @return
      */
-    public static int daysOfMonth(int year,int month){
-        switch (month){
+    public static Date getLastDayOfMonth(int year, int month) {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, month - 1);
+        int lastDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        cal.set(Calendar.DAY_OF_MONTH, lastDay);
+        return cal.getTime();
+    }
+
+    /**
+     * 获取某月的天数
+     *
+     * @param year
+     * @param month
+     * @return
+     */
+    public static int getDaysOfMonth(int year, int month) {
+        switch (month) {
             case 1:
             case 3:
             case 5:
@@ -111,9 +153,9 @@ public class DateUtil {
             case 11:
                 return 30;
             case 2:
-                if((year%4==0 && year%100==0)||year%400!=0){
+                if ((year % 4 == 0 && year % 100 == 0) || year % 400 != 0) {
                     return 29;
-                }else {
+                } else {
                     return 28;
                 }
             default:
@@ -123,57 +165,63 @@ public class DateUtil {
 
     /**
      * 设置时间
+     *
      * @param year
      * @param month
      * @param day
      */
-    public static void setCalendar(Calendar calendar,int year,int month,int day){
-        calendar.set(year,month-1,day);
+    public static void setCalendar(Calendar calendar, int year, int month, int day) {
+        calendar.set(year, month - 1, day);
     }
 
     /**
-     *设置前一天
+     * 设置前一天
+     *
      * @param cal
      * @return
      */
-    public static Calendar setBefore(Calendar cal){
+    public static Calendar setBefore(Calendar cal) {
         int day = cal.get(Calendar.DATE);
-        cal.set(Calendar.DATE,day-1);
+        cal.set(Calendar.DATE, day - 1);
         return cal;
     }
 
     /**
      * 设置后一天
+     *
      * @param cal
      * @return
      */
-    public static Calendar setAfter(Calendar cal){
+    public static Calendar setAfter(Calendar cal) {
         int day = cal.get(Calendar.DATE);
-        cal.set(Calendar.DATE,day+1);
+        cal.set(Calendar.DATE, day + 1);
         return cal;
     }
 
     /**
      * 获取年
+     *
      * @return
      */
-    public static int getYear(Calendar calendar){
+    public static int getYear(Calendar calendar) {
         return calendar.get(Calendar.YEAR);
     }
 
     /**
      * 获取月
+     *
      * @return
      */
-    public static int getMonth(Calendar calendar){
-        return calendar.get(Calendar.MONTH)+1;
+    public static int getMonth(Calendar calendar) {
+        return calendar.get(Calendar.MONTH) + 1;
     }
 
     /**
      * 获取日
+     *
      * @return
      */
-    public static int getDate(Calendar calendar){
+    public static int getDate(Calendar calendar) {
         return calendar.get(Calendar.DATE);
     }
 

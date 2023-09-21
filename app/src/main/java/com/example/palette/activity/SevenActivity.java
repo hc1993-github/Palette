@@ -7,6 +7,8 @@ import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -41,8 +43,15 @@ public class SevenActivity extends AppCompatActivity {
         imageView.setOnClickListener(new QuickClickListener() {
             @Override
             public void onQuickClickPass(View v) {
-                Intent intent = new Intent(SevenActivity.this, CaptureActivity.class);
-                startActivityForResult(intent,1);
+//                Intent intent = new Intent(SevenActivity.this, CaptureActivity.class);
+//                startActivityForResult(intent,1);
+                Animation animation = AnimationUtils.loadAnimation(SevenActivity.this, R.anim.shake);
+                imageView.startAnimation(animation);
+            }
+
+            @Override
+            public void onQuickClickNoPass(View v) {
+                Log.i(TAG,"click too quick");
             }
         });
         Log.i(TAG,BitmapUtil.bitmapToString(b));
