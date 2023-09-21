@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.example.palette.util.FileUtil;
+import com.example.palette.util.PackageUtil;
 
 public class ApkInstallReceiver extends BroadcastReceiver {
     @Override
@@ -12,7 +13,7 @@ public class ApkInstallReceiver extends BroadcastReceiver {
         if(Intent.ACTION_PACKAGE_ADDED.equals(intent.getAction()) || Intent.ACTION_PACKAGE_REPLACED.equals(intent.getAction())){
 
             String installApplicationId = intent.getDataString().substring(8);
-            String launcherActivityName = FileUtil.getLauncherActivityName(context, null);
+            String launcherActivityName = PackageUtil.getLauncherActivityName(context, null);
             String applicationId = null;
             if(installApplicationId.equals(applicationId)){ //安装完后自启动
                 Intent i = new Intent();

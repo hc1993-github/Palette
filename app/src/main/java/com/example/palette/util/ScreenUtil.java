@@ -53,6 +53,11 @@ public class ScreenUtil {
         return displayMetrics.widthPixels;
     }
 
+    /**
+     * 获取屏幕高度
+     * @param context
+     * @return
+     */
     public static int getHeightPx(Context context){
         DisplayMetrics displayMetrics = new DisplayMetrics();
         WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
@@ -61,7 +66,7 @@ public class ScreenUtil {
     }
 
     /**
-     * 获取屏幕高度
+     * 获取dpi
      * @param context
      * @return
      */
