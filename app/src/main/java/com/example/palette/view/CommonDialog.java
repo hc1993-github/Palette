@@ -10,8 +10,6 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 
-import com.example.palette.util.ScreenUtil;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +32,7 @@ public class CommonDialog extends Dialog {
         window.setTitle(null);//dialog无标题
         int id = builder.context.getResources().getIdentifier("android:id/titleDivider", null, null);//去除老设备蓝线问题
         View view = findViewById(id);
-        if(view!=null){
+        if (view != null) {
             view.setBackgroundColor(Color.TRANSPARENT);
         }
         initViews();
@@ -42,22 +40,29 @@ public class CommonDialog extends Dialog {
 
     @Override
     public void show() {
-//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
-        super.show();
-        if (builder.isFullScreen){
-            ScreenUtil.hideStatusAndNavigationBar(null,this);
+        if (builder.isFullScreen) {
+            Window window = getWindow();
+            window.setFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+            super.show();
+            fullScreenImmersive(window);
+            window.clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
+        } else {
+            super.show();
         }
-        //fullScreenImmersive(getWindow().getDecorView());
-        //getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE);
     }
 
-    private void fullScreenImmersive(View view) {
+    private void fullScreenImmersive(Window window) {
+        View view = window.getDecorView();
         int uiOptions = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_FULLSCREEN;
+        if (Build.VERSION.SDK_INT >= 19) {
+            uiOptions |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+        } else {
+            uiOptions |= View.SYSTEM_UI_FLAG_LOW_PROFILE;
+        }
         view.setSystemUiVisibility(uiOptions);
     }
 
@@ -99,6 +104,7 @@ public class CommonDialog extends Dialog {
         private CommonDialogOtherOnClickListener otherListener;
         private boolean cancelable = true;
         private boolean isFullScreen = false;
+
         public Builder setContext(Context context) {
             this.context = context;
             return this;
@@ -125,7 +131,7 @@ public class CommonDialog extends Dialog {
         }
 
         public Builder setOtherViewId(int... otherViewIds) {
-            if(otherViewIds.length>0){
+            if (otherViewIds.length > 0) {
                 if (this.ids == null) {
                     this.ids = new ArrayList<>();
                 }
