@@ -20,7 +20,7 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        LogUtil.getInstance(this).start(0);
+        LogUtil.getInstance(this).start(LogUtil.LEVEL_ALL);
     }
 
     @Override

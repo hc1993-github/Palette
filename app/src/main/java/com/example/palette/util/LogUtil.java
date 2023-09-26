@@ -24,41 +24,48 @@ import java.util.Date;
 
 public class LogUtil {
     private static final String TAG = "LogUtil";
-    private static LogUtil INSTANCE = null;
-    private static String LOG_PATH;
-    private LogReader mLogReader = null;
+    private static LogUtil INSTANCE;
+    private volatile static String LOG_PATH;
+    private volatile LogReader mLogReader;
     private int mPid;
-    public static final int MSEC = 1;
-    public static final int SEC = 1000;
-    public static final int MIN = 60000;
-    public static final int HOUR = 3600000;
-    public static final int DAY = 86400000;
-    private static final String VERBOSE = "追踪:";
-    private static final String DEBUG = "调试:";
-    private static final String INFO = "信息:";
-    private static final String WARN = "警告:";
-    private static final String ERROR = "异常:";
+    private static final int MSEC = 1;
+    private static final int SEC = 1000;
+    private static final int MIN = 60000;
+    private static final int HOUR = 3600000;
+    private static final int DAY = 86400000;
+    public static final int LEVEL_ALL = 0;
+    public static final int LEVEL_VERBOSE = 1;
+    public static final int LEVEL_DEBUG = 2;
+    public static final int LEVEL_INFO = 3;
+    public static final int LEVEL_WARN = 4;
+    public static final int LEVEL_ERROR = 5;
+    private static final String VERBOSE = " 追踪:";
+    private static final String DEBUG = " 调试:";
+    private static final String INFO = " 信息:";
+    private static final String WARN = " 警告:";
+    private static final String ERROR = " 异常:";
     private int mSize = 3;
     private static Context mContext;
     private static SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static Date simpleDate = new Date();
     private static Date fullDate = new Date();
+
     private LogUtil(Context context) {
-        this.mContext = context.getApplicationContext();
+        mContext = context.getApplicationContext();
         init();
         mPid = android.os.Process.myPid();
     }
 
     private void init() {
         try {
-
-            if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
+            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
                 if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
                     String[] split = mContext.getPackageName().split("\\.");
-                    LOG_PATH = split[split.length-1]+File.separator+"log";
+                    LOG_PATH = split[split.length - 1] + File.separator + "log";
                 }
-                File file = new File(Environment.getExternalStorageDirectory(),LOG_PATH);
+                //自动清除3天前日志
+                File file = new File(Environment.getExternalStorageDirectory(), LOG_PATH);
                 if (!file.exists()) {
                     file.mkdirs();
                 }
@@ -73,23 +80,25 @@ public class LogUtil {
                         }
                     }
                 }
-            }else {
+            } else {
                 String[] splits = mContext.getPackageName().split("\\.");
-                LOG_PATH = splits[splits.length-1]+File.separator+"log";
+                LOG_PATH = splits[splits.length - 1] + File.separator + "log";
+                //自动清除3天前日志
                 Uri uri = MediaStore.Files.getContentUri("external");
                 ContentResolver contentResolver = mContext.getContentResolver();
                 for (int i = 1; i <= mSize; i++) {
-                    String preLog = date2String(getDate(new Date(),-i,DAY),"yyyy-MM-dd")+".log";
-                    Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{ preLog }, null);
-                    if(cursor!=null && cursor.moveToFirst()){
+                    String preLog = date2String(getDate(new Date(), -i, DAY), "yyyy-MM-dd") + ".log";
+                    Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{preLog}, null);
+                    if (cursor != null && cursor.moveToFirst()) {
                         Uri queryUri = ContentUris.withAppendedId(uri, cursor.getLong(25));
                         contentResolver.delete(queryUri, null, null);
-                    }else {
+                    } else {
                         continue;
                     }
                 }
             }
         } catch (Exception e) {
+            LOG_PATH = null;
             e.printStackTrace();
         }
     }
@@ -128,7 +137,7 @@ public class LogUtil {
 
     public void start(int level) {
         if (mLogReader == null) {
-            mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH,level);
+            mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, level);
             mLogReader.start();
         }
     }
@@ -141,42 +150,59 @@ public class LogUtil {
     }
 
     public static void logv(String msg) {
-        if(mContext==null){
-            Log.v(TAG, getFullDate()+VERBOSE+msg);
-        }else {
-            Log.v(mContext.getPackageName(), getFullDate()+VERBOSE+msg);
+        if (mContext == null) {
+            Log.v(TAG, getFullDate() + VERBOSE + msg);
+        } else {
+            Log.v(mContext.getPackageName(), getFullDate() + VERBOSE + msg);
         }
     }
 
     public static void logd(String msg) {
-        if(mContext==null){
-            Log.d(TAG, getFullDate()+DEBUG+msg);
-        }else {
-            Log.d(mContext.getPackageName(), getFullDate()+DEBUG+msg);
+        if (mContext == null) {
+            Log.d(TAG, getFullDate() + DEBUG + msg);
+        } else {
+            Log.d(mContext.getPackageName(), getFullDate() + DEBUG + msg);
         }
     }
 
     public static void logi(String msg) {
-        if(mContext==null){
-            Log.i(TAG, getFullDate()+INFO+msg);
-        }else {
-            Log.i(mContext.getPackageName(), getFullDate()+INFO+msg);
+        if (mContext == null) {
+            Log.i(TAG, getFullDate() + INFO + msg);
+        } else {
+            Log.i(mContext.getPackageName(), getFullDate() + INFO + msg);
         }
     }
 
     public static void logw(String msg) {
-        if(mContext==null){
-            Log.w(TAG, getFullDate()+WARN+msg);
-        }else {
-            Log.w(mContext.getPackageName(), getFullDate()+WARN+msg);
+        if (mContext == null) {
+            Log.w(TAG, getFullDate() + WARN + msg);
+        } else {
+            Log.w(mContext.getPackageName(), getFullDate() + WARN + msg);
         }
     }
 
     public static void loge(String msg) {
-        if(mContext==null){
-            Log.e(TAG, getFullDate()+ERROR+msg);
-        }else {
-            Log.e(mContext.getPackageName(), getFullDate()+ERROR+msg);
+        if (mContext == null) {
+            Log.e(TAG, getFullDate() + ERROR + msg);
+        } else {
+            Log.e(mContext.getPackageName(), getFullDate() + ERROR + msg);
+        }
+    }
+
+    public static void logStackTrace(Throwable e) {
+        if (e != null) {
+            StackTraceElement[] stackTrace = e.getStackTrace();
+            Throwable[] throwables = e.getSuppressed();
+            Throwable cause = e.getCause();
+            for (StackTraceElement traceElement : stackTrace) {
+                loge("\tat " + traceElement);
+            }
+            for (Throwable se : throwables) {
+                loge("\tat " + se.toString());
+            }
+            if (cause != null) {
+                loge("\tat " + cause.toString());
+            }
         }
     }
 
@@ -197,56 +223,59 @@ public class LogUtil {
         private String cmds;
         private String mPID;
         private OutputStream fos = null;
-        public LogReader(String pid, String dir,int level) {
+
+        public LogReader(String pid, String dir, int level) {
             mPID = pid;
             try {
-                if(Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q){
-                    fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory()+File.separator+dir,getSimpleDate() + ".log"),true);
-                }else {
-                    Uri uri = MediaStore.Files.getContentUri("external");
-                    ContentResolver contentResolver = mContext.getContentResolver();
-                    ContentValues contentValues = new ContentValues();
-                    contentValues.put(MediaStore.Downloads.RELATIVE_PATH,dir);
-                    contentValues.put(MediaStore.Downloads.DISPLAY_NAME,getSimpleDate() + ".log");
-                    contentValues.put(MediaStore.Downloads.TITLE,getSimpleDate() + ".log");
-                    Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{ getSimpleDate() + ".log" }, null);
-                    if(cursor!=null && cursor.moveToFirst()){
-                        Uri queryUri = ContentUris.withAppendedId(uri, cursor.getLong(25));
-                        fos = contentResolver.openOutputStream(queryUri);
-                        cursor.close();
-                    }else {
-                        Uri insert = contentResolver.insert(uri, contentValues);
-                        if(insert!=null){
-                            fos = contentResolver.openOutputStream(insert);
+                if (dir != null) {
+                    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory() + File.separator + dir, getSimpleDate() + ".log"), true);
+                    } else {
+                        Uri uri = MediaStore.Files.getContentUri("external");
+                        ContentResolver contentResolver = mContext.getContentResolver();
+                        ContentValues contentValues = new ContentValues();
+                        contentValues.put(MediaStore.Downloads.RELATIVE_PATH, dir);
+                        contentValues.put(MediaStore.Downloads.DISPLAY_NAME, getSimpleDate() + ".log");
+                        contentValues.put(MediaStore.Downloads.TITLE, getSimpleDate() + ".log");
+                        Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{getSimpleDate() + ".log"}, null);
+                        if (cursor != null && cursor.moveToFirst()) {
+                            Uri queryUri = ContentUris.withAppendedId(uri, cursor.getLong(25));
+                            fos = contentResolver.openOutputStream(queryUri);
+                            cursor.close();
+                        } else {
+                            Uri insert = contentResolver.insert(uri, contentValues);
+                            if (insert != null) {
+                                fos = contentResolver.openOutputStream(insert);
+                            }
                         }
                     }
+                    if (level == 1) {
+                        cmds = "logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                    } else if (level == 2) {
+                        cmds = "logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                    } else if (level == 3) {
+                        cmds = "logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                    } else if (level == 4) {
+                        cmds = "logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                    } else if (level == 5) {
+                        cmds = "logcat *:e | grep \"(" + mPID + ")\"";
+                    } else {
+                        cmds = "logcat | logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                    }
                 }
-                if(level==1){
-                    cmds = "logcat *:v | grep \"(" + mPID + ")\"";
-                }else if(level==2){
-                    cmds = "logcat *:d | grep \"(" + mPID + ")\"";
-                }else if(level==3){
-                    cmds = "logcat *:i | grep \"(" + mPID + ")\"";
-                }else if(level==4){
-                    cmds = "logcat *:w | grep \"(" + mPID + ")\"";
-                }else if(level==5){
-                    cmds = "logcat *:e | grep \"(" + mPID + ")\"";
-                }else {
-                    cmds = "logcat | grep \"(" + mPID + ")\"";
-                }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
-        public void stoplog() {
+        private void stoplog() {
             isRunning = false;
         }
 
         @Override
         public void run() {
             try {
-                if(TextUtils.isEmpty(cmds)){
+                if (TextUtils.isEmpty(cmds)) {
                     return;
                 }
                 process = Runtime.getRuntime().exec(cmds);
@@ -257,10 +286,20 @@ public class LogUtil {
                         continue;
                     }
                     if (fos != null) {
-                        if(line.contains(mPID)){
+                        if ((line.contains(mPID) && (line.contains(TAG) || (mContext != null && line.contains(mContext.getPackageName()))))
+                                || (mContext != null && line.contains(mContext.getPackageName()))
+                                || line.contains(".java:")
+                                || line.contains("Error")
+                                || line.contains("error")
+                                || line.contains("Exception")
+                                || line.contains("exception")
+                                || line.contains("Android")
+                                || line.contains("android")
+                                || line.contains("Google")
+                                || line.contains("google")) {
                             fos.write((getSimpleDate() + " " + line + "\n").getBytes());
                         }
-                    }else {
+                    } else {
                         break;
                     }
                 }
