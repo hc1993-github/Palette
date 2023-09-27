@@ -15,8 +15,10 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -24,15 +26,12 @@ import java.util.Date;
 
 public class LogUtil {
     private static final String TAG = "LogUtil";
-    private static LogUtil INSTANCE;
-    private volatile static String LOG_PATH;
-    private volatile LogReader mLogReader;
-    private int mPid;
     private static final int MSEC = 1;
     private static final int SEC = 1000;
     private static final int MIN = 60000;
     private static final int HOUR = 3600000;
     private static final int DAY = 86400000;
+    private static final int DEFAULT_SIZE = 3;
     public static final int LEVEL_ALL = 0;
     public static final int LEVEL_VERBOSE = 1;
     public static final int LEVEL_DEBUG = 2;
@@ -44,15 +43,29 @@ public class LogUtil {
     private static final String INFO = " 信息:";
     private static final String WARN = " 警告:";
     private static final String ERROR = " 异常:";
-    private int mSize = 3;
+    private static LogUtil INSTANCE;
+    private volatile static String LOG_PATH;
+    private volatile LogReader mLogReader;
+    private int mPid;
+    private int mSize;
+    private int mUnit;
+    private int mLevel;
+    private volatile int mSuffix = 0;
     private static Context mContext;
     private static SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static Date simpleDate = new Date();
     private static Date fullDate = new Date();
 
-    private LogUtil(Context context) {
+    private LogUtil(Context context, int... size) {
         mContext = context.getApplicationContext();
+        if (size != null && size.length > 1) {
+            mSize = size[0];
+            mUnit = size[1];
+        } else {
+            mSize = DEFAULT_SIZE;
+            mUnit = DAY;
+        }
         init();
         mPid = android.os.Process.myPid();
     }
@@ -71,10 +84,14 @@ public class LogUtil {
                 }
                 if (file.exists() && file.isDirectory()) {
                     File[] files = file.listFiles();
-                    String days = date2String(getDate(new Date(), -mSize, DAY), "yyyy-MM-dd");
+                    String days = date2String(getDate(new Date(), -mSize, mUnit), "yyyy-MM-dd");
                     if (files != null) {
                         for (File f : files) {
-                            if (f.getName().compareTo(days) < 0) {
+                            String name = f.getName();
+                            if (name.length() > 10) {
+                                name = name.substring(0, 10);
+                            }
+                            if (name.compareTo(days) < 0) {
                                 f.delete();
                             }
                         }
@@ -87,8 +104,8 @@ public class LogUtil {
                 Uri uri = MediaStore.Files.getContentUri("external");
                 ContentResolver contentResolver = mContext.getContentResolver();
                 for (int i = 1; i <= mSize; i++) {
-                    String preLog = date2String(getDate(new Date(), -i, DAY), "yyyy-MM-dd") + ".log";
-                    Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{preLog}, null);
+                    String preLog = date2String(getDate(new Date(), -i, mUnit), "yyyy-MM-dd");
+                    Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + " like?", new String[]{preLog + "%" + ".log"}, null);
                     if (cursor != null && cursor.moveToFirst()) {
                         Uri queryUri = ContentUris.withAppendedId(uri, cursor.getLong(25));
                         contentResolver.delete(queryUri, null, null);
@@ -124,11 +141,11 @@ public class LogUtil {
         return timeSpan * unit;
     }
 
-    public static LogUtil getInstance(Context context) {
+    public static LogUtil getInstance(Context context, int... size) {
         if (INSTANCE == null) {
             synchronized (LogUtil.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = new LogUtil(context);
+                    INSTANCE = new LogUtil(context, size);
                 }
             }
         }
@@ -136,7 +153,9 @@ public class LogUtil {
     }
 
     public void start(int level) {
+        mLevel = level;
         if (mLogReader == null) {
+            mSuffix = 0;
             mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, level);
             mLogReader.start();
         }
@@ -144,6 +163,7 @@ public class LogUtil {
 
     public void stop() {
         if (mLogReader != null) {
+            mSuffix = 0;
             mLogReader.stoplog();
             mLogReader = null;
         }
@@ -223,44 +243,107 @@ public class LogUtil {
         private String cmds;
         private String mPID;
         private OutputStream fos = null;
+        private InputStream fis = null;
 
         public LogReader(String pid, String dir, int level) {
             mPID = pid;
+            if (dir != null) {
+                initFos(dir);
+                if (level == 1) {
+                    cmds = "logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                } else if (level == 2) {
+                    cmds = "logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                } else if (level == 3) {
+                    cmds = "logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                } else if (level == 4) {
+                    cmds = "logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+                } else if (level == 5) {
+                    cmds = "logcat *:e | grep \"(" + mPID + ")\"";
+                } else {
+                    cmds = "logcat | grep \"(" + mPID + ")\"";
+                }
+            }
+        }
+
+        private void initFos(String dir) {
             try {
-                if (dir != null) {
+                while (true) {
+                    if (fos != null) {
+                        fos.close();
+                        fos = null;
+                    }
+                    if (fis != null) {
+                        fis.close();
+                        fis = null;
+                    }
+                    String name;
                     if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                        fos = new FileOutputStream(new File(Environment.getExternalStorageDirectory() + File.separator + dir, getSimpleDate() + ".log"), true);
+                        if (mSuffix != 0) {
+                            name = getSimpleDate() + "-" + mSuffix + ".log";
+                        } else {
+                            name = getSimpleDate() + ".log";
+                        }
+                        File file = new File(Environment.getExternalStorageDirectory() + File.separator + dir, name);
+                        if (!file.exists()) {
+                            file.createNewFile();
+                        }
+                        fis = new FileInputStream(file);
+                        int originFileSizeB = fis.available();
+                        int originFileSizeMB;
+                        if (originFileSizeB > 1024) {
+                            originFileSizeMB = originFileSizeB / 1024 / 1024;
+                            if (originFileSizeMB >= 1) {
+                                mSuffix++;
+                                continue;
+                            }
+                        }
+                        fos = new FileOutputStream(file, true);
+                        break;
                     } else {
+                        if (fos != null) {
+                            fos.close();
+                            fos = null;
+                        }
+                        if (fis != null) {
+                            fis.close();
+                            fis = null;
+                        }
                         Uri uri = MediaStore.Files.getContentUri("external");
                         ContentResolver contentResolver = mContext.getContentResolver();
                         ContentValues contentValues = new ContentValues();
+                        if (mSuffix != 0) {
+                            name = getSimpleDate() + "-" + mSuffix + ".log";
+                        } else {
+                            name = getSimpleDate() + ".log";
+                        }
                         contentValues.put(MediaStore.Downloads.RELATIVE_PATH, dir);
-                        contentValues.put(MediaStore.Downloads.DISPLAY_NAME, getSimpleDate() + ".log");
-                        contentValues.put(MediaStore.Downloads.TITLE, getSimpleDate() + ".log");
-                        Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{getSimpleDate() + ".log"}, null);
+                        contentValues.put(MediaStore.Downloads.DISPLAY_NAME, name);
+                        contentValues.put(MediaStore.Downloads.TITLE, name);
+                        Cursor cursor = contentResolver.query(uri, null, MediaStore.Downloads.DISPLAY_NAME + "=?", new String[]{name}, null);
                         if (cursor != null && cursor.moveToFirst()) {
                             Uri queryUri = ContentUris.withAppendedId(uri, cursor.getLong(25));
+                            fis = contentResolver.openInputStream(queryUri);
+                            int originFileSizeB = fis.available();
+                            int originFileSizeMB;
+                            if (originFileSizeB > 1024) {
+                                originFileSizeMB = originFileSizeB / 1024 / 1024;
+                                if (originFileSizeMB >= 1) {
+                                    mSuffix++;
+                                    cursor.close();
+                                    continue;
+                                }
+                            }
                             fos = contentResolver.openOutputStream(queryUri);
                             cursor.close();
+                            break;
                         } else {
                             Uri insert = contentResolver.insert(uri, contentValues);
                             if (insert != null) {
                                 fos = contentResolver.openOutputStream(insert);
+                                fis = contentResolver.openInputStream(insert);
                             }
+                            break;
                         }
-                    }
-                    if (level == 1) {
-                        cmds = "logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                    } else if (level == 2) {
-                        cmds = "logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                    } else if (level == 3) {
-                        cmds = "logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                    } else if (level == 4) {
-                        cmds = "logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                    } else if (level == 5) {
-                        cmds = "logcat *:e | grep \"(" + mPID + ")\"";
-                    } else {
-                        cmds = "logcat | logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
                     }
                 }
             } catch (Exception e) {
@@ -281,9 +364,20 @@ public class LogUtil {
                 process = Runtime.getRuntime().exec(cmds);
                 bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()), 1024);
                 String line;
-                while (isRunning && (line = bufferedReader.readLine()) != null) {
-                    if (line.length() == 0) {
+                while (isRunning) {
+                    line = bufferedReader.readLine();
+                    if (line == null || line.length() == 0) {
                         continue;
+                    }
+                    int originFileSizeB = fis.available();
+                    int originFileSizeMB;
+                    if (originFileSizeB > 1024) {
+                        originFileSizeMB = originFileSizeB / 1024 / 1024;
+                        if (originFileSizeMB >= 1) {
+                            LogUtil.this.stop();
+                            LogUtil.this.start(mLevel);
+                            return;
+                        }
                     }
                     if (fos != null) {
                         if ((line.contains(mPID) && (line.contains(TAG) || (mContext != null && line.contains(mContext.getPackageName()))))
@@ -322,6 +416,14 @@ public class LogUtil {
                     try {
                         fos.close();
                         fos = null;
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (fis != null) {
+                    try {
+                        fis.close();
+                        fis = null;
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

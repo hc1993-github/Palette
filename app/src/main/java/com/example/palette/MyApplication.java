@@ -20,12 +20,12 @@ public class MyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        LogUtil.getInstance(this).start(LogUtil.LEVEL_ALL);
+//        LogUtil.getInstance(this).start(LogUtil.LEVEL_ALL);
     }
 
     @Override
     public void onTerminate() {
         super.onTerminate();
-        LogUtil.getInstance(this).stop();
+//        LogUtil.getInstance(this).stop();
     }
 }
