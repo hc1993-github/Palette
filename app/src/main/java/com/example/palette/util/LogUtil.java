@@ -44,8 +44,9 @@ public class LogUtil {
     private static int mSize;
     private static int mUnit;
     private static int mLevel = -1;
-    private volatile static int mSuffix = 0;
+    private static int mSuffix = 0;
     private static Context mContext;
+    private static boolean mDeleteFile;
     private static SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static Date simpleDate = new Date();
@@ -93,72 +94,56 @@ public class LogUtil {
             mUnit = DAY;
             mLevel = LEVEL_ALL;
         }
-        createAndClear();
+        createLogPath();
         createLogReader();
     }
 
     public void end() {
         if (mLogReader != null) {
-            mSuffix = 0;
             mLogReader.stoplog();
             mLogReader = null;
         }
     }
 
-    private void createAndClear() {
-        try {
+    private void createLogPath() {
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            String[] split = mContext.getPackageName().split("\\.");
+            LOG_PATH = split[split.length - 1] + File.separator + "log";
+            //自动清除日志
+            File file;
             if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-                    String[] split = mContext.getPackageName().split("\\.");
-                    LOG_PATH = split[split.length - 1] + File.separator + "log";
-                }
-                //自动清除日志
-                File file = new File(Environment.getExternalStorageDirectory(), LOG_PATH);
-                if (!file.exists()) {
-                    file.mkdirs();
-                }
-                if (file.exists() && file.isDirectory()) {
-                    File[] files = file.listFiles();
-                    String days = date2String(getDate(new Date(), -mSize, mUnit), "yyyy-MM-dd");
-                    if (files != null) {
-                        for (File f : files) {
-                            String name = f.getName();
-                            if (name.length() > 10) {
-                                name = name.substring(0, 10);
-                            }
-                            if (name.compareTo(days) < 0) {
-                                f.delete();
-                            }
-                        }
-                    }
-                }
+                file = new File(Environment.getExternalStorageDirectory(), LOG_PATH);
             } else {
-                String[] splits = mContext.getPackageName().split("\\.");
-                LOG_PATH = splits[splits.length - 1] + File.separator + "log";
-                //自动清除日志
-                File file = new File(mContext.getCacheDir(), LOG_PATH);
-                if (!file.exists()) {
-                    file.mkdirs();
-                }
-                if (file.exists() && file.isDirectory()) {
-                    File[] files = file.listFiles();
-                    String days = date2String(getDate(new Date(), -mSize, mUnit), "yyyy-MM-dd");
-                    if (files != null) {
-                        for (File f : files) {
-                            String name = f.getName();
-                            if (name.length() > 10) {
-                                name = name.substring(0, 10);
-                            }
-                            if (name.compareTo(days) < 0) {
-                                f.delete();
-                            }
+                file = new File(mContext.getExternalCacheDir(), LOG_PATH);
+            }
+            autoClearLog(file);
+        }else {
+            Log.e(TAG, getFullDate() + ERROR + " your device may not have sdcard space");
+        }
+    }
+
+    private void autoClearLog(File file){
+        if(!file.exists()){
+            return;
+        }
+        if(file.isDirectory()){
+            try {
+                File[] files = file.listFiles();
+                String days = date2String(getDate(new Date(), -mSize, mUnit), "yyyy-MM-dd");
+                if (files != null) {
+                    for (File f : files) {
+                        String name = f.getName();
+                        if (name.length() > 10) {
+                            name = name.substring(0, 10);
+                        }
+                        if (name.compareTo(days) < 0) {
+                            f.delete();
                         }
                     }
                 }
+            }catch (Exception e){
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            LOG_PATH = null;
-            e.printStackTrace();
         }
     }
 
@@ -184,13 +169,14 @@ public class LogUtil {
     }
 
     private static void createLogReader() {
-        if (mLogReader == null) {
+        if (mLogReader == null || mDeleteFile) {
             mPid = android.os.Process.myPid();
             mSuffix = 0;
             mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, mLevel);
             mLogReader.start();
         } else {
-            if (mLogReader.isFinish) {
+            if (mLogReader.isFinish || mDeleteFile) {
+                mSuffix = 0;
                 mLogReader = null;
                 createLogReader();
             }
@@ -285,12 +271,12 @@ public class LogUtil {
     private static class LogReader extends Thread {
         private Process process;
         private BufferedReader bufferedReader;
-        private boolean isStop = false;
+        private boolean isStop;
         private String cmds;
         private String mPID;
         private OutputStream fos;
-        private InputStream fis = null;
-        private boolean isFinish = false;
+        private InputStream fis;
+        private boolean isFinish;
         private Pattern mPattern = Pattern.compile("(^.*([0-9]{4})-([0-9]{2})-([0-9]{2}) 00:00:00)");
         private File file;
 
@@ -300,71 +286,50 @@ public class LogUtil {
                 try {
                     while (true) {
                         String name;
-                        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                            if (mSuffix != 0) {
-                                name = getSimpleDate() + "-" + mSuffix + ".log";
-                            } else {
-                                name = getSimpleDate() + ".log";
-                            }
-                            file = new File(Environment.getExternalStorageDirectory() + File.separator + dir, name);
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            fis = new FileInputStream(file);
-                            int originFileSizeB = fis.available();
-                            int originFileSizeMB;
-                            if (originFileSizeB > 1024) {
-                                originFileSizeMB = originFileSizeB / 1024 / 1024;
-                                if (originFileSizeMB >= DEFAULT_PART_SIZE) { //每超过多少兆,生成后缀如2023-01-01-1.log
-                                    mSuffix++;
-                                    continue;
-                                }
-                            }
-                            fos = new FileOutputStream(file, true);
-                            break;
+                        if (mSuffix != 0) {
+                            name = getSimpleDate() + "-" + mSuffix + ".log";
                         } else {
-                            if (mSuffix != 0) {
-                                name = getSimpleDate() + "-" + mSuffix + ".log";
-                            } else {
-                                name = getSimpleDate() + ".log";
-                            }
-                            file = new File(mContext.getCacheDir() + File.separator + dir, name);
-                            if (!file.exists()) {
-                                file.createNewFile();
-                            }
-                            fis = new FileInputStream(file);
-                            int originFileSizeB = fis.available();
-                            int originFileSizeMB;
-                            if (originFileSizeB > 1024) {
-                                originFileSizeMB = originFileSizeB / 1024 / 1024;
-                                if (originFileSizeMB >= DEFAULT_PART_SIZE) { //每超过多少兆,生成后缀如2023-01-01-1.log
-                                    mSuffix++;
-                                    continue;
-                                }
-                            }
-                            fos = new FileOutputStream(file, true);
-                            break;
+                            name = getSimpleDate() + ".log";
                         }
+                        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+                            file = new File(Environment.getExternalStorageDirectory() + File.separator + dir, name);
+                        } else {
+                            file = new File(mContext.getExternalCacheDir() + File.separator + dir, name);
+                        }
+                        if (!file.exists()) {
+                            file.createNewFile();
+                        }
+                        fis = new FileInputStream(file);
+                        int originFileSizeB = fis.available();
+                        if (originFileSizeB > 1024) {
+                            int originFileSizeMB = originFileSizeB / 1024 / 1024;
+                            if (originFileSizeMB >= DEFAULT_PART_SIZE) { //每超过多少兆,生成后缀如2023-01-01-1.log
+                                mSuffix++;
+                                continue;
+                            }
+                        }
+                        fos = new FileOutputStream(file, true);
+                        break;
                     }
                 } catch (Exception e) {
                     fos = null;
                     e.printStackTrace();
                 }
-                if (level == LEVEL_VERBOSE) {
-                    cmds = "logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                } else if (level == LEVEL_DEBUG) {
-                    cmds = "logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                } else if (level == LEVEL_INFO) {
-                    cmds = "logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                } else if (level == LEVEL_WARN) {
-                    cmds = "logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
-                } else if (level == LEVEL_ERROR) {
-                    cmds = "logcat *:e | grep \"(" + mPID + ")\"";
-                } else {
-                    cmds = "logcat | grep \"(" + mPID + ")\"";
-                }
             } else {
-                fos = null;
+                Log.e(TAG, getFullDate() + ERROR + " you may not excute method start,that may cause no log file record");
+            }
+            if (level == LEVEL_VERBOSE) {
+                cmds = "logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+            } else if (level == LEVEL_DEBUG) {
+                cmds = "logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+            } else if (level == LEVEL_INFO) {
+                cmds = "logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+            } else if (level == LEVEL_WARN) {
+                cmds = "logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
+            } else if (level == LEVEL_ERROR) {
+                cmds = "logcat *:e | grep \"(" + mPID + ")\"";
+            } else {
+                cmds = "logcat | grep \"(" + mPID + ")\"";
             }
         }
 
@@ -391,9 +356,11 @@ public class LogUtil {
                     if (line == null || line.length() == 0) {
                         continue;
                     }
-                    if (!file.exists()) {
+                    if (file == null || !file.exists()) {
+                        mDeleteFile = true;
                         break;
                     }
+                    mDeleteFile = false;
                     long originFileSizeB = fis.available();
                     if (originFileSizeB > 1024) {
                         long originFileSizeMB = originFileSizeB / 1024 / 1024;
