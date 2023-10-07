@@ -194,6 +194,7 @@ public class LogUtil {
     private static void createLogReader() {
         if (mLogReader == null || mDeleteFile) {
             if (LOG_PATH == null) {
+                Log.e(TAG, getFullDate() + ERROR + " you may not excute method start , that cause no log file record");
                 return;
             }
             mPid = android.os.Process.myPid();
