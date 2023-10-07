@@ -24,7 +24,7 @@ public class LogUtil {
     private static final int MIN = 60000;
     private static final int HOUR = 3600000;
     private static final int DAY = 86400000;
-    private static final int DEFAULT_SIZE = 3;
+    private static final int DEFAULT_SIZE = 7;
     private static final int DEFAULT_PART_SIZE = 1024;
     public static final int LEVEL_ALL = 0;
     public static final int LEVEL_VERBOSE = 1;
