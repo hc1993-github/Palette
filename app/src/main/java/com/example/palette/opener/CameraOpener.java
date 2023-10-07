@@ -9,8 +9,6 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.view.SurfaceHolder;
 
-import com.example.palette.util.LogUtil;
-
 import java.io.ByteArrayOutputStream;
 
 public class CameraOpener implements SurfaceHolder.Callback, Camera.PreviewCallback, Camera.ErrorCallback{
