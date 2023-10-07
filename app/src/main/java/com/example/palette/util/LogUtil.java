@@ -139,8 +139,9 @@ public class LogUtil {
                 file = new File(mContext.getExternalCacheDir(), LOG_PATH);
             }
             autoClearLog(file);
-        } else {
-            Log.e(TAG, getFullDate() + ERROR + " your device may not have sdcard space");
+        }else {
+            LOG_PATH = null;
+            Log.e(TAG, getFullDate() + ERROR + " your device may not have sdcard");
         }
     }
 
@@ -192,12 +193,15 @@ public class LogUtil {
 
     private static void createLogReader() {
         if (mLogReader == null || mDeleteFile) {
+            if (LOG_PATH == null) {
+                return;
+            }
             mPid = android.os.Process.myPid();
             mSuffix = 0;
             mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, mLevel);
             mLogReader.start();
         } else {
-            if (mLogReader.isFinish || mDeleteFile) {
+            if (mLogReader.isFinish) {
                 mSuffix = 0;
                 mLogReader = null;
                 createLogReader();
@@ -304,41 +308,37 @@ public class LogUtil {
 
         public LogReader(String pid, String dir, int level) {
             mPID = pid;
-            if (dir != null) {
-                try {
-                    while (true) {
-                        String name;
-                        if (mSuffix != 0) {
-                            name = getSimpleDate() + "-" + mSuffix + ".log";
-                        } else {
-                            name = getSimpleDate() + ".log";
-                        }
-                        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-                            file = new File(Environment.getExternalStorageDirectory() + File.separator + dir, name);
-                        } else {
-                            file = new File(mContext.getExternalCacheDir() + File.separator + dir, name);
-                        }
-                        if (!file.exists()) {
-                            file.createNewFile();
-                        }
-                        fis = new FileInputStream(file);
-                        int originFileSizeB = fis.available();
-                        if (originFileSizeB > 1024) {
-                            int originFileSizeMB = originFileSizeB / 1024 / 1024;
-                            if (originFileSizeMB >= DEFAULT_PART_SIZE) { //每超过多少兆,生成后缀如2023-01-01-1.log
-                                mSuffix++;
-                                continue;
-                            }
-                        }
-                        fos = new FileOutputStream(file, true);
-                        break;
+            try {
+                while (true) {
+                    String name;
+                    if (mSuffix != 0) {
+                        name = getSimpleDate() + "-" + mSuffix + ".log";
+                    } else {
+                        name = getSimpleDate() + ".log";
                     }
-                } catch (Exception e) {
-                    fos = null;
-                    e.printStackTrace();
+                    if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
+                        file = new File(Environment.getExternalStorageDirectory() + File.separator + dir, name);
+                    } else {
+                        file = new File(mContext.getExternalCacheDir() + File.separator + dir, name);
+                    }
+                    if (!file.exists()) {
+                        file.createNewFile();
+                    }
+                    fis = new FileInputStream(file);
+                    int originFileSizeB = fis.available();
+                    if (originFileSizeB > 1024) {
+                        int originFileSizeMB = originFileSizeB / 1024 / 1024;
+                        if (originFileSizeMB >= DEFAULT_PART_SIZE) { //每超过多少兆,生成后缀如2023-01-01-1.log
+                            mSuffix++;
+                            continue;
+                        }
+                    }
+                    fos = new FileOutputStream(file, true);
+                    break;
                 }
-            } else {
-                Log.e(TAG, getFullDate() + ERROR + " you may not excute method start,that may cause no log file record");
+            } catch (Exception e) {
+                fos = null;
+                e.printStackTrace();
             }
             if (level == LEVEL_VERBOSE) {
                 cmds = "logcat *:v | logcat *:d | logcat *:i | logcat *:w | logcat *:e | grep \"(" + mPID + ")\"";
