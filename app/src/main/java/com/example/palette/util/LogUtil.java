@@ -73,21 +73,43 @@ public class LogUtil {
         } else {
             mContext = context.getApplicationContext();
         }
-        if (params != null && params.length > 2) {
-            if (params[0] < 1) {
-                mSize = DEFAULT_SIZE;
-            } else {
-                mSize = params[0];
-            }
-            if (params[1] < SEC) {
+        if (params != null) {
+            if (params.length == 1) {
+                if (params[0] < 1) {
+                    mSize = DEFAULT_SIZE;
+                } else {
+                    mSize = params[0];
+                }
                 mUnit = DAY;
-            } else {
-                mUnit = params[1];
-            }
-            if (params[2] < LEVEL_ALL) {
                 mLevel = LEVEL_ALL;
-            } else {
-                mLevel = params[2];
+            } else if (params.length == 2) {
+                if (params[0] < 1) {
+                    mSize = DEFAULT_SIZE;
+                } else {
+                    mSize = params[0];
+                }
+                if (params[1] < SEC) {
+                    mUnit = DAY;
+                } else {
+                    mUnit = params[1];
+                }
+                mLevel = LEVEL_ALL;
+            } else if (params.length >= 3) {
+                if (params[0] < 1) {
+                    mSize = DEFAULT_SIZE;
+                } else {
+                    mSize = params[0];
+                }
+                if (params[1] < SEC) {
+                    mUnit = DAY;
+                } else {
+                    mUnit = params[1];
+                }
+                if (params[2] < LEVEL_ALL) {
+                    mLevel = LEVEL_ALL;
+                } else {
+                    mLevel = params[2];
+                }
             }
         } else {
             mSize = DEFAULT_SIZE;
@@ -117,16 +139,16 @@ public class LogUtil {
                 file = new File(mContext.getExternalCacheDir(), LOG_PATH);
             }
             autoClearLog(file);
-        }else {
+        } else {
             Log.e(TAG, getFullDate() + ERROR + " your device may not have sdcard space");
         }
     }
 
-    private void autoClearLog(File file){
-        if(!file.exists()){
+    private void autoClearLog(File file) {
+        if (!file.exists()) {
             return;
         }
-        if(file.isDirectory()){
+        if (file.isDirectory()) {
             try {
                 File[] files = file.listFiles();
                 String days = date2String(getDate(new Date(), -mSize, mUnit), "yyyy-MM-dd");
@@ -141,7 +163,7 @@ public class LogUtil {
                         }
                     }
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
