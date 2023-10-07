@@ -373,14 +373,8 @@ public class LogUtil {
         }
 
         private boolean isZero(String text) {
-            boolean result;
             try {
-                if (text.contains(TAG) || (mContext != null && text.contains(mContext.getPackageName()))) {
-                    result = mPattern.matcher(text).find();
-                    return result;
-                } else {
-                    return false;
-                }
+                return mPattern.matcher(text).find();
             } catch (Exception e) {
                 return false;
             }
