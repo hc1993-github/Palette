@@ -47,6 +47,7 @@ public class LogUtil {
     private static int mSuffix = 0;
     private static Context mContext;
     private static boolean mDeleteFile;
+    private static boolean mEnd;
     private static SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static Date simpleDate = new Date();
@@ -68,6 +69,7 @@ public class LogUtil {
     }
 
     public void start(Context context, int... params) {
+        mEnd = false;
         if (context == null) {
             mContext = null;
         } else {
@@ -121,6 +123,7 @@ public class LogUtil {
     }
 
     public void end() {
+        mEnd = true;
         if (mLogReader != null) {
             mLogReader.stoplog();
             mLogReader = null;
@@ -192,20 +195,22 @@ public class LogUtil {
     }
 
     private static void createLogReader() {
-        if (mLogReader == null || mDeleteFile) {
-            if (LOG_PATH == null) {
-                Log.e(TAG, getFullDate() + ERROR + " you may not excute method start , that cause no log file record");
-                return;
-            }
-            mPid = android.os.Process.myPid();
-            mSuffix = 0;
-            mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, mLevel);
-            mLogReader.start();
-        } else {
-            if (mLogReader.isFinish) {
+        if(!mEnd){
+            if (mLogReader == null || mDeleteFile) {
+                if (LOG_PATH == null) {
+                    Log.e(TAG, getFullDate() + ERROR + " you may not excute method start , that cause no log file record");
+                    return;
+                }
+                mPid = android.os.Process.myPid();
                 mSuffix = 0;
-                mLogReader = null;
-                createLogReader();
+                mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, mLevel);
+                mLogReader.start();
+            } else {
+                if (mLogReader.isFinish) {
+                    mSuffix = 0;
+                    mLogReader = null;
+                    createLogReader();
+                }
             }
         }
     }
