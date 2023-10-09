@@ -39,7 +39,7 @@ public class LogUtil {
     private static final String ERROR = " 异常:";
     private static LogUtil INSTANCE;
     private static String LOG_PATH;
-    private static LogReader mLogReader;
+    private volatile static LogReader mLogReader;
     private static int mPid;
     private static int mSize;
     private static int mUnit;
@@ -47,7 +47,6 @@ public class LogUtil {
     private static int mSuffix = 0;
     private static Context mContext;
     private static boolean mDeleteFile;
-    private static boolean mEnd;
     private static SimpleDateFormat simpleFormat = new SimpleDateFormat("yyyy-MM-dd");
     private static SimpleDateFormat fullFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static Date simpleDate = new Date();
@@ -69,7 +68,6 @@ public class LogUtil {
     }
 
     public void start(Context context, int... params) {
-        mEnd = false;
         if (context == null) {
             mContext = null;
         } else {
@@ -119,11 +117,13 @@ public class LogUtil {
             mLevel = LEVEL_ALL;
         }
         createLogPath();
-        createLogReader();
+        mPid = android.os.Process.myPid();
+        mSuffix = 0;
+        mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, mLevel);
+        mLogReader.start();
     }
 
     public void end() {
-        mEnd = true;
         if (mLogReader != null) {
             mLogReader.stoplog();
             mLogReader = null;
@@ -142,7 +142,7 @@ public class LogUtil {
                 file = new File(mContext.getExternalCacheDir(), LOG_PATH);
             }
             autoClearLog(file);
-        }else {
+        } else {
             LOG_PATH = null;
             Log.e(TAG, getFullDate() + ERROR + " your device may not have sdcard");
         }
@@ -194,38 +194,22 @@ public class LogUtil {
         return timeSpan * unit;
     }
 
-    private static void createLogReader() {
-        if(!mEnd){
-            if (mLogReader == null || mDeleteFile) {
-                if (LOG_PATH == null) {
-                    Log.e(TAG, getFullDate() + ERROR + " you may not excute method start , that cause no log file record");
-                    return;
-                }
-                mPid = android.os.Process.myPid();
-                mSuffix = 0;
-                mLogReader = new LogReader(String.valueOf(mPid), LOG_PATH, mLevel);
-                mLogReader.start();
-            } else {
-                if (mLogReader.isFinish) {
-                    mSuffix = 0;
-                    mLogReader = null;
-                    createLogReader();
-                }
-            }
+    private static void checkLogReader() {
+        if (LOG_PATH == null) {
+            Log.e(TAG, getFullDate() + ERROR + " you may not excute method start , that cause log file not record");
+            return;
         }
-    }
-
-    private static void checkParams() {
-        if (mLevel == -1) {
-            mSize = DEFAULT_SIZE;
-            mUnit = DAY;
-            mLevel = LEVEL_ALL;
+        if (mLogReader == null) {
+            Log.e(TAG, getFullDate() + ERROR + " you may not excute method start or you may excute method end, that cause log file not record anymore");
+            return;
+        }
+        if (mDeleteFile) {
+            Log.e(TAG, getFullDate() + ERROR + " you may delete log file , that cause log file not record anymore");
         }
     }
 
     public static void logv(String msg) {
-        checkParams();
-        createLogReader();
+        checkLogReader();
         if (mContext == null) {
             Log.v(TAG, getFullDate() + VERBOSE + msg);
         } else {
@@ -234,8 +218,7 @@ public class LogUtil {
     }
 
     public static void logd(String msg) {
-        checkParams();
-        createLogReader();
+        checkLogReader();
         if (mContext == null) {
             Log.d(TAG, getFullDate() + DEBUG + msg);
         } else {
@@ -244,8 +227,7 @@ public class LogUtil {
     }
 
     public static void logi(String msg) {
-        checkParams();
-        createLogReader();
+        checkLogReader();
         if (mContext == null) {
             Log.i(TAG, getFullDate() + INFO + msg);
         } else {
@@ -254,8 +236,7 @@ public class LogUtil {
     }
 
     public static void logw(String msg) {
-        checkParams();
-        createLogReader();
+        checkLogReader();
         if (mContext == null) {
             Log.w(TAG, getFullDate() + WARN + msg);
         } else {
@@ -264,8 +245,7 @@ public class LogUtil {
     }
 
     public static void loge(String msg) {
-        checkParams();
-        createLogReader();
+        checkLogReader();
         if (mContext == null) {
             Log.e(TAG, getFullDate() + ERROR + msg);
         } else {
