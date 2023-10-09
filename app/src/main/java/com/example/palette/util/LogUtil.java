@@ -67,7 +67,7 @@ public class LogUtil {
         return INSTANCE;
     }
 
-    public void start(Context context, int... params) {
+    public void startRecord(Context context, int... params) {
         if (context == null) {
             mContext = null;
         } else {
@@ -123,7 +123,7 @@ public class LogUtil {
         mLogReader.start();
     }
 
-    public void end() {
+    public void endRecord() {
         if (mLogReader != null) {
             mLogReader.stoplog();
             mLogReader = null;
@@ -196,11 +196,11 @@ public class LogUtil {
 
     private static void checkLogReader() {
         if (LOG_PATH == null) {
-            Log.e(TAG, getFullDate() + ERROR + " you may not excute method start , that cause log file not record");
+            Log.e(TAG, getFullDate() + ERROR + " you may not excute method startRecord , that cause log file not record");
             return;
         }
         if (mLogReader == null) {
-            Log.e(TAG, getFullDate() + ERROR + " you may not excute method start or you may excute method end, that cause log file not record anymore");
+            Log.e(TAG, getFullDate() + ERROR + " you may not excute method startRecord or you may excute method endRecord, that cause log file not record anymore");
             return;
         }
         if (mDeleteFile) {
@@ -208,7 +208,7 @@ public class LogUtil {
         }
     }
 
-    public static void logv(String msg) {
+    public static void logvRecord(String msg) {
         checkLogReader();
         if (mContext == null) {
             Log.v(TAG, getFullDate() + VERBOSE + msg);
@@ -217,7 +217,11 @@ public class LogUtil {
         }
     }
 
-    public static void logd(String msg) {
+    public static void logv(String msg){
+        Log.v(TAG, getFullDate() + VERBOSE + msg);
+    }
+
+    public static void logdRecord(String msg) {
         checkLogReader();
         if (mContext == null) {
             Log.d(TAG, getFullDate() + DEBUG + msg);
@@ -226,7 +230,11 @@ public class LogUtil {
         }
     }
 
-    public static void logi(String msg) {
+    public static void logd(String msg){
+        Log.d(TAG, getFullDate() + DEBUG + msg);
+    }
+
+    public static void logiRecord(String msg) {
         checkLogReader();
         if (mContext == null) {
             Log.i(TAG, getFullDate() + INFO + msg);
@@ -235,7 +243,11 @@ public class LogUtil {
         }
     }
 
-    public static void logw(String msg) {
+    public static void logi(String msg){
+        Log.i(TAG, getFullDate() + INFO + msg);
+    }
+
+    public static void logwRecord(String msg) {
         checkLogReader();
         if (mContext == null) {
             Log.w(TAG, getFullDate() + WARN + msg);
@@ -244,7 +256,11 @@ public class LogUtil {
         }
     }
 
-    public static void loge(String msg) {
+    public static void logw(String msg){
+        Log.w(TAG, getFullDate() + WARN + msg);
+    }
+
+    public static void logeRecord(String msg) {
         checkLogReader();
         if (mContext == null) {
             Log.e(TAG, getFullDate() + ERROR + msg);
@@ -253,7 +269,28 @@ public class LogUtil {
         }
     }
 
-    public static void logStackTrace(Throwable e) {
+    public static void loge(String msg){
+        Log.e(TAG, getFullDate() + ERROR + msg);
+    }
+
+    public static void logStackTraceRecord(Throwable e) {
+        if (e != null) {
+            StackTraceElement[] stackTrace = e.getStackTrace();
+            Throwable[] throwables = e.getSuppressed();
+            Throwable cause = e.getCause();
+            for (StackTraceElement traceElement : stackTrace) {
+                logeRecord("\tat " + traceElement);
+            }
+            for (Throwable se : throwables) {
+                logeRecord("\tat " + se.toString());
+            }
+            if (cause != null) {
+                logeRecord("\tat " + cause.toString());
+            }
+        }
+    }
+
+    public static void logStackTrace(Throwable e){
         if (e != null) {
             StackTraceElement[] stackTrace = e.getStackTrace();
             Throwable[] throwables = e.getSuppressed();
