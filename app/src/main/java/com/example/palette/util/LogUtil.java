@@ -150,6 +150,7 @@ public class LogUtil {
 
     private void autoClearLog(File file) {
         if (!file.exists()) {
+            file.mkdirs();
             return;
         }
         if (file.isDirectory()) {
