@@ -20,7 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -50,13 +53,6 @@ public class OkHttpUtil {
 
     private OkHttpUtil() {
         OkHttpClient.Builder builder = new OkHttpClient.Builder()
-//                .sslSocketFactory(createSSLSocketFactory()) //信任所有证书
-//                .hostnameVerifier(new HostnameVerifier() {
-//                    @Override
-//                    public boolean verify(String hostname, SSLSession session) {
-//                        return true;
-//                    }
-//                })
                 .connectTimeout(TIME_OUT_CONNECT, TimeUnit.SECONDS)
                 .writeTimeout(TIME_OUT_WRITE, TimeUnit.SECONDS)
                 .readTimeout(TIME_OUT_READ, TimeUnit.SECONDS);
@@ -299,58 +295,69 @@ public class OkHttpUtil {
         void onSuccessResponse(String info);
     }
 
-    private SSLSocketFactory createSSLSocketFactory() {
-        SSLSocketFactory factory = null;
+    /**
+     * 信任所有证书
+     * @param builder
+     */
+    private void trustAllCertificate(OkHttpClient.Builder builder){
         try {
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, new TrustManager[]{new TrustAllCerts()}, new SecureRandom());
-            factory = sslContext.getSocketFactory();
-        } catch (Exception e) {
+            X509TrustManager x509TrustManager = new X509TrustManager() {
+
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+            };
+            sslContext.init(null,new TrustManager[]{x509TrustManager},new SecureRandom());
+            builder.sslSocketFactory(sslContext.getSocketFactory(),x509TrustManager);
+            builder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
+        }catch (Exception e){
             e.printStackTrace();
         }
-        return factory;
     }
 
-    private class TrustAllCerts implements X509TrustManager {
-
-        @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-        }
-    }
-
-    private SSLSocketFactory createSSLSocketFactory(InputStream certStream) {
-        SSLContext sslContext = null;
+    /**
+     * 信任指定证书
+     * @param builder
+     * @param certificateStream
+     */
+    private void trustCertificate(OkHttpClient.Builder builder,InputStream certificateStream){
         try {
             CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            Certificate certificate;
-            try {
-                certificate = certificateFactory.generateCertificate(certStream);
-            } finally {
-                certStream.close();
-            }
-            String defaultType = KeyStore.getDefaultType();
-            KeyStore keyStore = KeyStore.getInstance(defaultType);
-            keyStore.load(null, null);
-            keyStore.setCertificateEntry("ca", certificate);
-            String algorithm = TrustManagerFactory.getDefaultAlgorithm();
-            TrustManagerFactory factory = TrustManagerFactory.getInstance(algorithm);
-            factory.init(keyStore);
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, factory.getTrustManagers(), null);
-        } catch (Exception e) {
+            Certificate certificate = certificateFactory.generateCertificate(certificateStream);
+            KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+            keyStore.load(null,null);
+            keyStore.setCertificateEntry("ca",certificate);
+            certificateStream.close();
+            TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            trustManagerFactory.init(keyStore);
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null,trustManagerFactory.getTrustManagers(),new SecureRandom());
+            builder.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagerFactory.getTrustManagers()[0]);
+            builder.hostnameVerifier(new HostnameVerifier() {
+                @Override
+                public boolean verify(String hostname, SSLSession session) {
+                    return true;
+                }
+            });
+        }catch (Exception e){
             e.printStackTrace();
         }
-        return sslContext != null ? sslContext.getSocketFactory() : null;
     }
 }
