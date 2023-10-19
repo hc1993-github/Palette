@@ -1,0 +1,29 @@
+1.RecyclerView缓存分类?
+    1)mAttachedScrap:负责缓存原封不动的ViewHolder
+      mChangedScrap:负责缓存仅位置改变的ViewHolder
+    2)mCachedViews:缓存刚移出屏幕的ViewHolder
+    3)mViewCacheExtension:自定义的缓存
+    4)mRecyclerPool:缓存以上都未缓存的ViewHolder
+2.RecyclerView与ListView区别?
+    1)缓存形式:RecyclerView缓存的是ViewHolder;ListView缓存的是View
+    2)局部刷新:RecyclerView默认可实现局部刷新;ListView默认全局刷新,需要自己实现局部刷新
+    3)动画效果:RecyclerView有支持动画的API,只需实现自定义的动画效果;ListView需要手动实现
+    4)布局:RecyclerView支持垂直,水平,瀑布流,自定义效果;ListView只支持垂直效果
+3.RecyclerView优化?
+    1)减少onBinderViewHolder内的逻辑处理,分类数据处理和视图加载的过程
+    2)尽可能使用局部刷新,减少使用全部刷新
+    3)如果item的高度固定,可以设置RecyclerView.setHasFixedSize(true)来避免requestLayout浪费资源
+    4)通过重写RecyclerView.onViewRecycled()来回收资源
+    5)尽量使item使用公共监听器,通过id区分,减少监听器对象的创建
+    6)如果多个RecyclerView的Adapter是一样的,可以设置RecyclerView.setRecycledViewPool,来共用一个RecycledViewPool
+    7)设置滚动监听,在滑动过程中暂停修改视图
+    8)优化item布局,减少层级
+4.ListView优化?
+    1)convertView的使用:convertView判空缓存处理,如果没有缓存就加载布局,如果有缓存就直接使用convertView对象
+    2)内部类的使用:在创建view对象的时候,把所有子View全部找到,并通过内部类存储起来
+    3)数据分批、分页加载:根据滑动静止后的状态,来判断是否加载更多数据
+5.RecyclerView缓存流程?
+    1)插入或删除Item时,将屏幕内的ViewHolder保存至一级缓存;
+      滑动屏幕时,先消息的ViewHolder会保存到mCachedViews,超过数量时按先入先出,移至mRecyclerPool缓存池,
+      mRecyclerPool缓存池会按照ViewHolder类型进行缓存,超过数量则回收
+    2)先从mAttachedScrap中获取,再从mCachedViews获取,再从mRecyclerPool获取,若都失败,则执行创建ViewHolder

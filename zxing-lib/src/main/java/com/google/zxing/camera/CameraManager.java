@@ -16,6 +16,7 @@
 
 package com.google.zxing.camera;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -119,17 +120,20 @@ public final class CameraManager {
      * @param holder The surface object which the camera will draw preview frames into.
      * @throws IOException Indicates the camera driver failed to open.
      */
-    public void openDriver(SurfaceHolder holder) throws IOException {
+    public void openDriver(int rotation,SurfaceHolder holder) throws IOException {
         try {
             if (camera == null) {
+                int cameraId;
                 if(isFront){
+                    cameraId = 0;
                     camera = Camera.open(0);
                 }else {
+                    cameraId = 1;
                     camera = Camera.open(1);
                 }
                 if (camera == null) {
                     isFront = false;
-                    openDriver(holder);
+                    openDriver(rotation,holder);
                     return;
                 }
                 camera.setPreviewDisplay(holder);
@@ -137,7 +141,7 @@ public final class CameraManager {
                     initialized = true;
                     configManager.initFromCameraParameters(camera);
                 }
-                configManager.setDesiredCameraParameters(camera);
+                configManager.setDesiredCameraParameters(rotation,camera,cameraId);
 
                 //FIXME
                 //     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -149,7 +153,7 @@ public final class CameraManager {
             }
         }catch (Exception e){
             isFront = false;
-            openDriver(holder);
+            openDriver(rotation,holder);
         }
 
     }

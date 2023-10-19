@@ -256,7 +256,7 @@ public class CaptureActivity extends AppCompatActivity implements Callback {
 
     private void initCamera(SurfaceHolder surfaceHolder) {
         try {
-            CameraManager.get().openDriver(surfaceHolder);
+            CameraManager.get().openDriver(getWindowManager().getDefaultDisplay().getRotation(),surfaceHolder);
         } catch (IOException ioe) {
             return;
         } catch (RuntimeException e) {

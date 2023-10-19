@@ -15,7 +15,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class LogUtil {
@@ -326,10 +328,9 @@ public class LogUtil {
         private String mPID;
         private OutputStream fos;
         private InputStream fis;
-        private boolean isFinish;
         private Pattern mPattern = Pattern.compile("(^.*([0-9]{4})-([0-9]{2})-([0-9]{2}) 00:00:00)");
         private File file;
-
+        private List<String> tagList = new ArrayList<>();
         public LogReader(String pid, String dir, int level) {
             mPID = pid;
             try {
@@ -377,6 +378,62 @@ public class LogUtil {
             } else {
                 cmds = "logcat | grep \"(" + mPID + ")\"";
             }
+            addFilterates();
+        }
+
+        private void addFilterates() {
+            tagList.add(".java:");
+            tagList.add("Error");
+            tagList.add("error");
+            tagList.add("Exception");
+            tagList.add("exception");
+            tagList.add("Google");
+            tagList.add("google");
+            //native信号
+//            tagList.add("SIGHUP");//1挂起
+//            tagList.add("SIGINT");//2中断
+//            tagList.add("SIGQUIT");//3退出
+            tagList.add("SIGILL");//4非法指令
+            tagList.add("SIGTRAP");//5跟踪中断
+            tagList.add("SIGABRT");//6放弃
+//            tagList.add("SIGIOT");//6IOT trap
+            tagList.add("SIGBUS");//7非法地址
+            tagList.add("SIGFPE");//8浮点异常
+//            tagList.add("SIGKILL");//9删除
+//            tagList.add("SIGUSR1");//10用户信号1
+            tagList.add("SIGSEGV");//11访问非法地址
+//            tagList.add("SIGUSR2");//12用户信号2
+//            tagList.add("SIGPIPE");//13管道错误
+//            tagList.add("SIGALRM");//14时钟定时
+//            tagList.add("SIGTERM");//15程序结束
+//            tagList.add("SIGSTKFLT");//16Stack fault.
+//            tagList.add("SIGCLD");//SIGCHLD Same as SIGCHLD (System V)..
+//            tagList.add("SIGCHLD");//17Child status has changed (POSIX).
+//            tagList.add("SIGCONT");//18Stop, unblockable (POSIX).
+//            tagList.add("SIGSTOP");//19Stop, unblockable (POSIX).
+//            tagList.add("SIGTSTP");//20Keyboard stop (POSIX).
+//            tagList.add("SIGTTIN");//21Background read from tty (POSIX).
+//            tagList.add("SIGTTOU");//22Background write to tty (POSIX).
+//            tagList.add("SIGURG");//23Urgent condition on socket (4.2 BSD).
+//            tagList.add("SIGXCPU");//24CPU limit exceeded (4.2 BSD).
+//            tagList.add("SIGXFSZ");//25File size limit exceeded (4.2 BSD).
+//            tagList.add("SIGVTALRM");//26Virtual alarm clock (4.2 BSD).
+//            tagList.add("SIGPROF");//27Profiling alarm clock (4.2 BSD).
+//            tagList.add("SIGWINCH");//28Window size change (4.3 BSD, Sun).
+//            tagList.add("SIGPOLL");//SIGIO Pollable event occurred (System V).
+//            tagList.add("SIGIO");//29Same as SIGCHLD (System V).
+//            tagList.add("SIGPWR");//30Power failure restart (System V).
+//            tagList.add("SIGSYS");//31Bad system call.
+//            tagList.add("SIGUNUSED");//31
+        }
+
+        private boolean hitFilterate(String text){
+            for (int i = 0; i < tagList.size(); i++) {
+                if(text.contains(tagList.get(i))){
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void stoplog() {
@@ -417,13 +474,7 @@ public class LogUtil {
                     if (fos != null) {
                         if ((line.contains(mPID) && (line.contains(TAG) || (mContext != null && line.contains(mContext.getPackageName()))))
                                 || (mContext != null && line.contains(mContext.getPackageName()))
-                                || line.contains(".java:")
-                                || line.contains("Error")
-                                || line.contains("error")
-                                || line.contains("Exception")
-                                || line.contains("exception")
-                                || line.contains("Google")
-                                || line.contains("google")) {
+                                || hitFilterate(line)) {
                             fos.write((getSimpleDate() + " " + line + "\n").getBytes());
                             if (isZero(line)) {
                                 break;
@@ -436,7 +487,6 @@ public class LogUtil {
             } catch (Exception e) {
                 e.printStackTrace();
             } finally {
-                isFinish = true;
                 if (process != null) {
                     process.destroy();
                     process = null;

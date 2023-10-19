@@ -1,0 +1,27 @@
+1.一个线程如何保证只有一个Looper
+    1)利用ThreadLocal将Looper对象存到ThreadLocalMap中
+    2)第二次调用时从ThreadLocalMap中找,如果找到则抛异常
+2.Handler为什么会造成内存泄漏?
+    1)内存泄漏:长生命周期对象持有短生命周期对象的引用
+    2)持有链:Thread->Looper->MessageQueue->Message->Handler->Activity
+3.Looper死循环为什么不会导致应用卡死?
+    1)Android是事件为驱动的操作系统
+    2)当没有事件时,则会进行阻塞;否则,进行处理
+4.简述Handler工作原理
+    1)Handler将Message发送给MessageQueue
+    2)MessageQueue将Message按时间排序,等待Looper取出Message
+    3)Looper取出Message后,调用Message的target,即Handler的dispatchMessage()
+    4)最终回调到handlerMessage()
+5.一个线程有几个Handler?
+    可以有多个,Handler是基于ThreadLocal实现的,每个Handler都与一个线程关联
+6.为何主线程可以new Handler?子线程中需要做什么准备?
+    1)每个Handler必须对应一个Looper
+    2)主线程会自动创建一个Looper
+    3)子线程:需要调用Loop.prepare()和Loop.loop()
+7.多个Handler往MessageQueue中发送消息时,其如何保证线程安全?
+    加锁
+8.使用Message时,应该如何创建它?
+    使用Message.obtain()创建,直接new容易内存抖动
+9.如何让自己发送的消息优先被执行?
+    1)在含有同步屏障时,可以将消息设为异步消息,起到被优先执行的效果
+    2)同步屏障作用:屏蔽所有同步消息的分发,放行异步消息的分发

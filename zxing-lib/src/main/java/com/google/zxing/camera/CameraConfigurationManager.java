@@ -22,6 +22,7 @@ import android.hardware.Camera;
 import android.os.Build;
 import android.util.Log;
 import android.view.Display;
+import android.view.Surface;
 import android.view.WindowManager;
 
 import java.util.regex.Pattern;
@@ -52,11 +53,11 @@ final class CameraConfigurationManager {
         Camera.Parameters parameters = camera.getParameters();
         previewFormat = parameters.getPreviewFormat();
         previewFormatString = parameters.get("preview-format");
-        Log.d(TAG, "Default preview format: " + previewFormat + '/' + previewFormatString);
+        Log.d(TAG, "相机默认预览格式: " + previewFormat + '/' + previewFormatString);
         WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = manager.getDefaultDisplay();
         screenResolution = new Point(display.getWidth(), display.getHeight());
-        Log.d(TAG, "Screen resolution: " + screenResolution);
+        Log.d(TAG, "屏幕分辨率: " + screenResolution);
 
         //图片拉伸
         Point screenResolutionForCamera = new Point();
@@ -67,10 +68,7 @@ final class CameraConfigurationManager {
             screenResolutionForCamera.x = screenResolution.y;
             screenResolutionForCamera.y = screenResolution.x;
         }
-
         cameraResolution = getCameraResolution(parameters, screenResolutionForCamera);
-        Log.d(TAG, "Camera resolution: " + screenResolution);
-
     }
 
     /**
@@ -79,15 +77,39 @@ final class CameraConfigurationManager {
      * LuminanceSource subclass. In the future we may want to force YUV420SP as it's the smallest,
      * and the planar Y can be used for barcode scanning without a copy in some cases.
      */
-    void setDesiredCameraParameters(Camera camera) {
+    void setDesiredCameraParameters(int rotation, Camera camera, int cameraId) {
         Camera.Parameters parameters = camera.getParameters();
-        Log.d(TAG, "Setting preview size: " + cameraResolution);
         parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);
         setFlash(parameters);
         setZoom(parameters);
         //setSharpness(parameters);
         //modify here
-        camera.setDisplayOrientation(0);
+        int degree = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degree = 0;
+                break;
+            case Surface.ROTATION_90:
+                degree = 90;
+                break;
+            case Surface.ROTATION_180:
+                degree = 180;
+                break;
+            case Surface.ROTATION_270:
+                degree = 270;
+                break;
+        }
+        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+        Camera.getCameraInfo(cameraId, cameraInfo);
+        int result;
+        if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (cameraInfo.orientation + degree) % 360;
+            result = (360 - result) % 360;
+        } else {
+            result = (cameraInfo.orientation - degree + 360) % 360;
+        }
+        Log.d(TAG, "设置预览参数-相机预览分辨率: " + cameraResolution + " 相机Id:" + cameraId + " 相机预览角度:" + result);
+        camera.setDisplayOrientation(result);
         camera.setParameters(parameters);
     }
 
@@ -118,7 +140,7 @@ final class CameraConfigurationManager {
         Point cameraResolution = null;
 
         if (previewSizeValueString != null) {
-            Log.d(TAG, "preview-size-values parameter: " + previewSizeValueString);
+            Log.d(TAG, "相机默认预览参数: " + previewSizeValueString);
             cameraResolution = findBestPreviewSizeValue(previewSizeValueString, screenResolution);
         }
 

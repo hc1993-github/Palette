@@ -1,0 +1,28 @@
+1.OkHttp是如何处理网络请求的?
+    1)通过构造者模式创建OkHttpClient对象,该对象会管理一些资源,如连接池,拦截器等
+    2)通过构造者模式创建Request对象,该对象会包含请求地址,请求参数等信息
+    3)调用newCall()创建Call对象,并调用enqueue()或execute(),交由Dispatcher调度任务执行
+    4)根据响应处理请求结果,最后释放资源,如socket连接,缓存等
+2.OkHttp使用了哪些设计模式?
+    1)构造者模式(OkHttpClient,Request创建等)
+    2)单例模式(Platform中)
+    3)策略模式(CacheInterceptor的缓存功能)
+    4)责任链模式(RealCall中响应处理)
+    5)享元模式(Dispatcher的线程池中,实现线程复用)
+3.OkHttp有哪些拦截器及作用?
+    1)重试/重定向拦截器:处理错误和重定向
+    2)桥接拦截器:封装header参数等
+    3)缓存拦截器:缓存响应数据
+    4)连接拦截器:负责socket连接管理
+    5)请求拦截器:发起网络请求
+4.addInterceptor和addNetworkInterceptor的区别?
+    1)addInterceptor在重试/重定向拦截器之前,所以只触发一次;addNetworkInterceptor在请求拦截器之前,当发生错误或重定向时,可能会执行多次
+    2)addInterceptor只触发一次,可用于统计网络请求发起情况;addNetworkInterceptor一次调用代表一定发起网络请求,可用于统计网络请求数据情况
+5.Dispatcher的功能是什么?
+    1)通过队列管理不同类型的任务
+    2)通过线程池调度和执行任务
+6.OkHttp网络缓存如何实现?
+    默认只支持get请求缓存
+    1)第一次收到响应后根据头信息决定是否缓存
+    2)下次请求,判断是否存在本地缓存,是否需要对比请求头等信息
+    3)如何缓存失效或对比不通过则发起网络请求,否则使用本地缓存
