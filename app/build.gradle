@@ -71,6 +71,7 @@ dependencies {
     implementation 'io.netty:netty-all:5.0.0.Alpha2'
     implementation 'net.lingala.zip4j:zip4j:2.11.1'
     implementation 'com.guolindev.permissionx:permissionx:1.6.0'
+    implementation 'com.github.getActivity:XXPermissions:18.5'
     implementation project(path: ':SerialPortLibrary')
     implementation project(path: ':zxing-lib')
     implementation project(path: ':ScopeStore')

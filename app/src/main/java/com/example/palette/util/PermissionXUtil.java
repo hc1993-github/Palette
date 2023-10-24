@@ -32,7 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PermissionUtil {
+public class PermissionXUtil {
 
     private static Map<String, String> map = new HashMap<>();
     private static final String DEFAULT_EXPLAIN_TITLE = "为保证应用正常运行,即将申请以下权限";
@@ -64,7 +64,7 @@ public class PermissionUtil {
      * @param reasonDialogForward 自定义的权限永久拒绝弹框
      * @param listener            监听器
      */
-    public static void checkPermissionsByDialog(FragmentActivity fragmentActivity, Fragment fragment, List<String> requestPermissions, boolean useDefaultDialog, ReasonDialog reasonDialogExplain, ReasonDialog reasonDialogForward, PermissionListener listener) {
+    public static void checkPermissionsByDialog(FragmentActivity fragmentActivity, Fragment fragment, List<String> requestPermissions, boolean useDefaultDialog, ReasonDialog reasonDialogExplain, ReasonDialog reasonDialogForward, PermissionXListener listener) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             PermissionBuilder permissionBuilder;
             if (fragmentActivity == null && fragment == null) {
@@ -155,7 +155,7 @@ public class PermissionUtil {
         return result;
     }
 
-    public interface PermissionListener {
+    public interface PermissionXListener {
         void permissionAllGranted();
 
         void permissionSomeDenied(List<String> deniedList);
