@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandler;
@@ -29,13 +32,51 @@ import io.netty.util.CharsetUtil;
 public class MyClass {
 
     public static void main(String[] args) {
-        try {
-//            MouseServer mouseServer = new MouseServer(9999);
-//            mouseServer.start();
-            createDimensFile(40, 500, 0.47f);
-            System.out.print(pwdCheck("12a"));
-        } catch (Exception e) {
-            e.printStackTrace();
+//        try {
+////            MouseServer mouseServer = new MouseServer(9999);
+////            mouseServer.start();
+//            createDimensFile(40, 500, 0.47f);
+//            System.out.print(pwdCheck("12a"));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+        System.out.println(getRecentlyMultiple(0f,5,true));
+    }
+
+    public static float getRecentlyMultiple(float var,int percent,boolean calculateMax){
+        if(percent<2){
+            percent = 2;
+        }
+        if(percent>25){
+            percent = 25;
+        }
+        if(var>0){
+            if(var>=percent){
+                if((var%percent)==0){
+                    return var;
+                }else {
+                    return ((int)var/percent+1)*percent;
+                }
+            }else {
+                return percent;
+            }
+        }else if(var==0){
+            if(calculateMax){
+                return percent*(percent-1);
+            }else {
+                return -percent;
+            }
+        }else {
+            float abs = Math.abs(var);
+            if(abs>=percent){
+                if((abs%percent)==0){
+                    return -(abs);
+                }else {
+                    return -(((int)abs/percent+1)*percent);
+                }
+            }else {
+                return -percent;
+            }
         }
     }
 

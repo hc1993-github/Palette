@@ -81,4 +81,5 @@ dependencies {
     annotationProcessor 'com.yanzhenjie.andserver:processor:2.1.10'
     implementation 'org.bouncycastle:bcpkix-jdk15on:1.69'
     implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
 }
