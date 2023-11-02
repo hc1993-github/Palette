@@ -4,21 +4,20 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TaskManager {
+    private static final String TAG = "TaskManager";
     private volatile static TaskManager mInstance;
     private static Handler mMainHandler;
     private static final int MAIN = 10000;
     private static final int THREAD_TO_MAIN = 10001;
-    private static final int DEFAULT_THREAD_TO_MAIN_FAIL = -1;
-    private List<ThreadTask> mThreadTaskList = new ArrayList<>();
-    private List<ThreadMainTask> mThreadMainTaskList = new ArrayList<>();
+    private Map<String, ThreadTask> mThreadTaskMap = new ConcurrentHashMap<>();
+    private Map<String, ThreadMainTask> mThreadMainTaskMap = new ConcurrentHashMap<>();
     private Map<String, ThreadLoopThread> mThreadLoopThreadMap = new ConcurrentHashMap<>();
 
     public static TaskManager getInstance() {
@@ -74,11 +73,19 @@ public class TaskManager {
     /**
      * 子线程执行一次
      */
-    public void doOnceInThread(ThreadTasker threadTasker) {
+    public void doOnceInThread(String name, ThreadTasker threadTasker) {
+        if (TextUtils.isEmpty(name)) {
+            throw new NullPointerException("name must be not empty");
+        }
         if (threadTasker != null) {
-            ThreadTask threadTask = new ThreadTask(threadTasker);
-            mThreadTaskList.add(threadTask);
-            threadTask.start();
+            ThreadTask threadTask = mThreadTaskMap.get(name);
+            if (threadTask == null) {
+                threadTask = new ThreadTask(name, threadTasker);
+                mThreadTaskMap.put(name, threadTask);
+                threadTask.start();
+            } else {
+                Log.i(TAG, "the" + name + " thread is running");
+            }
         }
     }
 
@@ -109,21 +116,26 @@ public class TaskManager {
     /**
      * 先在子线程执行一次再在主线程执行一次
      */
-    public void doOnceInThreadInMain(ThreadMainTasker threadMainListener) {
-        doOnceInThreadDelayOnceInMain(0, threadMainListener);
+    public void doOnceInThreadInMain(String name, ThreadMainTasker threadMainListener) {
+        doOnceInThreadDelayOnceInMain(name, 0, threadMainListener);
     }
 
     /**
      * 先在子线程执行一次,延时时间后,再在主线程执行一次
      */
-    public void doOnceInThreadDelayOnceInMain(long delay, ThreadMainTasker threadMainTasker) {
+    public void doOnceInThreadDelayOnceInMain(String name, long delay, ThreadMainTasker threadMainTasker) {
         if (delay < 0) {
             throw new NullPointerException("delay must be bigger than zero");
         }
         if (threadMainTasker != null && mMainHandler != null) {
-            ThreadMainTask threadMainTask = new ThreadMainTask(delay, threadMainTasker);
-            mThreadMainTaskList.add(threadMainTask);
-            threadMainTask.start();
+            ThreadMainTask threadMainTask = mThreadMainTaskMap.get(name);
+            if (threadMainTask == null) {
+                threadMainTask = new ThreadMainTask(name, delay, threadMainTasker);
+                mThreadMainTaskMap.put(name, threadMainTask);
+                threadMainTask.start();
+            } else {
+                Log.i(TAG, "the" + name + " thread is running");
+            }
         }
     }
 
@@ -140,10 +152,12 @@ public class TaskManager {
         if (threadLoopTasker != null) {
             ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
             if (threadLoopThread == null) {
-                threadLoopThread = new ThreadLoopThread(delay, threadLoopTasker);
+                threadLoopThread = new ThreadLoopThread(name, delay, threadLoopTasker);
                 mThreadLoopThreadMap.put(name, threadLoopThread);
+                threadLoopThread.start();
+            } else {
+                Log.i(TAG, "the" + name + " loop thread is running");
             }
-            threadLoopThread.start();
         }
     }
 
@@ -182,6 +196,40 @@ public class TaskManager {
         }
     }
 
+    private void cancelOnceInThread(String name) {
+        try {
+            Iterator<Map.Entry<String, ThreadTask>> iterator = mThreadTaskMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, ThreadTask> next = iterator.next();
+                if (name.equals(next.getKey())) {
+                    ThreadTask threadLoopThread = next.getValue();
+                    threadLoopThread.interrupt();
+                    iterator.remove();
+                    break;
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void cancelOnceInThreadMain(String name) {
+        try {
+            Iterator<Map.Entry<String, ThreadMainTask>> iterator = mThreadMainTaskMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, ThreadMainTask> next = iterator.next();
+                if (name.equals(next.getKey())) {
+                    ThreadMainTask threadLoopThread = next.getValue();
+                    threadLoopThread.interrupt();
+                    iterator.remove();
+                    break;
+                }
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * 销毁(Activity或APP退出时调用)
      */
@@ -191,17 +239,20 @@ public class TaskManager {
             mMainHandler = null;
         }
         try {
-            Iterator<ThreadTask> taskIterator = mThreadTaskList.iterator();
-            while (taskIterator.hasNext()) {
-                ThreadTask threadTask = taskIterator.next();
-                threadTask.interrupt();
-                taskIterator.remove();
+            Iterator<Map.Entry<String, ThreadTask>> iterator = mThreadTaskMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, ThreadTask> next = iterator.next();
+                ThreadTask threadLoopThread = next.getValue();
+                threadLoopThread.interrupt();
+                iterator.remove();
             }
-            Iterator<ThreadMainTask> mainTaskIterator = mThreadMainTaskList.iterator();
-            while (mainTaskIterator.hasNext()) {
-                ThreadMainTask threadMainTask = mainTaskIterator.next();
-                threadMainTask.interrupt();
-                mainTaskIterator.remove();
+
+            Iterator<Map.Entry<String, ThreadMainTask>> iterator1 = mThreadMainTaskMap.entrySet().iterator();
+            while (iterator.hasNext()) {
+                Map.Entry<String, ThreadMainTask> next = iterator1.next();
+                ThreadMainTask threadLoopThread = next.getValue();
+                threadLoopThread.interrupt();
+                iterator.remove();
             }
         } catch (Throwable e) {
             e.printStackTrace();
@@ -269,20 +320,24 @@ public class TaskManager {
     public interface ThreadLoopTasker {
         /**
          * 子线程循环执行
-         * @param loopNumber 循环到第几次
          */
-        void taskInThreadLoop(int loopNumber);
+        void taskInThreadLoop();
 
         /**
-         * 子线程循环发生异常(回调在子线程)
+         * 循环执行是否发生异常
+         *
+         * @param happenException 是否异常
+         * @param loopNumber      循环到第几次
          */
-        void taskInThreadLoopHappenException();
+        void taskInThreadStatus(boolean happenException, int loopNumber);
     }
 
     private static class ThreadTask extends Thread {
         private ThreadTasker mThreadTasker;
+        private String mName;
 
-        public ThreadTask(ThreadTasker listener) {
+        public ThreadTask(String name, ThreadTasker listener) {
+            mName = name;
             mThreadTasker = listener;
         }
 
@@ -296,6 +351,7 @@ public class TaskManager {
                 e.printStackTrace();
             } finally {
                 mThreadTasker = null;
+                TaskManager.getInstance().cancelOnceInThread(mName);
             }
         }
     }
@@ -303,8 +359,10 @@ public class TaskManager {
     private static class ThreadMainTask extends Thread {
         private ThreadMainTasker mThreadMainTasker;
         private long mDelay;
+        private String mName;
 
-        public ThreadMainTask(long delay, ThreadMainTasker listener) {
+        public ThreadMainTask(String name, long delay, ThreadMainTasker listener) {
+            mName = name;
             mDelay = delay;
             mThreadMainTasker = listener;
         }
@@ -313,24 +371,25 @@ public class TaskManager {
         public void run() {
             try {
                 Object o = mThreadMainTasker.taskInThread();
-                mThreadMainTasker.taskInThreadFinish(false);
                 Message message = Message.obtain();
                 message.what = THREAD_TO_MAIN;
                 message.obj = new ThreadMainTaskerData(mThreadMainTasker, o);
                 if (mMainHandler != null) {
                     mMainHandler.sendMessageDelayed(message, mDelay);
                 }
+                mThreadMainTasker.taskInThreadFinish(false);
             } catch (Throwable e) {
                 mThreadMainTasker.taskInThreadFinish(true);
                 Message message = Message.obtain();
                 message.what = THREAD_TO_MAIN;
-                message.obj = new ThreadMainTaskerData(mThreadMainTasker, DEFAULT_THREAD_TO_MAIN_FAIL);
+                message.obj = new ThreadMainTaskerData(mThreadMainTasker, null);
                 if (mMainHandler != null) {
                     mMainHandler.sendMessageDelayed(message, mDelay);
                 }
                 e.printStackTrace();
             } finally {
                 mThreadMainTasker = null;
+                TaskManager.getInstance().cancelOnceInThreadMain(mName);
             }
         }
     }
@@ -339,8 +398,10 @@ public class TaskManager {
         private ThreadLoopTasker mThreadLoopTasker;
         private long mDelay;
         private int mNumber;
+        private String mName;
 
-        public ThreadLoopThread(long delay, ThreadLoopTasker threadLoopTasker) {
+        public ThreadLoopThread(String name, long delay, ThreadLoopTasker threadLoopTasker) {
+            mName = name;
             mDelay = delay;
             mThreadLoopTasker = threadLoopTasker;
         }
@@ -348,14 +409,21 @@ public class TaskManager {
         @Override
         public void run() {
             try {
-                while (!isInterrupted()) {
+                while (true) {
                     mNumber++;
-                    mThreadLoopTasker.taskInThreadLoop(mNumber);
+                    mThreadLoopTasker.taskInThreadLoop();
+                    mThreadLoopTasker.taskInThreadStatus(false, mNumber);
+                    if (isInterrupted()) {
+                        break;
+                    }
                     sleep(mDelay);
                 }
             } catch (Throwable e) {
-                mThreadLoopTasker.taskInThreadLoopHappenException();
+                mThreadLoopTasker.taskInThreadStatus(true, mNumber);
                 e.printStackTrace();
+            } finally {
+                mThreadLoopTasker = null;
+                TaskManager.getInstance().cancelWhichLoopInThread(mName);
             }
         }
     }
