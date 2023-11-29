@@ -1,0 +1,14 @@
+1.将LinerLayout(TabLayout和RecyclerView)的高度重置为屏幕高度,NestedScrollView滑动到底部,即TabLayout滑动到顶部
+    1.1)必须View画完,才能知道屏幕高度(NestedScrollView的高度)
+    1.2)重置必须在主线程
+2.在HeaderView没有完全隐藏的情况下,向上滑动RecyclerView,需要优先向上滑动HeaderView?
+    嵌套滑动:祖先与后代间的滑动NestedScrollView(NestedScrollingParent,NestedScrollingChild)
+    协调滑动:兄弟间的滑动CoordinatorLayout(NestedScrollingParent)
+    默认情况下,嵌套滑动的后代在自己处理完滑动后滑不动了,才会将滑动事件传递给祖先
+    MotionEvent.ACTION_DOWN
+        RecyclerView.startNestedScroll()
+        NestedScrollingChildHelper.startNestedScroll()-setNestedScrollingParentForType()查找嵌套滑动的祖先
+    MotionEvent.ACTION_MOVE
+        RecyclerView.dispatchNestedPreScroll()
+        NestedScrollingChildHelper.dispatchNestedPreScroll()-getNestedScrollingParentForType()获取祖先
+        ViewParentCompat.onNestedPreScroll()-祖先.onNestedPreScroll()

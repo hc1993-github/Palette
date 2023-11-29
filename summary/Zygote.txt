@@ -1,0 +1,5 @@
+1.启动:由init进程执行init.rc文件中脚本命令,以service形式启动app_process进程,后并重命名
+2.作用:1)创建ZygoteSocket,注册Socket
+      2)预加载常用系统类、Resources资源、openGl等
+      3)启动SystemServer进程
+      4)等待AMS请求,以创建新进程

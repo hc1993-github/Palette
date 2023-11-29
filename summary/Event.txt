@@ -1,0 +1,164 @@
+1.事件分发处理
+    1.1)Activity.dispatchTouchEvent()
+    1.2)PhoneWindow.superDispatchTouchEvent()
+    1.3)DecorView.superDispatchTouchEvent()
+    1.4)ViewGroup.dispatchTouchEvent()-onInterceptTouchEvent()-dispatchTransformedTouchEvent()
+    1.5)View.dispatchTouchEvent()-OnTouchListener.onTouch()
+    1.6)View.onTouchEvent()-OnClickListener.onClick()
+2.事件处理
+  View.dispatchTouchEvent()
+      if (onFilterTouchEventForSecurity(event)) {
+          ListenerInfo li = mListenerInfo;
+          if (li != null && li.mOnTouchListener != null && (mViewFlags & ENABLED_MASK) == ENABLED
+             && li.mOnTouchListener.onTouch(this, event)) {
+              result = true;
+          }
+          if (!result && onTouchEvent(event)) {
+              result = true;
+          }
+      }
+      View.onTouchEvent()-View.performClick()
+      if (li != null && li.mOnClickListener != null) {
+          li.mOnClickListener.onClick(this);
+          result = true;
+      } else {
+          result = false;
+      }
+  onTouch()-onTouchEvent()-onClick()
+3.事件分发
+  ViewGroup.dispatchTouchEvent()
+  3.1)final boolean intercepted; //拦截标志
+      if (actionMasked == MotionEvent.ACTION_DOWN || mFirstTouchTarget != null) {
+          final boolean disallowIntercept = (mGroupFlags & FLAG_DISALLOW_INTERCEPT) != 0; //标志位
+          if (!disallowIntercept) {
+              intercepted = onInterceptTouchEvent(ev);//是否拦截事件
+              ev.setAction(action);
+          } else {
+              intercepted = false;
+          }
+      } else {
+          intercepted = true;
+      }
+  3.2)if (!canceled && !intercepted) { //遍历子View分发DOWN事件
+          if (actionMasked == MotionEvent.ACTION_DOWN || (split && actionMasked == MotionEvent.ACTION_POINTER_DOWN) || actionMasked == MotionEvent.ACTION_HOVER_MOVE) {
+              final int childrenCount = mChildrenCount;
+              if (newTouchTarget == null && childrenCount != 0) {
+                  if (dispatchTransformedTouchEvent(ev, false, child, idBitsToAssign)) {
+                      mLastTouchDownTime = ev.getDownTime();
+                      if (preorderedList != null) {
+                          for (int j = 0; j < childrenCount; j++) {
+                              if (children[childIndex] == mChildren[j]) {
+                                  mLastTouchDownIndex = j;
+                                  break;
+                              }
+                          }
+                      } else {
+                          mLastTouchDownIndex = childIndex;
+                      }
+                      mLastTouchDownX = ev.getX();
+                      mLastTouchDownY = ev.getY();
+                      newTouchTarget = addTouchTarget(child, idBitsToAssign); //子View处理并赋值mFirstTouchTarget
+                      alreadyDispatchedToNewTouchTarget = true;
+                      break;
+                  }
+              }
+          }
+      }
+  3.3)if (mFirstTouchTarget == null) { //询问自己是否处理
+          handled = dispatchTransformedTouchEvent(ev, canceled, null,TouchTarget.ALL_POINTER_IDS);
+      } else { //子View处理
+          TouchTarget target = mFirstTouchTarget;
+          while (target != null) {
+              final TouchTarget next = target.next;
+              if (alreadyDispatchedToNewTouchTarget && target == newTouchTarget) { //子View已处理DOWN
+                  handled = true;
+              } else { //询问子View是否处理
+                  final boolean cancelChild = resetCancelNextUpFlag(target.child)|| intercepted;
+                  if (dispatchTransformedTouchEvent(ev, cancelChild,target.child, target.pointerIdBits)) {
+                      handled = true;
+                  }
+                  if (cancelChild) {
+                      if (predecessor == null) {
+                          mFirstTouchTarget = next;
+                      } else {
+                          predecessor.next = next;
+                      }
+                      target.recycle();
+                      target = next;
+                      continue;
+                  }
+              }
+              predecessor = target;
+              target = next;
+          }
+      }
+4.案例分析
+    ViewPager+ListView
+    1)ViewPager public boolean onInterceptTouchEvent(MotionEvent ev) {
+                       return true;
+                }
+      上下不能滑动,左右能滑动
+      DOWN-3.1)-onInterceptTouchEvent()-intercepted=true-3.3)-ViewPager处理
+      MOVE-3.1)-intercepted=true-3.3)-ViewPager处理
+
+    2)ViewPager public boolean onInterceptTouchEvent(MotionEvent ev) {
+                       return false;
+                }
+      上下能滑动,左右不能滑动
+      DOWN-3.1)-onInterceptTouchEvent()-intercepted=false-3.2)-分发ListView处理赋值mFirstTouchTarget-3.3)-ListView已处理
+      MOVE-3.1)-onInterceptTouchEvent()-intercepted=false-3.2)-3.3)-询问ListView-ListView处理
+
+    3)ViewPager public boolean onInterceptTouchEvent(MotionEvent ev) {
+                       return false;
+                }
+      ListView  public boolean dispatchTouchEvent(MotionEvent ev){
+                       return false;
+                }
+      上下不能滑动,左右能滑动
+      DOWN-3.1)-onInterceptTouchEvent()-intercepted=false-3.2)-分发ListView处理-ListView不处理-3.3)-ViewPager处理
+      MOVE-3.1)-onInterceptTouchEvent()-intercepted=false-3.2)-3.3)-询问ListView-ListView不处理-3.3)-ViewPager处理
+
+    4)内部拦截法
+      ViewPager public boolean onInterceptTouchEvent(MotionEvent ev) {
+                    if(ev.getAction()==MotionEvent.ACTION_DOWN){
+                        super.onInterceptTouchEvent(ev);
+                        return false;
+                    }
+                    return true;
+                }
+      ListView public boolean dispatchTouchEvent(MotionEvent ev) {
+                   if(ev.getAction()==MotionEvent.ACTION_DOWN){
+                       getParent().requestDisallowInterceptTouchEvent(true);
+                   }else if(ev.getAction()==MotionEvent.ACTION_MOVE){
+                       横向滑动:getParent().requestDisallowInterceptTouchEvent(false);
+                   }
+                   return super.onInterceptTouchEvent(ev);
+               }
+      上下能滑动,左右能滑动
+      左右
+      DOWN-3.1)-onInterceptTouchEvent()-intercepted=false-3.2)-分发ListView设置mFirstTouchTarget标志位true-ListView已处理
+      MOVE-3.1)-标志位true-intercepted=false-3.2)-3.3)-询问ListView-ListView设置标志位false-ListView处理
+      MOVE-3.1)-标志位false-onInterceptTouchEvent()-intercepted=true-3.3)-询问ListView(cancelChild=true)-ListView执行CANCEL赋值mFirstTouchTarget=null
+      MOVE-3.1)-intercepted=true-3.3)-ViewPager处理
+
+      上下
+      DOWN-3.1)-onInterceptTouchEvent()-intercepted=false-3.2)-分发ListView设置mFirstTouchTarget标志位true-ListView处理
+      MOVE-3.1)-标志位true-intercepted=false-3.2)-3.3)-询问ListView-ListView保持标志位true-ListView处理
+      MOVE-3.1)-标志位true-intercepted=false-3.2)-3.3)-询问ListView(cancelChild=false)-ListView处理
+    5)外部拦截法
+      ViewPager  public boolean onInterceptTouchEvent(MotionEvent ev) {
+                     switch (ev.getAction()){
+                         case MotionEvent.ACTION_DOWN:
+                             return false;
+                         case MotionEvent.ACTION_MOVE:
+                             if(横向滑动){ //ViewPager处理
+                                 return true;
+                             }else { //ListView处理
+                                 return false;
+                             }
+                     }
+                     return super.onInterceptTouchEvent(ev);
+                 }
+
+
+

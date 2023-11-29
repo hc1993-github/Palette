@@ -8,6 +8,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import com.example.palette.R;
 import com.example.palette.adapter.ViewPagerAdapter;
@@ -25,7 +26,8 @@ public class NineActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_nine);
+//        setContentView(R.layout.activity_nine);
+        setContentView(R.layout.activity_nine2);
 
         viewPager = findViewById(R.id.vp);
         tabLayout = findViewById(R.id.tl);
@@ -40,6 +42,15 @@ public class NineActivity extends AppCompatActivity {
             }
         });
         tabLayoutMediator.attach();
+        //吸顶(UI画完,获取NestedTransferScrollView的高度,LinearLayout重新布局)
+        LinearLayout linearLayout = findViewById(R.id.ll_tlvp);
+        linearLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                linearLayout.getLayoutParams().height = findViewById(R.id.nsv).getMeasuredHeight();
+                linearLayout.requestLayout();
+            }
+        });
     }
 
     private List<RecyclerViewFragment> getf(){

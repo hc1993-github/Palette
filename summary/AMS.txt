@@ -1,0 +1,21 @@
+1.startActivity启动流程?
+    1)Activity.startActivityForResult();
+    2)Instrumentation.execStartActivity()
+    3)ActivityTaskManager.getService().startActivity()
+        3.1)通过Binder方式获取AMS,调用AMS.startActivity()
+    3)ActivityTaskManagerService.startActivity()
+    4)ActivityStarter.execute()
+        4.1)调用resolveActivity()-ActivityTaskSupervisor.resolveIntent()-PackageManagerInternal.resolveIntent(),通过PMS查询Activity相关信息
+        4.2)调用executeRequest()-startActivityUnchecked()-startActivityInner()-computeLaunchingTaskFlags,启动模式处理
+        4.3)调用RootWindowContainer.resumeFocusedTasksTopActivities()-Task.resumeTopActivityUncheckedLocked()-Task.resumeTopActivityInnerLocked()-TaskFragment.resumeTopActivity()
+            -ActivityTaskSupervisor.startSpecificActivity(),判断App进程是否存在
+            4.3.1)进程存在:ActivityTaskSupervisor.realStartActivityLocked()-ActivityTaskManagerService.getLifecycleManager().scheduleTransaction()-ClientTransaction.schedule()
+                  -ApplicationThread.scheduleTransaction()-ActivityThread.scheduleTransaction()-TransactionExecutor.execute()
+                  -TransactionExecutor.executeCallbacks(),Activity反射创建
+                  -TransactionExecutor.executeLifecycleState(),Activity的生命周期回调
+            4.3.2)进程不存在:ActivityTaskSupervisor.startProcessAsync()-ActivityManagerService.startProcess()-ActivityManagerService.startProcessLocked(),利用socket通知Zygote创建进程
+                  ,Zygote反射启动ActivityThread.main()-ActivityThread.attach(),将ApplicationThread传给AMS,AMS通过Handler通知ActivityThread进行生命周期回调
+2.启动:由SystemServer创建,并添加到ServiceManager中
+3.作用:1)组件状态管理startActivity(),startActivityAndWait(),activityPaused(),startService()等
+      2)组件状态查询getCallingActivity(),getService()等
+      3)任务栈管理removeTask(),moveTaskToFront(),moveTaskToBack()等

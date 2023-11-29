@@ -1,0 +1,11 @@
+                            Boot ROM
+                                ↓
+                           BootLoader
+                                ↓
+                               init
+                             ↙      ↘
+                  ServiceManager     Zygote
+                                        ↓
+                                   SystemServer
+                                        ↓
+                                    AMS,PMS...

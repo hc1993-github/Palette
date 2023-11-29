@@ -1,0 +1,3 @@
+1.启动:由SystemServer创建,并添加到ServiceManager中
+2.作用:1)遍历data/data/app文件夹,查找并解压apk文件
+      2)dom解析AndroidManifest.xml文件,将四大组件等信息缓存起来,提供给AMS使用

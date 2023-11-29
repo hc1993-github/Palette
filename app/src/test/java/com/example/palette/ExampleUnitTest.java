@@ -2,6 +2,9 @@ package com.example.palette;
 
 import org.junit.Test;
 
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
 import static org.junit.Assert.*;
 
 /**
@@ -12,6 +15,12 @@ import static org.junit.Assert.*;
 public class ExampleUnitTest {
     @Test
     public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
+        //SPI机制
+        ServiceLoader<SPIService> load = ServiceLoader.load(SPIService.class);
+        Iterator<SPIService> iterator = load.iterator();
+        while (iterator.hasNext()){
+            SPIService service = iterator.next();
+            service.execute();
+        }
     }
 }

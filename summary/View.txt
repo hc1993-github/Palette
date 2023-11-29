@@ -1,0 +1,5 @@
+1.View绘制流程
+    View.invalidate()-View.invalidateInternal()-ViewGroup.invalidateChild-ViewGroup.invalidateChildInParent()-ViewRootImpl.invalidateChildInParent
+    -ViewRootImpl.scheduleTraversals()-ViewRootImpl.performTraversals()-ViewRootImpl.performDraw()-ViewRootImpl.drawSoftware-View.draw()
+
+    View反向通知ViewGroup绘制,ViewGroup最终拿到ViewRootImpl绘制,ViewRootImpl正向开始onMeasure,onLayout,onDraw绘制流程
