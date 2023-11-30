@@ -22,7 +22,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Palette">
-        <activity android:name=".activity.SevenActivity"/>
+        <activity android:name=".activity.ElevenActivity"/>
+        <activity android:name=".activity.SevenActivity" />
         <activity android:name=".activity.TenActivity" />
         <activity android:name=".activity.EightActivity" />
         <activity android:name=".activity.ThirdActivity" />
