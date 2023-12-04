@@ -24,50 +24,59 @@ public class NetUtil {
                     "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$");
 
     /**
-     * 是否有网络
+     * 是否网络已连接
      * @param context
      * @return
      */
-    public static boolean hasNet(Context context){
+    public static boolean isNetConnected(Context context){
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        if(networkInfo!=null || networkInfo.isConnected()){
-            if(networkInfo.getState()== NetworkInfo.State.CONNECTED){
-                return true;
-            }
+        if(networkInfo != null){
+            return networkInfo.isConnected();
         }
         return false;
     }
 
     /**
-     * 是否是wifi
+     * 是否wifi已连接
      * @param context
      * @return
      */
-    public static boolean isWifi(Context context){
+    public static boolean isWifiConnected(Context context){
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
-        return networkInfo.getType()==manager.TYPE_WIFI ? true : false;
+        NetworkInfo networkInfo = manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if(networkInfo !=null){
+            return networkInfo.isConnected();
+        }
+        return false;
     }
 
     /**
-     * 网络是否可用
+     * 是否移动数据已连接
      * @param context
      * @return
      */
-    public static boolean netCanUse(Context context){
+    public static boolean isMobileConnected(Context context){
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        return manager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).isConnectedOrConnecting();
+        NetworkInfo networkInfo = manager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        if(networkInfo !=null){
+            return networkInfo.isConnected();
+        }
+        return false;
     }
 
     /**
-     * wifi是否可用
+     * 是否以太网已连接
      * @param context
      * @return
      */
-    public static boolean wifiCanUse(Context context){
+    public static boolean isEthernetConnected(Context context){
         ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        return manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).isConnectedOrConnecting();
+        NetworkInfo networkInfo = manager.getNetworkInfo(ConnectivityManager.TYPE_ETHERNET);
+        if(networkInfo !=null){
+            return networkInfo.isConnected();
+        }
+        return false;
     }
 
     /**

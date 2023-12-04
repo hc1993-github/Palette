@@ -23,14 +23,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Palette">
         <activity android:name=".activity.ElevenActivity"/>
-        <activity android:name=".activity.SevenActivity" />
+        <activity android:name=".activity.NineActivity" />
         <activity android:name=".activity.TenActivity" />
         <activity android:name=".activity.EightActivity" />
         <activity android:name=".activity.ThirdActivity" />
         <activity android:name=".activity.SixActivity" />
         <activity android:name=".activity.FiveActivity" />
         <activity
-            android:name=".activity.NineActivity"
+            android:name=".activity.SevenActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

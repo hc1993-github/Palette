@@ -1,5 +1,27 @@
-1.View绘制流程
-    View.invalidate()-View.invalidateInternal()-ViewGroup.invalidateChild-ViewGroup.invalidateChildInParent()-ViewRootImpl.invalidateChildInParent
-    -ViewRootImpl.scheduleTraversals()-ViewRootImpl.performTraversals()-ViewRootImpl.performDraw()-ViewRootImpl.drawSoftware-View.draw()
+1.Activity等类关系
+    Activity                    WindowManager
+        ↓                           ↓
+    PhoneWindow                     ↓
+        ↓                           ↓
+    DecorView         ←             ↓
+        ↓                           ↓
+    TitleView,ContentView           ↓
+        ↓                           ↓
+    YourLayoutView    ←         ViewRootImpl        ←       WindowManagerService
 
-    View反向通知ViewGroup绘制,ViewGroup最终拿到ViewRootImpl绘制,ViewRootImpl正向开始onMeasure,onLayout,onDraw绘制流程
+2.ViewRootImpl是如何创建的?
+  ActivityThread.handleLaunchActivity()-performLaunchActivity()-反射创建Activity-Activity.attach()--Activity,PhoneWindow,WindowManager三者建立联系
+                                                               -Instrumentation.callActivityOnCreate()-Activity.onCreate()
+  ActivityThread.handleResumeActivity()-performResumeActivity()-Activity.performResume()-Instrumentation.callActivityOnResume()-Activity.onResume()
+                                       -wm.addView()-WindowManagerGlobal.addView()-创建ViewRootImpl并建立和WMS的联系
+                                                                                  -ViewRootImpl.setView()-requestLayout()-scheduleTraversals()
+                                                                                                         -view.assignParent(this)
+                                       -wm.updateViewLayout()-WindowManagerGlobal.updateViewLayout()-ViewRootImpl.setLayoutParams()-scheduleTraversals()
+
+3.View.invalidate()
+    View.invalidate()-View.invalidateInternal()-ViewGroup.invalidateChild()-ViewGroup.invalidateChildInParent()
+    -ViewRootImpl.invalidateChildInParent()-ViewRootImpl.invalidate()-ViewRootImpl.scheduleTraversals()-Choreographer.postCallback(TraversalRunnable)
+    -ViewRootImpl.doTraversal()-ViewRootImpl.performTraversals()-ViewRootImpl.performMeasure()-View.measure()-onMeasure()
+                                                                -ViewRootImpl.performLayout()-host.layout()-onLayout()
+                                                                -ViewRootImpl.performDraw()-draw()-drawSoftware()-View.draw()-onDraw()
+

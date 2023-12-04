@@ -5,6 +5,8 @@
     嵌套滑动:祖先与后代间的滑动NestedScrollView(NestedScrollingParent,NestedScrollingChild)
     协调滑动:兄弟间的滑动CoordinatorLayout(NestedScrollingParent)
     默认情况下,嵌套滑动的后代在自己处理完滑动后滑不动了,才会将滑动事件传递给祖先
+
+    RecyclerView处理嵌套滑动
     MotionEvent.ACTION_DOWN
         RecyclerView.startNestedScroll()
         NestedScrollingChildHelper.startNestedScroll()-setNestedScrollingParentForType()查找嵌套滑动的祖先

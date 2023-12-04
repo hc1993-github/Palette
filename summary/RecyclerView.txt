@@ -24,6 +24,6 @@
     3)数据分批、分页加载:根据滑动静止后的状态,来判断是否加载更多数据
 5.RecyclerView缓存流程?
     1)插入或删除Item时,将屏幕内的ViewHolder保存至一级缓存;
-      滑动屏幕时,先消息的ViewHolder会保存到mCachedViews,超过数量时按先入先出,移至mRecyclerPool缓存池,
+      滑动屏幕时,先将移出的ViewHolder保存到mCachedViews,超过数量时按先入先出,移至mRecyclerPool缓存池,
       mRecyclerPool缓存池会按照ViewHolder类型进行缓存,超过数量则回收
     2)先从mAttachedScrap中获取,再从mCachedViews获取,再从mRecyclerPool获取,若都失败,则执行创建ViewHolder
