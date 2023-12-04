@@ -9,16 +9,19 @@ import android.util.Log;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TaskManager {
     private static final String TAG = "TaskManager";
     private volatile static TaskManager mInstance;
-    private static Handler mMainHandler;
     private static final int MAIN = 10000;
-    private static final int THREAD_TO_MAIN = 10001;
-    private Map<String, ThreadTask> mThreadTaskMap = new ConcurrentHashMap<>();
-    private Map<String, ThreadMainTask> mThreadMainTaskMap = new ConcurrentHashMap<>();
-    private Map<String, ThreadLoopThread> mThreadLoopThreadMap = new ConcurrentHashMap<>();
+    private static final int THREAD_TO_MAIN = 20000;
+    private Map<String,ThreadTaskerRunnable> mThreadTaskerRunnableMap = new ConcurrentHashMap<>();
+    private Map<String,ThreadMainTaskerRunnable> mThreadMainTaskerRunnableMap = new ConcurrentHashMap<>();
+    private Map<String,ThreadLoopTaskerRunnable> mThreadLoopTaskerRunnableMap = new ConcurrentHashMap<>();
+    private ExecutorService mExecutor;
+    private static Handler mMainHandler;
 
     public static TaskManager getInstance() {
         if (mInstance == null) {
@@ -28,41 +31,36 @@ public class TaskManager {
                 }
             }
         }
-        if (mMainHandler == null) {
+        if(mMainHandler==null){
             init();
         }
         return mInstance;
     }
 
     private static void init() {
-        mMainHandler = new Handler(Looper.getMainLooper()) {
+        mMainHandler = new Handler(Looper.getMainLooper()){
             @Override
             public void handleMessage(Message msg) {
-                switch (msg.what) {
+                switch (msg.what){
                     case MAIN:
-                        if (mMainHandler != null) {
-                            MainTasker mainTasker = (MainTasker) msg.obj;
-                            try {
-                                mainTasker.taskInMain();
-                                mainTasker.taskInMainFinish(false);
-                            } catch (Throwable e) {
-                                mainTasker.taskInMainFinish(true);
-                                e.printStackTrace();
-                            }
+                        MainTasker tasker = (MainTasker) msg.obj;
+                        try {
+                            tasker.taskExecute();
+                            tasker.taskFinish(false);
+                        }catch (Throwable e){
+                            tasker.taskFinish(true);
+                            e.printStackTrace();
                         }
                         break;
                     case THREAD_TO_MAIN:
-                        if (mMainHandler != null) {
-                            ThreadMainTaskerData data = (ThreadMainTaskerData) msg.obj;
-                            ThreadMainTasker threadMainTasker = data.getListener();
-                            try {
-                                threadMainTasker.taskInMain(data.getObject());
-                                threadMainTasker.taskInMainFinish(false);
-                            } catch (Throwable e) {
-                                threadMainTasker.taskInMainFinish(true);
-                                e.printStackTrace();
-                            }
-                            data.clear();
+                        ThreadMainTaskerData data = (ThreadMainTaskerData) msg.obj;
+                        ThreadMainTasker threadMainTasker = data.tasker;
+                        try {
+                            threadMainTasker.taskMainExecute(data.object);
+                            threadMainTasker.taskMainFinish(false);
+                        }catch (Throwable e){
+                            threadMainTasker.taskMainFinish(true);
+                            e.printStackTrace();
                         }
                         break;
                 }
@@ -70,140 +68,31 @@ public class TaskManager {
         };
     }
 
-    /**
-     * 子线程执行一次
-     */
-    public void doOnceInThread(String name, ThreadTasker threadTasker) {
-        if (TextUtils.isEmpty(name)) {
+    public void doOnceInThread(String name,ThreadTasker tasker){
+        if(TextUtils.isEmpty(name)){
             throw new NullPointerException("name must be not empty");
         }
-        if (threadTasker != null) {
-            ThreadTask threadTask = mThreadTaskMap.get(name);
-            if (threadTask == null) {
-                threadTask = new ThreadTask(name, threadTasker);
-                mThreadTaskMap.put(name, threadTask);
-                threadTask.start();
-            } else {
-                Log.i(TAG, "the" + name + " thread is running");
+        if(tasker!=null){
+            ThreadTaskerRunnable runnable = mThreadTaskerRunnableMap.get(name);
+            if(runnable==null){
+                runnable = new ThreadTaskerRunnable(name, tasker);
+                mThreadTaskerRunnableMap.put(name,runnable);
+                if(mExecutor==null){
+                    mExecutor = Executors.newCachedThreadPool(Executors.defaultThreadFactory());
+                }
+                mExecutor.execute(runnable);
+            }else {
+                Log.i(TAG, "the" + name + " ThreadTasker is running");
             }
-        }
-    }
-
-    /**
-     * 主线程执行一次
-     */
-    public void doOnceInMain(MainTasker mainTasker) {
-        doOnceInMainDelay(0, mainTasker);
-    }
-
-    /**
-     * 主线程延时时间后执行一次
-     */
-    public void doOnceInMainDelay(long delay, MainTasker mainTasker) {
-        if (delay < 0) {
-            throw new NullPointerException("delay must be bigger than zero");
-        }
-        if (mainTasker != null && mMainHandler != null) {
-            Message message = Message.obtain();
-            message.what = MAIN;
-            message.obj = mainTasker;
-            if (mMainHandler != null) {
-                mMainHandler.sendMessageDelayed(message, delay);
-            }
-        }
-    }
-
-    /**
-     * 先在子线程执行一次再在主线程执行一次
-     */
-    public void doOnceInThreadInMain(String name, ThreadMainTasker threadMainListener) {
-        doOnceInThreadDelayOnceInMain(name, 0, threadMainListener);
-    }
-
-    /**
-     * 先在子线程执行一次,延时时间后,再在主线程执行一次
-     */
-    public void doOnceInThreadDelayOnceInMain(String name, long delay, ThreadMainTasker threadMainTasker) {
-        if (delay < 0) {
-            throw new NullPointerException("delay must be bigger than zero");
-        }
-        if (threadMainTasker != null && mMainHandler != null) {
-            ThreadMainTask threadMainTask = mThreadMainTaskMap.get(name);
-            if (threadMainTask == null) {
-                threadMainTask = new ThreadMainTask(name, delay, threadMainTasker);
-                mThreadMainTaskMap.put(name, threadMainTask);
-                threadMainTask.start();
-            } else {
-                Log.i(TAG, "the" + name + " thread is running");
-            }
-        }
-    }
-
-    /**
-     * 子线程循环任务
-     */
-    public void doLoopInThread(String name, long delay, ThreadLoopTasker threadLoopTasker) {
-        if (delay < 0) {
-            throw new NullPointerException("delay must be bigger than zero");
-        }
-        if (TextUtils.isEmpty(name)) {
-            throw new NullPointerException("name must be not empty");
-        }
-        if (threadLoopTasker != null) {
-            ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
-            if (threadLoopThread == null) {
-                threadLoopThread = new ThreadLoopThread(name, delay, threadLoopTasker);
-                mThreadLoopThreadMap.put(name, threadLoopThread);
-                threadLoopThread.start();
-            } else {
-                Log.i(TAG, "the" + name + " loop thread is running");
-            }
-        }
-    }
-
-    /**
-     * 取消循环任务
-     */
-    public void cancelWhichLoopInThread(String name) {
-        if (TextUtils.isEmpty(name)) {
-            throw new NullPointerException("name must be not empty");
-        }
-        try {
-            ThreadLoopThread threadLoopThread = mThreadLoopThreadMap.get(name);
-            if (threadLoopThread != null) {
-                threadLoopThread.interrupt();
-                mThreadLoopThreadMap.remove(name);
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 销毁(Activity或APP退出时调用)
-     */
-    public void cancelAllLoopInThread() {
-        try {
-            Iterator<Map.Entry<String, ThreadLoopThread>> iterator = mThreadLoopThreadMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, ThreadLoopThread> next = iterator.next();
-                ThreadLoopThread threadLoopThread = next.getValue();
-                threadLoopThread.interrupt();
-                iterator.remove();
-            }
-        } catch (Throwable e) {
-            e.printStackTrace();
         }
     }
 
     private void cancelOnceInThread(String name) {
         try {
-            Iterator<Map.Entry<String, ThreadTask>> iterator = mThreadTaskMap.entrySet().iterator();
+            Iterator<Map.Entry<String, ThreadTaskerRunnable>> iterator = mThreadTaskerRunnableMap.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<String, ThreadTask> next = iterator.next();
+                Map.Entry<String, ThreadTaskerRunnable> next = iterator.next();
                 if (name.equals(next.getKey())) {
-                    ThreadTask threadLoopThread = next.getValue();
-                    threadLoopThread.interrupt();
                     iterator.remove();
                     break;
                 }
@@ -213,14 +102,90 @@ public class TaskManager {
         }
     }
 
-    private void cancelOnceInThreadMain(String name) {
+    public void doLoopInThread(String name,long period,ThreadLoopTasker tasker){
+        if(TextUtils.isEmpty(name)){
+            throw new NullPointerException("name must be not empty");
+        }
+        if(period<0){
+            throw new NullPointerException("period must be bigger than zero");
+        }
+        if(tasker!=null){
+            ThreadLoopTaskerRunnable runnable = mThreadLoopTaskerRunnableMap.get(name);
+            if(runnable==null){
+                runnable = new ThreadLoopTaskerRunnable(name, period, tasker);
+                mThreadLoopTaskerRunnableMap.put(name,runnable);
+                if(mExecutor==null){
+                    mExecutor = Executors.newCachedThreadPool(Executors.defaultThreadFactory());
+                }
+                mExecutor.execute(runnable);
+            }else {
+                Log.i(TAG, "the" + name + " ThreadLoopTasker is running");
+            }
+        }
+    }
+
+    public void cancelLoopInThread(String name){
+        if(!TextUtils.isEmpty(name)){
+            try {
+                ThreadLoopTaskerRunnable runnable = mThreadLoopTaskerRunnableMap.get(name);
+                if(runnable!=null){
+                    runnable.stop = true;
+                    mThreadLoopTaskerRunnableMap.remove(name);
+                }
+            }catch (Throwable e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void doOnceInMain(MainTasker tasker){
+        doOnceInMainDelay(0,tasker);
+    }
+
+    public void doOnceInMainDelay(long delay,MainTasker tasker){
+        if(delay<0){
+            delay = 0;
+        }
+        if(tasker!=null && mMainHandler!=null){
+            Message message = Message.obtain();
+            message.what = MAIN;
+            message.obj = tasker;
+            mMainHandler.sendMessageDelayed(message,delay);
+        }
+    }
+
+    public void doOnceInThreadToMain(String name,ThreadMainTasker tasker){
+        doOnceInThreadToMainDelay(name,0,tasker);
+    }
+
+    public void doOnceInThreadToMainDelay(String name,long delay,ThreadMainTasker tasker){
+        if(TextUtils.isEmpty(name)){
+            throw new NullPointerException("name must be not empty");
+        }
+        if(delay<0){
+            delay=0;
+        }
+        if(tasker!=null){
+            ThreadMainTaskerRunnable runnable = mThreadMainTaskerRunnableMap.get(name);
+            if(runnable==null){
+                runnable = new ThreadMainTaskerRunnable(name, delay, tasker);
+                mThreadMainTaskerRunnableMap.put(name,runnable);
+                if(mExecutor==null){
+                    mExecutor = Executors.newCachedThreadPool(Executors.defaultThreadFactory());
+                }
+                mExecutor.execute(runnable);
+            }else {
+                Log.i(TAG, "the" + name + " ThreadMainTasker is running");
+            }
+        }
+    }
+
+    private void cancelOnceInThreadToMain(String name) {
         try {
-            Iterator<Map.Entry<String, ThreadMainTask>> iterator = mThreadMainTaskMap.entrySet().iterator();
+            Iterator<Map.Entry<String, ThreadMainTaskerRunnable>> iterator = mThreadMainTaskerRunnableMap.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<String, ThreadMainTask> next = iterator.next();
+                Map.Entry<String, ThreadMainTaskerRunnable> next = iterator.next();
                 if (name.equals(next.getKey())) {
-                    ThreadMainTask threadLoopThread = next.getValue();
-                    threadLoopThread.interrupt();
                     iterator.remove();
                     break;
                 }
@@ -230,224 +195,164 @@ public class TaskManager {
         }
     }
 
-    /**
-     * 销毁(Activity或APP退出时调用)
-     */
-    public void cancelAllOnceInThread() {
+    public void cancelAll(){
         if (mMainHandler != null) {
             mMainHandler.removeCallbacksAndMessages(null);
             mMainHandler = null;
         }
+        if(mExecutor!=null){
+            mExecutor.shutdownNow();
+            mExecutor = null;
+        }
         try {
-            Iterator<Map.Entry<String, ThreadTask>> iterator = mThreadTaskMap.entrySet().iterator();
+            Iterator<Map.Entry<String, ThreadMainTaskerRunnable>> iterator = mThreadMainTaskerRunnableMap.entrySet().iterator();
             while (iterator.hasNext()) {
-                Map.Entry<String, ThreadTask> next = iterator.next();
-                ThreadTask threadLoopThread = next.getValue();
-                threadLoopThread.interrupt();
+                Map.Entry<String, ThreadMainTaskerRunnable> next = iterator.next();
                 iterator.remove();
             }
-
-            Iterator<Map.Entry<String, ThreadMainTask>> iterator1 = mThreadMainTaskMap.entrySet().iterator();
-            while (iterator.hasNext()) {
-                Map.Entry<String, ThreadMainTask> next = iterator1.next();
-                ThreadMainTask threadLoopThread = next.getValue();
-                threadLoopThread.interrupt();
-                iterator.remove();
+            Iterator<Map.Entry<String, ThreadTaskerRunnable>> iterator1 = mThreadTaskerRunnableMap.entrySet().iterator();
+            while (iterator1.hasNext()) {
+                Map.Entry<String, ThreadTaskerRunnable> next = iterator1.next();
+                iterator1.remove();
             }
-        } catch (Throwable e) {
+            Iterator<Map.Entry<String, ThreadLoopTaskerRunnable>> iterator2 = mThreadLoopTaskerRunnableMap.entrySet().iterator();
+            while (iterator2.hasNext()) {
+                Map.Entry<String, ThreadLoopTaskerRunnable> next = iterator2.next();
+                ThreadLoopTaskerRunnable runnable = next.getValue();
+                runnable.stop = true;
+                iterator2.remove();
+            }
+        }catch (Throwable e){
             e.printStackTrace();
         }
     }
 
-    public interface ThreadTasker {
-        /**
-         * 子线程执行
-         */
-        void taskInThread();
-
-        /**
-         * 是否执行发生异常(回调在子线程)
-         *
-         * @param isHappenException true 是 false 否
-         */
-        void taskInThreadFinish(boolean isHappenException);
+    public interface MainTasker{
+        void taskExecute();
+        void taskFinish(boolean exception);
     }
 
-    public interface MainTasker {
-        /**
-         * 主线程执行
-         */
-        void taskInMain();
-
-        /**
-         * 是否执行发生异常(回调在主线程)
-         *
-         * @param isHappenException true 是 false 否
-         */
-        void taskInMainFinish(boolean isHappenException);
+    public interface ThreadTasker{
+        void taskExecute();
+        void taskFinish(boolean exception);
     }
 
-    public interface ThreadMainTasker {
-        /**
-         * 子线程执行
-         *
-         * @return 传给主线程的结果
-         */
-        Object taskInThread();
-
-        /**
-         * 是否执行发生异常(回调在子线程)
-         *
-         * @param isHappenException true 是 false 否
-         */
-        void taskInThreadFinish(boolean isHappenException);
-
-        /**
-         * 主线程执行
-         *
-         * @param object 接收子线程的结果
-         */
-        void taskInMain(Object object);
-
-        /**
-         * 是否执行发生异常(回调在主线程)
-         *
-         * @param isHappenException true 是 false 否
-         */
-        void taskInMainFinish(boolean isHappenException);
+    public interface ThreadMainTasker<T>{
+        T taskThreadExecute();
+        void taskThreadFinish(boolean exception);
+        void taskMainExecute(T t);
+        void taskMainFinish(boolean exception);
     }
 
-    public interface ThreadLoopTasker {
-        /**
-         * 子线程循环执行
-         */
-        void taskInThreadLoop();
-
-        /**
-         * 循环执行是否发生异常
-         *
-         * @param happenException 是否异常
-         * @param loopNumber      循环到第几次
-         */
-        void taskInThreadStatus(boolean happenException, int loopNumber);
+    public interface ThreadLoopTasker{
+        void taskExecute();
+        void taskFinish(boolean exception,int number);
     }
 
-    private static class ThreadTask extends Thread {
-        private ThreadTasker mThreadTasker;
-        private String mName;
+    public static class ThreadLoopTaskerRunnable implements Runnable{
+        private String name;
+        private long period;
+        private ThreadLoopTasker tasker;
+        private int number;
+        private boolean stop;
 
-        public ThreadTask(String name, ThreadTasker listener) {
-            mName = name;
-            mThreadTasker = listener;
+        public ThreadLoopTaskerRunnable(String name, long period, ThreadLoopTasker tasker) {
+            this.name = name;
+            this.period = period;
+            this.tasker = tasker;
         }
 
         @Override
         public void run() {
             try {
-                mThreadTasker.taskInThread();
-                mThreadTasker.taskInThreadFinish(false);
-            } catch (Throwable e) {
-                mThreadTasker.taskInThreadFinish(true);
-                e.printStackTrace();
-            } finally {
-                mThreadTasker = null;
-                TaskManager.getInstance().cancelOnceInThread(mName);
-            }
-        }
-    }
-
-    private static class ThreadMainTask extends Thread {
-        private ThreadMainTasker mThreadMainTasker;
-        private long mDelay;
-        private String mName;
-
-        public ThreadMainTask(String name, long delay, ThreadMainTasker listener) {
-            mName = name;
-            mDelay = delay;
-            mThreadMainTasker = listener;
-        }
-
-        @Override
-        public void run() {
-            try {
-                Object o = mThreadMainTasker.taskInThread();
-                Message message = Message.obtain();
-                message.what = THREAD_TO_MAIN;
-                message.obj = new ThreadMainTaskerData(mThreadMainTasker, o);
-                if (mMainHandler != null) {
-                    mMainHandler.sendMessageDelayed(message, mDelay);
-                }
-                mThreadMainTasker.taskInThreadFinish(false);
-            } catch (Throwable e) {
-                mThreadMainTasker.taskInThreadFinish(true);
-                Message message = Message.obtain();
-                message.what = THREAD_TO_MAIN;
-                message.obj = new ThreadMainTaskerData(mThreadMainTasker, null);
-                if (mMainHandler != null) {
-                    mMainHandler.sendMessageDelayed(message, mDelay);
-                }
-                e.printStackTrace();
-            } finally {
-                mThreadMainTasker = null;
-                TaskManager.getInstance().cancelOnceInThreadMain(mName);
-            }
-        }
-    }
-
-    private static class ThreadLoopThread extends Thread {
-        private ThreadLoopTasker mThreadLoopTasker;
-        private long mDelay;
-        private int mNumber;
-        private String mName;
-
-        public ThreadLoopThread(String name, long delay, ThreadLoopTasker threadLoopTasker) {
-            mName = name;
-            mDelay = delay;
-            mThreadLoopTasker = threadLoopTasker;
-        }
-
-        @Override
-        public void run() {
-            try {
-                while (true) {
-                    mNumber++;
-                    mThreadLoopTasker.taskInThreadLoop();
-                    mThreadLoopTasker.taskInThreadStatus(false, mNumber);
-                    if (isInterrupted()) {
+                while (true){
+                    number++;
+                    tasker.taskExecute();
+                    tasker.taskFinish(false,number);
+                    Thread.sleep(period);
+                    if(stop){
                         break;
                     }
-                    sleep(mDelay);
                 }
-            } catch (Throwable e) {
-                mThreadLoopTasker.taskInThreadStatus(true, mNumber);
+            }catch (Throwable e){
+                tasker.taskFinish(true,number);
                 e.printStackTrace();
-            } finally {
-                mThreadLoopTasker = null;
-                TaskManager.getInstance().cancelWhichLoopInThread(mName);
+            }finally {
+                TaskManager.getInstance().cancelLoopInThread(name);
             }
         }
     }
 
-    private static class ThreadMainTaskerData {
-        private ThreadMainTasker mThreadMainTasker;
-        private Object mObject;
+    public static class ThreadTaskerRunnable implements Runnable{
+        private String name;
+        private ThreadTasker tasker;
 
-        public ThreadMainTaskerData(ThreadMainTasker threadMainTasker, Object object) {
-            mThreadMainTasker = threadMainTasker;
-            mObject = object;
+        public ThreadTaskerRunnable(String name, ThreadTasker tasker) {
+            this.name = name;
+            this.tasker = tasker;
         }
 
-        public ThreadMainTasker getListener() {
-            return mThreadMainTasker;
+        @Override
+        public void run() {
+            try {
+                tasker.taskExecute();
+                tasker.taskFinish(false);
+            }catch (Throwable e){
+                tasker.taskFinish(true);
+                e.printStackTrace();
+            }finally {
+                TaskManager.getInstance().cancelOnceInThread(name);
+            }
+        }
+    }
+
+    public static class ThreadMainTaskerRunnable implements Runnable{
+        private String name;
+        private long delay;
+        private ThreadMainTasker tasker;
+
+        public ThreadMainTaskerRunnable(String name,long delay,ThreadMainTasker tasker) {
+            this.name = name;
+            this.delay = delay;
+            this.tasker = tasker;
         }
 
-        public Object getObject() {
-            return mObject;
-        }
+        @Override
+        public void run() {
+            Object o = null;
+            try {
+                o = tasker.taskThreadExecute();
+                tasker.taskThreadFinish(false);
+                if(mMainHandler!=null){
+                    Message message = Message.obtain();
+                    message.what = THREAD_TO_MAIN;
+                    message.obj = new ThreadMainTaskerData(tasker,o);
+                    mMainHandler.sendMessageDelayed(message,delay);
+                }
 
-        public void clear() {
-            mThreadMainTasker = null;
-            mObject = null;
+            }catch (Throwable e){
+                tasker.taskThreadFinish(true);
+                if(mMainHandler!=null){
+                    Message message = Message.obtain();
+                    message.what = THREAD_TO_MAIN;
+                    message.obj = new ThreadMainTaskerData(tasker,o);
+                    mMainHandler.sendMessageDelayed(message,delay);
+                }
+                e.printStackTrace();
+            }finally {
+                TaskManager.getInstance().cancelOnceInThreadToMain(name);
+            }
+        }
+    }
+
+    private static class ThreadMainTaskerData{
+
+        public ThreadMainTasker tasker;
+        public Object object;
+
+        public ThreadMainTaskerData(ThreadMainTasker tasker, Object object) {
+            this.tasker = tasker;
+            this.object = object;
         }
     }
 }
