@@ -82,7 +82,7 @@ public class TaskManager {
                 }
                 mExecutor.execute(runnable);
             }else {
-                Log.i(TAG, "the" + name + " ThreadTasker is running");
+                Log.i(TAG, "the " + name + " ThreadTasker is running");
             }
         }
     }
@@ -119,7 +119,7 @@ public class TaskManager {
                 }
                 mExecutor.execute(runnable);
             }else {
-                Log.i(TAG, "the" + name + " ThreadLoopTasker is running");
+                Log.i(TAG, "the " + name + " ThreadLoopTasker is running");
             }
         }
     }
@@ -175,7 +175,7 @@ public class TaskManager {
                 }
                 mExecutor.execute(runnable);
             }else {
-                Log.i(TAG, "the" + name + " ThreadMainTasker is running");
+                Log.i(TAG, "the " + name + " ThreadMainTasker is running");
             }
         }
     }
